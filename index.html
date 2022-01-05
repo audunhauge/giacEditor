@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,11 +13,187 @@
     <script src="/js/katex/katex.min.js"></script>
     <script src="/js/d3.min.js"></script>
     <script src="/js/function-plot.js"></script>
+    <script src="/js/giacsimple.js" async></script>
     <link rel="stylesheet" href="/js/katex/katex.min.css">
     <link rel="stylesheet" href="css/maed.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
+    <div id="status">Downloading...</div>
+    <div>
+        <progress value="0" max="100" id="progress" hidden=1></progress>
+    </div>
+    <div id="home">
+        <header>
+            <h2>Math editor</h2>
+            Make tests for mathematics.
+            <p>
+                Uses markdown, mathlex, katex, algebrite and functionplot.
+            </p>
+            <div id="menu" class="gui minos">
+                <div class="button" id="help">ShowHelp</div>
+                <div class="button" id="newfile">New file</div>
+                <div class="button hidden" id="aktiv">{current}</div>
+            </div>
+
+
+        </header>
+        <main>
+            <section class="minos">
+
+                <div class="grid-2">
+                    <div>
+                        <h3>Example files</h3>
+                        Click one of the examples below to edit.
+                        <div class="listing" repeat id="examples">
+                            <div data-name="ex$.md" class="file"><label>$</label></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Recent files</h3>
+                        Click filename to edit.
+                        <div class="listing" repeat id="savedFiles">
+                            <div data-name="$" class="file"><label>$</label></div>
+                        </div>
+                        <h3>Gist files</h3>
+                        Click filename to edit.
+                        <div class="listing" repeat id="gistlist">
+                            <div data-name="$" class="file"><label>$</label></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="info hidden" id="info">
+                <p><a href="https://www.markdownguide.org/cheat-sheet/"> Overskrifter og formatering</a></p>
+                <p><a href="http://mathlex.org/doc/language"> Skriv med flat matematisk notasjon</a></p>
+                <ul>
+                    <li>@opp creates a question
+                        <pre>
+                    Displays "Oppgave 1." in large font.
+                    The number increments for each @opp.
+                    The counter is reset by @fasit.
+
+                    @opp (2p)
+                    Løs likningene
+                    </pre>
+                        <pre>
+                    Oppgave 1.  (2p)  // large font
+                    Løs likningene
+                    </pre>
+                    </li>
+                    <li>@fasit marks end of questions - solutions follow</li>
+                    <li>@math starts a math block
+                        <pre>
+                    @math abc
+                    x^x+2x+3
+                    2x+4
+                </pre>
+                        <p>
+                            Displayed using KaTex:
+                        <pre>
+                    a)     xx+2x+3
+                    b)     2x+4
+                </pre>
+                        </p>
+                    </li>
+                    <li>@plot sets up for plotting graphs
+                        <pre>
+                     @plot abc
+                     sin(x)
+                     cos(x)
+                    </pre>
+                        <pre>
+                     a) |graf for sin|    b) |graf for cos|
+                    </pre>
+                    </li>
+                    <li>@alg starts algebra block
+                        <pre>
+                    @alg number
+                    2+3
+                    x+4=6
+                    </pre>
+                        <pre>
+                    1) 2+3    --> 5
+                    2) x+4=6  --> 2
+                    </pre>
+                    </li>
+                    <li>@trig creates svg drawing using trig
+                        <pre>
+                    @trig senter 300 8
+                    p = (1,1)
+                    t = tri({p,a:6,b:6,c:6,ABC:"A,B,C",abc:"c,a,b" }) 
+                    s = t.center
+                    r = t.radius
+                    trekant(t)
+                    circle(s,r)
+                    dot(s)
+                    text(s,"S")
+                    </pre>
+                        <svg id="trig489" width="300" viewBox="0 0  300 300">
+                            <g transform="scale(0.6)">
+                                <polygon points="37.50,262.50 262.50,262.50 150,67.64" stroke="blue" fill="none">
+                                </polygon>
+                                <text font-size="100%" x="11.36" y="277.59">A</text><text font-size="100%" x="272.24"
+                                    y="268.13">B</text><text font-size="100%" x="150" y="56.39">C</text><text
+                                    font-size="100%" x="150" y="284.60" text-anchor="middle">c</text><text
+                                    font-size="100%" x="215.99" y="159.45" text-anchor="start">a</text><text
+                                    font-size="100%" x="84.01" y="159.45" text-anchor="end">b</text>
+                                <circle cx="150" cy="197.55" r="64.95" stroke="blue" fill="none"></circle>
+                                <circle cx="150" cy="197.55" r="3" fill="blue"></circle>
+                                <path id="mm56545451" d="M 150 197.55 L 187.50 197.55"></path>
+                                <text font-size="100%">
+                                    <textPath x="4" y="2.7320508075688776" startOffset="25%" href="#mm56545451">
+                                        <tspan dy="-5">
+                                            S
+                                        </tspan>
+                                    </textPath>
+                                </text>
+                            </g>
+                        </svg>
+                    </li>
+
+                </ul>
+
+
+            </section>
+        </main>
+        <footer></footer>
+    </div>
+    <div id="app" class="hidden minos">
+        <header class="gui">
+            <div id="menu" class="gui">
+                <div class="button" id="back">Home</div>
+                <div class="button" id="save">Save</div>
+                <div class="button" id="load">Open</div>
+                <div id="filename"><input type="text" id="filename"></div>
+            </div>
+        </header>
+        <div id="frame">
+            <div id="editor" class="gui">
+                <div>
+                    <label>Editor font size
+                        <input id="efs" type="range" min="30" max="100">
+                    </label>{efs/50}
+                </div>
+                <textarea name="ed" id="ed" cols="30" rows="10" stil="font-size:{efs/50}rem;line-height:{efs/50}rem;">
+
+            </textarea>
+            </div>
+            <div>
+                <div class="gui">
+                    <label>Font size
+                        <input id="fs" type="range" min="30" max="100"> {fs/50}
+                    </label>
+                </div>
+                <div id="mathView" stil="font-size:{fs/50}rem;width:{bw}rem;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="output"></div>
 
     <script type="module">
         window.onload = () => {
@@ -27,6 +204,7 @@
         }
         import './js/editor.js';
     </script>
-    
+
 </body>
+
 </html>

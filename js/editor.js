@@ -102,13 +102,25 @@ import { code2svg, parse } from './trig.js';
 
 const { min, max } = Math;
 
+const solve = exp => {
+    try {
+        // @ts-ignore
+        const g = UI.eval(`solve(${exp})`);
+        return g;
+    } catch (e) {
+        console.log("Solve ", e, exp);
+        return exp;
+    }
+}
 
 
 
 const simplify = exp => {
     try {
         // @ts-ignore
-        return Algebrite.simplify(exp);
+        const g = UI.eval(`latex(simplify(${exp}))`).replace(/"/g,'');
+        console.log(g);
+        return g;
     } catch (e) {
         console.log("Simplyfy ", e, exp);
         return exp;
@@ -116,9 +128,8 @@ const simplify = exp => {
 }
 
 // algebrite to latex
-const alg2tex = alg => (typeof alg === "string")
-    ? alg
-    : alg.toLatexString();
+const alg2tex = alg => alg.replace(/\*/g,"");
+   
 
 
 // @ts-ignore
@@ -158,9 +169,8 @@ const makeLatex = (txt, { mode, klass }) => {
         const tex = MathLex.render(m, "latex");
         return katx(String(tex), mode);
     } catch (e) {
-        console.log(e, txt, clean);
+        //console.log(e, txt, clean);
         return katx(String(clean), mode);
-        //return clean;
     }
 }
 
@@ -181,8 +191,7 @@ const renderLikning = (line, { mode, klass }) => {
 }
 
 function renderAlgebra(id, txt, size = "") {
-    // @ts-ignore
-    Algebrite.clearall();  // drop all old values
+    UI.eval("restart");
     const newMath = [];
     const mode = size.includes("senter");
     const klass = size;
@@ -192,9 +201,9 @@ function renderAlgebra(id, txt, size = "") {
         const [line, comment = ""] = lines[i].split("::");
         const clean = cleanUpMathLex(line);
         const [lhs, rhs] = clean.split("=");
-        const math = (lhs && rhs && lhs.length > 1)
-            ? alg2tex(simplify(`roots(${lhs}-(${rhs}))`))
-            : alg2tex((simplify(clean), simplify(lhs)));
+        const math = (lhs && rhs && rhs.length >= 1)
+            ? alg2tex(solve(`(${lhs}=(${rhs}))`))
+            : alg2tex(simplify(lhs));
         newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
         <span>${gives}</span>
         <span>${katx(math, mode)}</span><span>${comment}</span>`;

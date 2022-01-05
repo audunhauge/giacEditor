@@ -2,17 +2,18 @@ function $id(id) { return document.getElementById(id); }
 
 var Module = {
   // TOTAL_MEMORY:134217728,
-  ready:false,
+  ready: false,
   worker: false,
   htmlcheck: true,
   htmlbuffer: '',
   preRun: [],
   postRun: [],
-  lastrefresh:0,
-  print_target:0,
+  lastrefresh: 0,
+  print_target: 0,
+
   print: function (text) {
-    var element=Module.print_target; if (element==0) return;
-    //console.log('Module.print',text);
+    return;
+    var element = Module.print_target; if (element == 0) return;
     if (text.length == 1 && text.charCodeAt(0) == 12) {
       element.innerHTML = '';
       return;
@@ -25,36 +26,30 @@ var Module = {
     }
     if (text.length >= 1 && text.charCodeAt(0) == 3) {
       console.log('ETX');
-      Module.htmlcheck = true; 
+      Module.htmlcheck = true;
       // element.style.display = 'block';
       element.innerHTML += htmlbuffer;
       htmlbuffer = '';
       // element.scrollTop = 99999;
       return;
-    } 
+    }
     if (Module.htmlcheck) {
       // These replacements are necessary if you render to raw HTML
       text = '' + text;
-      console.log('print',text); 
+      console.log('print', text);
       text = text.replace(/&/g, "&amp;");
       text = text.replace(/</g, "&lt;");
       text = text.replace(/>/g, "&gt;");
       text = text.replace(/\n/g, '<br>');
       text += '<br>';
-      // var tmp = $id('consolediv');
-      //if (tmp.style.display != 'block') {
-      //tmp.style.display = 'block';
-      //UI.set_config_width();
-      //}
-      // element.style.display = 'block';
-      element.innerHTML += '<em>'+text+'</em>'; // element.value += text + "\n";
-      // element.scrollTop = 99999; // focus on bottom
+      element.innerHTML += '<em>' + text + '</em>'; 
     } else htmlbuffer += text;
-    // element.scrollIntoView();
   },
+
   printErr: function (text) {
     console.log(text);
   },
+
   canvas: document.getElementById('canvas'),
   setStatus: function (text) {
     if (Module.setStatus.interval) clearInterval(Module.setStatus.interval);
@@ -78,87 +73,30 @@ var Module = {
     this.totalDependencies = Math.max(this.totalDependencies, left);
     Module.setStatus(left ? 'Preparation... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'Telechargements termines.');
   },
-  loadgiac:function(){
+  loadgiac: function () {
     var script = document.createElement("script");
-    script.type = "text/javascript";
-    var detectmob= function () {
-      if (navigator.userAgent.match(/Android/i)
-	  || navigator.userAgent.match(/webOS/i)
-	  || navigator.userAgent.match(/iPhone/i)
-	  || navigator.userAgent.match(/iPad/i)
-	  || navigator.userAgent.match(/iPod/i)
-	  || navigator.userAgent.match(/BlackBerry/i)
-	  || navigator.userAgent.match(/Windows Phone/i)
-	 ) return true;
-      else
-	return false;
-    };
-    var supported = (function () {
-      try {
-	if (typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function") {
-	  var module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
-	  if (module instanceof WebAssembly.Module)
-            return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
-	}
-      } catch (e) {}
-      return false;
-    })();
-    if (Boolean(window.chrome)){
-      // UI.usemathjax=true;
-      if (detectmob() || window.location.href.substr(0,4)=='file')
-	supported=false;
-    }
-    var webAssemblyAvailable = supported;
-    /*
-      if (Boolean(window.chrome)){
-      if (!detectmob()) webAssemblyAvailable = !!window.WebAssembly && window.location.href.substr(0,4)!='file';
-      }
-      else {
-      var ua = window.navigator.userAgent;
-      var old_ie = ua.indexOf('MSIE ');
-      var new_ie = ua.indexOf('Trident/');
-      if (!UI.detectmob() && old_ie<=-1 && new_ie<=-1)
-      webAssemblyAvailable =!!window.WebAssembly;
-      } */
-    //alert(webAssemblyAvailable?'true':'false');
-    console.log('wasm ', supported, webAssemblyAvailable);
-    if (webAssemblyAvailable) 
-      script.src = "giacwasm.js";
-    else
-      script.src = "giac.js";
+    script.type = "text/javascript";   
+    script.src = "giacwasm.js";
+   
     document.getElementsByTagName("head")[0].appendChild(script);
-    var ua = window.navigator.userAgent;
-    var old_ie = ua.indexOf('MSIE ');
-    var new_ie = ua.indexOf('Trident/');
-    if ((old_ie > -1) || (new_ie > -1) || Boolean(window.chrome)) {
-      UI.usemathjax=true;
-      (function () {
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        //script.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML";
-        script.src ="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
-        script.id="MathJax-script"; console.log(script.src);
-        document.getElementsByTagName("head")[0].appendChild(script);
-      })();
-    }
   },
 };
 Module.setStatus('T&eacute;l&eacute;chargement et pr&eacute;paration (peut prendre 1 ou 2 minutes la premi&egrave;re fois)');
 Module['onRuntimeInitialized'] = function () {
   console.log('UI is ready');
-  Module.ready=true;
-  Module.print_target=document.getElementById('output');
-  document.getElementById('input').select();
-  document.getElementById('input').focus();
+  Module.ready = true;
+  Module.print_target = document.getElementById('output');
+  //document.getElementById('input').select();
+  //document.getElementById('input').focus();
 }
 
-var UI={
-  disable3d:0, // -1==3d not supported
-  tableaucm:0, // 1 if codemirror focused
-  debug:0,
-  Datestart:Date.now(),
+var UI = {
+  disable3d: 0, // -1==3d not supported
+  tableaucm: 0, // 1 if codemirror focused
+  debug: 0,
+  Datestart: Date.now(),
   ready: false,
-  colorinit:false,
+  colorinit: false,
   usemathjax: false,
   prettyprint: true,
   histcount: 0,
@@ -176,24 +114,24 @@ var UI={
   canvas_lastx: 0,
   canvas_lasty: 0,
   canvas_pushed: false,
-  touch_handler:function(event){
+  touch_handler: function (event) {
     var touches = event.changedTouches,
-        first = touches[0];
-    var s2=first.target.id;
-    var is_3d= s2.length>5 && s2.substr(0,4)=='gl3d';
-    var n3d='';
+      first = touches[0];
+    var s2 = first.target.id;
+    var is_3d = s2.length > 5 && s2.substr(0, 4) == 'gl3d';
+    var n3d = '';
     if (is_3d)
       n3d = s2.substr(5, s2.length - 5);
     event.preventDefault();
-    if (event.type=="touchstart"){
-      UI.canvas_pushed=true;
-      UI.canvas_lastx=first.clientX; UI.canvas_lasty=first.clientY;
+    if (event.type == "touchstart") {
+      UI.canvas_pushed = true;
+      UI.canvas_lastx = first.clientX; UI.canvas_lasty = first.clientY;
     }
-    if (event.type=="touchmove"){
+    if (event.type == "touchmove") {
       UI.canvas_mousemove(first, n3d);
     }
-    if (event.type=="touchend"){
-      UI.canvas_pushed=false;
+    if (event.type == "touchend") {
+      UI.canvas_pushed = false;
     }
   },
   giac_renderer: function (text) {
@@ -225,12 +163,12 @@ var UI={
       }
     }
   },
-  python_mode_str: function(){
-    if (UI.micropy==-1) return '>>';
-    var i=UI.python_mode;
-    if (i==0) return '>';
-    if (i==1) return '^>';
-    if (i==2) return '**>';
+  python_mode_str: function () {
+    if (UI.micropy == -1) return '>>';
+    var i = UI.python_mode;
+    if (i == 0) return '>';
+    if (i == 1) return '^>';
+    if (i == 2) return '**>';
     if (i & 4) return '>>>';
     return '?';
   },
@@ -254,70 +192,70 @@ var UI={
       UI.render_canvas(f);
     }
   },
-  eval_input:function(output,input){
-    var divadd=document.createElement("div");
+  eval_input: function (output, input) {
+    var divadd = document.createElement("div");
     output.appendChild(divadd);
-    var divprint=document.createElement("div"); Module.print_target=divprint;
-    divadd.innerHTML+= '<tt>'+UI.python_mode_str()+' '+input.value+'</tt><br>';
-    var s2=UI.eval(input.value);
-    var is_3d= s2.length>5 && s2.substr(0,4)=='gl3d';
-    var gr3ds='';
-    if (is_3d){
+    var divprint = document.createElement("div"); Module.print_target = divprint;
+    divadd.innerHTML += '<tt>' + UI.python_mode_str() + ' ' + input.value + '</tt><br>';
+    var s2 = UI.eval(input.value);
+    var is_3d = s2.length > 5 && s2.substr(0, 4) == 'gl3d';
+    var gr3ds = '';
+    if (is_3d) {
       var n3d = s2.substr(5, s2.length - 5);
-      gr3ds='gl3d_'+n3d;
+      gr3ds = 'gl3d_' + n3d;
       console.log(gr3ds);
-      s2='<div> <canvas id="gl3d_' + n3d + '" onmousedown="UI.canvas_pushed=true;UI.canvas_lastx=event.clientX; UI.canvas_lasty=event.clientY;" onmouseup="UI.canvas_pushed=false;" onmousemove="UI.canvas_mousemove(event,' + n3d + ')" width=' + 400 + ' height=' + 250 + '></canvas></div>';
-      console.log('create3d',s2);
-      $id('canvas').style.display='none';
+      s2 = '<div> <canvas id="gl3d_' + n3d + '" onmousedown="UI.canvas_pushed=true;UI.canvas_lastx=event.clientX; UI.canvas_lasty=event.clientY;" onmouseup="UI.canvas_pushed=false;" onmousemove="UI.canvas_mousemove(event,' + n3d + ')" width=' + 400 + ' height=' + 250 + '></canvas></div>';
+      console.log('create3d', s2);
+      $id('canvas').style.display = 'none';
     }
     else {
-      if (UI.micropy==0)
-	s2=UI.eval_cmdline1cb(s2,input.value);
+      if (UI.micropy == 0)
+        s2 = UI.eval_cmdline1cb(s2, input.value);
     }
-    var is_svg=s2.length>5 && (s2.substr(0,4)=='<svg' || s2.substr(0,5)=='gr2d(' );
+    var is_svg = s2.length > 5 && (s2.substr(0, 4) == '<svg' || s2.substr(0, 5) == 'gr2d(');
     if (is_svg)
-      s2='<div>'+s2+'</div>';
+      s2 = '<div>' + s2 + '</div>';
     // if (s2.length>9 && s2.substr(0,9)=='<div><svg'){ s2='<div><svg style="margin-top:24px"'+s2.substr(9,s2.length-9); }
-    var gr2ds='';
-    var is_2d=s2.length>11 && s2.substr(0,10)=='<div>gr2d(';
-    if (is_2d){
-      for (;++UI.gr2d_ncanvas;){
-	gr2ds = 'gr2d_' + UI.gr2d_ncanvas;
-	if ($id(gr2ds)==null)
-	  break;
+    var gr2ds = '';
+    var is_2d = s2.length > 11 && s2.substr(0, 10) == '<div>gr2d(';
+    if (is_2d) {
+      for (; ++UI.gr2d_ncanvas;) {
+        gr2ds = 'gr2d_' + UI.gr2d_ncanvas;
+        if ($id(gr2ds) == null)
+          break;
       }
-      s2 = "<div> <canvas id='" + gr2ds + "' width=" + UI.canvas_w + " height=" + UI.canvas_h + "> </canvas><textarea style='display:none'>" + s2.substr(5,s2.length-11) + "</textarea></div>";
+      s2 = "<div> <canvas id='" + gr2ds + "' width=" + UI.canvas_w + " height=" + UI.canvas_h + "> </canvas><textarea style='display:none'>" + s2.substr(5, s2.length - 11) + "</textarea></div>";
       UI.gr2d_ncanvas++;
     }
-    divadd.innerHTML+='<em>'+divprint.innerHTML+'</em>';
-    if (!is_3d && !is_2d && !is_svg && s2!='')
-      divadd.innerHTML+='&nbsp;&nbsp;';
-    divadd.innerHTML+=s2+'<br>';
-    if (is_3d){
-      var el=$id(gr3ds);
+    divadd.innerHTML += '<em>' + divprint.innerHTML + '</em>';
+    if (!is_3d && !is_2d && !is_svg && s2 != '')
+      divadd.innerHTML += '&nbsp;&nbsp;';
+    divadd.innerHTML += s2 + '<br>';
+    if (is_3d) {
+      var el = $id(gr3ds);
       el.addEventListener("touchstart", UI.touch_handler, false);
       el.addEventListener("touchend", UI.touch_handler, false);
       el.addEventListener("touchmove", UI.touch_handler, false);
     }
     //console.log(output);
-    if (UI.usemathjax){
+    if (UI.usemathjax) {
       eval("MathJax.typeset();")
       //console.log(divText.id);
       //MathJax.Hub.Process(divText.id);
     }
-    Module.print_target=0;
+    Module.print_target = 0;
     UI.render_canvas(output);
     input.scrollIntoView(true);
     input.select();
   },
   eval_cmdline1cb: function (out, value) {
-    var s,graphe=false;
+    var s, graphe = false;
     //console.log('eval_cmdline1cb',out);
     if (out.length > 5 && (out.substr(1, 4) == '<svg' || out.substr(0, 5) == 'gl3d ' || out.substr(0, 5) == 'gr2d(')) {
       //console.log(s);
       s = out;
       out = 'Done_graphic';
-      graphe=true;
+      graphe = true;
     }
     else {
       if (out.length > 1 && out[out.length - 1] == ';')
@@ -331,17 +269,17 @@ var UI={
           else
             s = 'mathml(quote(' + out + '),1)'; //Module.print(s);
           if (UI.debug)
-	    console.log('eval_cmdline1cb ',out,s);
+            console.log('eval_cmdline1cb ', out, s);
           if (out.length > 10 && out.substr(0, 10) == 'GIAC_ERROR')
             s = '"' + out.substr(11, out.length - 11) + '"';
           else s = UI.caseval_noautosimp(s);
         } else s = out;
       }
     }
-    if (s[0]=='"' && s.length>=2) s=s.substr(1,s.length-2);
-    if (graphe) s='<div>'+s+'</div>';
+    if (s[0] == '"' && s.length >= 2) s = s.substr(1, s.length - 2);
+    if (graphe) s = '<div>' + s + '</div>';
     else {
-      if (UI.usemathjax) s='\\['+s+'\\]';
+      if (UI.usemathjax) s = '\\[' + s + '\\]';
     }
     return s;//UI.eval_cmdline1end(value, out, s);
   },
@@ -375,20 +313,20 @@ var UI={
     //console.log(s);
     return s;
   },
-  eval:function(text){
+  eval: function (text) {
     ++UI.histcount;
-    if (UI.micropy==-1)
+    if (UI.micropy == -1)
       return eval(text);
-    if (UI.micropy==1)
+    if (UI.micropy == 1)
       return UI.mp_eval(text);
     return UI.caseval(text);
   },
-  handle_shortcuts:function(text){
-    if (text=='.') return 'avance(0)';
-    if (text==',') return 'show()';
-    if (text==';') return 'show_pixels()';
-    if (text=='python' || text=='python '){
-      UI.micropy=1; UI.python_mode = 4;
+  handle_shortcuts: function (text) {
+    if (text == '.') return 'avance(0)';
+    if (text == ',') return 'show()';
+    if (text == ';') return 'show_pixels()';
+    if (text == 'python' || text == 'python ') {
+      UI.micropy = 1; UI.python_mode = 4;
       //UI.set_settings();
       //var form = $id('config');
       //form.python_xor.checked = true;
@@ -396,104 +334,104 @@ var UI={
       console.log('now eval with micropython');
       return 'python_compat(4)';
     }
-    if (text=='javascript' || text=='javascript '){
-      UI.micropy=-1; UI.python_mode = 0;
+    if (text == 'javascript' || text == 'javascript ') {
+      UI.micropy = -1; UI.python_mode = 0;
       console.log('now eval with javascript');
       return 'python_compat(0)';
     }
     return text;
   },
   // emscripten micropython interface
-  mp_init:function(taille){
+  mp_init: function (taille) {
     var init = Module.cwrap('mp_js_init', 'null', ['number']);
-    UI.micropy_initialized=1;
+    UI.micropy_initialized = 1;
     return init(taille);
   },
-  mp_str:function(s){
+  mp_str: function (s) {
     var ev = Module.cwrap('mp_js_do_str', 'number', ['string']);
     return ev(s);
   },
-  micropy:0,
-  micropy_initialized:0,
-  micropy_heap:4194304,
-  python_output:"",
-  clean_for_html: function(text){
+  micropy: 0,
+  micropy_initialized: 0,
+  micropy_heap: 4194304,
+  python_output: "",
+  clean_for_html: function (text) {
     text = text.replace(/&/g, "&amp;");
     text = text.replace(/</g, "&lt;");
     text = text.replace(/>/g, "&gt;");
     text = text.replace(/\n/g, '<br>');
     return text;
-  },    
-  add_python_output:function(s){
+  },
+  add_python_output: function (s) {
     UI.python_output += s;
     //console.log(s);//console.log(UI.python_output);
   },
-  set_config_width: function(){
+  set_config_width: function () {
   },
   sleep: function (miliseconds) {
     var currentTime = new Date().getTime();
     while (currentTime + miliseconds >= new Date().getTime()) {
     }
   },
-  mp_eval:function(text){
-    if (text=='xcas' || text=='xcas '){
-      UI.micropy=0; UI.python_mode=0; 
+  mp_eval: function (text) {
+    if (text == 'xcas' || text == 'xcas ') {
+      UI.micropy = 0; UI.python_mode = 0;
       //var form = $id('config');
       //form.python_xor.checked = false;
       //form.python_mode.checked = true;
       //UI.set_settings();
       return UI.caseval('python_compat(1)');
     }
-    if (text=='.'){ // show turtle
-      var s=UI.caseval('avance(0)');
+    if (text == '.') { // show turtle
+      var s = UI.caseval('avance(0)');
       //console.log(s);
       return s;
     }
-    if (text==','){ // show (matplotl)
+    if (text == ',') { // show (matplotl)
       Module.print('>>> show()');
-      var s=UI.caseval('show()');
+      var s = UI.caseval('show()');
       return s;
     }
-    if (text==';'){
-      var s=UI.caseval('show_pixels()');
+    if (text == ';') {
+      var s = UI.caseval('show_pixels()');
       return s;
     }
-    if (!UI.micropy_initialized){
+    if (!UI.micropy_initialized) {
       UI.mp_init(UI.micropy_heap);
       console.log('mp_init done');
       try {
-	UI.mp_eval("1");
+        UI.mp_eval("1");
       }
-      catch(err) { console.log('mp_init eval(1)',err);}
+      catch (err) { console.log('mp_init eval(1)', err); }
     }
-    UI.python_output='';
+    UI.python_output = '';
     /*
     var pos=text.search('=');
     if (pos<0){
       pos=text.search('print');
       if (pos<0)
-	text='print('+text+')';
+  text='print('+text+')';
     }
     */
-    console.log('mp_eval',text);
+    console.log('mp_eval', text);
     //Module.print('>>> '+text);
     UI.mp_str(text);
-    console.log('mp_evaled',UI.python_output);
-    if (UI.python_output==''){
+    console.log('mp_evaled', UI.python_output);
+    if (UI.python_output == '') {
       return '"Done"';
     }
-    if (UI.python_output.substr(UI.python_output.length-1,1)=='\n')
-      UI.python_output=UI.python_output.substr(0,UI.python_output.length-1);
-    if (UI.python_output.length>4 && UI.python_output.substr(0,5)=='"<svg')
+    if (UI.python_output.substr(UI.python_output.length - 1, 1) == '\n')
+      UI.python_output = UI.python_output.substr(0, UI.python_output.length - 1);
+    if (UI.python_output.length > 4 && UI.python_output.substr(0, 5) == '"<svg')
       return UI.caseval('show()');
     return ''; // UI.python_output; // '"'+UI.python_output+'"';
   },
-  handle_shortcuts:function(text){
-    if (text=='.') return 'avance(0)';
-    if (text==',') return 'show()';
-    if (text==';') return 'show_pixels()';
-    if (text=='python' || text=='python '){
-      UI.micropy=1; UI.python_mode = 4;
+  handle_shortcuts: function (text) {
+    if (text == '.') return 'avance(0)';
+    if (text == ',') return 'show()';
+    if (text == ';') return 'show_pixels()';
+    if (text == 'python' || text == 'python ') {
+      UI.micropy = 1; UI.python_mode = 4;
       //UI.set_settings();
       //var form = $id('config');
       //form.python_xor.checked = true;
@@ -501,8 +439,8 @@ var UI={
       console.log('now eval with micropython');
       return 'python_compat(4)';
     }
-    if (text=='javascript' || text=='javascript '){
-      UI.micropy=-1; UI.python_mode = 0;
+    if (text == 'javascript' || text == 'javascript ') {
+      UI.micropy = -1; UI.python_mode = 0;
       console.log('now eval with javascript');
       return 'python_compat(0)';
     }
@@ -702,9 +640,9 @@ var UI={
       if (c < 0x17e)
         return UI.arc_en_ciel(c);
       //console.log('rgb('+Math.floor(c/(256*256))+','+(Math.floor(c/256) % 256)+','+(c%256)+')');
-      var r=8*((c>>11) & 0x1f);
-      var g=4*((c>>5) & 0x3f);
-      var b=8*(c & 0x1f);
+      var r = 8 * ((c >> 11) & 0x1f);
+      var g = 4 * ((c >> 5) & 0x3f);
+      var b = 8 * (c & 0x1f);
       return 'rgb(' + r + ',' + g + ',' + b + ')';
       // return 'rgb(' + Math.floor(c / (256 * 256)) + ',' + (Math.floor(c / 256) % 256) + ',' + (c % 256) + ')';
     }
@@ -721,18 +659,18 @@ var UI={
     for (var k = 1; k < l; k++) {
       var cur = v[k];
       var x = cur[0], y = cur[1];
-      if (cur.length==3 && typeof cur[2]!="number"){
-	x+=100;
-	y+=16;
+      if (cur.length == 3 && typeof cur[2] != "number") {
+        x += 100;
+        y += 16;
       }
-      if (cur.length==4) {
+      if (cur.length == 4) {
         var tmp = cur[3];
-	if (typeof tmp=="number"){
+        if (typeof tmp == "number") {
           if (tmp > 0) y += tmp; else x -= tmp;
-	} else {
-	  x+=100;
-	  y+=16;
-	}
+        } else {
+          x += 100;
+          y += 16;
+        }
       }
       //console.log(cur,x,y);
       if (x > w) w = x;
@@ -752,23 +690,23 @@ var UI={
         // cur[0]=x, cur[1]=y, cur[2]=color, cur[3]=w if +, h if -
         var x = cur[0] * scale;
         var y = cur[1] * scale;
-	if (cl>2 && typeof cur[2]=="string"){
-	  console.log(cur[2]);
-	  ctx.font = '16px serif';
-	  ctx.fillStyle = 'black';
-	  ctx.fillText(cur[2],x,y+16,100);
-	  continue;
-	}
+        if (cl > 2 && typeof cur[2] == "string") {
+          console.log(cur[2]);
+          ctx.font = '16px serif';
+          ctx.fillStyle = 'black';
+          ctx.fillText(cur[2], x, y + 16, 100);
+          continue;
+        }
         ctx.fillStyle = (cl > 2) ? UI.turtle_color(cur[2]) : 'black';
         if (cl < 4) {
           ctx.fillRect(x, y, scale, scale);
           continue;
         }
-	if (typeof cur[3]=="string"){
-	  ctx.font = '16px serif';
-	  ctx.fillText(cur[3],x,y+16,100);
-	  continue;
-	}
+        if (typeof cur[3] == "string") {
+          ctx.font = '16px serif';
+          ctx.fillText(cur[3], x, y + 16, 100);
+          continue;
+        }
         var h = cur[3] * scale, w = scale;
         if (h < 0) {
           w = -h;
@@ -804,7 +742,7 @@ var UI={
       var turtlezoom = UI.turtle_z, turtlex = UI.turtle_dx, turtley = UI.turtle_dy;
       // background
       ctx.fillStyle = 'white';
-      ctx.fillRect(0,0,w,h);
+      ctx.fillRect(0, 0, w, h);
       // maillage
       if (UI.turtle_maillage & 3) {
         ctx.fillStyle = 'black';
@@ -864,29 +802,29 @@ var UI={
         }
         var radius = cur[4], precradius = prec[4];
         var x1 = Math.floor(turtlezoom * (prec[0] - turtlex) + .5),
-            y1 = Math.floor(turtlezoom * (prec[1] - turtley) + .5),
-            x2 = Math.floor(turtlezoom * (cur[0] - turtlex) + .5),
-            y2 = Math.floor(turtlezoom * (cur[1] - turtley) + .5);
+          y1 = Math.floor(turtlezoom * (prec[1] - turtley) + .5),
+          x2 = Math.floor(turtlezoom * (cur[0] - turtlex) + .5),
+          y2 = Math.floor(turtlezoom * (cur[1] - turtley) + .5);
         if (radius > 0) {
           var r = radius & 0x1ff, theta1, theta2, rempli, x, y, R, angle;
-          theta1 = prec[2]+ ((radius >> 9) & 0x1ff);
+          theta1 = prec[2] + ((radius >> 9) & 0x1ff);
           theta2 = prec[2] + ((radius >> 18) & 0x1ff);
           rempli = (radius >> 27) & 1;
-	  var seg = (radius >> 28) & 1;
+          var seg = (radius >> 28) & 1;
           R = Math.floor(turtlezoom * r + .5);
           angle1 = Math.PI / 180 * (theta1 - 90);
           angle2 = Math.PI / 180 * (theta2 - 90);
           x = Math.floor(turtlezoom * (cur[0] - turtlex - r * Math.cos(angle2)) + .5);
           y = Math.floor(turtlezoom * (cur[1] - turtley - r * Math.sin(angle2)) + .5);
           ctx.beginPath();
-	  if (seg)
+          if (seg)
             ctx.moveTo(x2, h - y2);
-	  else {
+          else {
             ctx.moveTo(x, h - y);
             ctx.lineTo(x2, h - y2);
-	  }
-	  //console.log(x,y,x1,y1,angle1,angle2);
-          ctx.arc(x, h - y, R, -angle2,-angle1);
+          }
+          //console.log(x,y,x1,y1,angle1,angle2);
+          ctx.arc(x, h - y, R, -angle2, -angle1);
           ctx.closePath();
           ctx.strokeStyle = ctx.fillStyle = UI.turtle_color(curcouleur);
           if (rempli)
