@@ -105,8 +105,8 @@ const { min, max } = Math;
 const solve = exp => {
     try {
         // @ts-ignore
-        const g = UI.eval(`solve(${exp})`);
-        return g;
+        return UI.eval(`latex(solve(${exp}))`).replace(/"/g, '');
+        //return g.replace(/list\[(.+)\]/g, (_,a)=>`\\{${a}\\}`)
     } catch (e) {
         console.log("Solve ", e, exp);
         return exp;
@@ -117,10 +117,9 @@ const solve = exp => {
 
 const simplify = exp => {
     try {
-        // @ts-ignore
-        const g = UI.eval(`latex(simplify(${exp}))`).replace(/"/g,'');
-        console.log(g);
-        return g;
+        return (exp.charAt(0) === ' ')
+            ? UI.eval(`latex((${exp}))`).replace(/"/g, '')
+            : UI.eval(`latex(simplify(${exp}))`).replace(/"/g, '');
     } catch (e) {
         console.log("Simplyfy ", e, exp);
         return exp;
@@ -128,8 +127,8 @@ const simplify = exp => {
 }
 
 // algebrite to latex
-const alg2tex = alg => alg.replace(/\*/g,"");
-   
+const alg2tex = alg => alg.replace(/\*/g, "");
+
 
 
 // @ts-ignore
@@ -200,10 +199,13 @@ function renderAlgebra(id, txt, size = "") {
     for (let i = 0; i < lines.length; i++) {
         const [line, comment = ""] = lines[i].split("::");
         const clean = cleanUpMathLex(line);
+        const assign = clean.includes(":=");
         const [lhs, rhs] = clean.split("=");
-        const math = (lhs && rhs && rhs.length >= 1)
-            ? alg2tex(solve(`(${lhs}=(${rhs}))`))
-            : alg2tex(simplify(lhs));
+        const math = assign ?
+            alg2tex(simplify(clean))
+            : (lhs && rhs && rhs.length >= 1)
+                ? alg2tex(solve(`(${lhs}=(${rhs}))`))
+                : alg2tex(simplify(lhs));
         newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
         <span>${gives}</span>
         <span>${katx(math, mode)}</span><span>${comment}</span>`;
@@ -245,12 +247,12 @@ function plotGraph(parent, fu, size, colors) {
 
 const alg2plot = fu => {
     const fu2 = cleanUpMathLex(fu);
-    return fu2.replace(/e\^([a-z])/, (_,a) => {
+    return fu2.replace(/e\^([a-z])/, (_, a) => {
         return `exp(${a})`;
     })
-    .replace(/e\^\(([^)]+)\)/, (_,a) => {
-        return `exp(${a})`;
-    })
+        .replace(/e\^\(([^)]+)\)/, (_, a) => {
+            return `exp(${a})`;
+        })
 }
 
 function renderPlot(id, plot, klass = "") {
@@ -267,8 +269,8 @@ function renderPlot(id, plot, klass = "") {
 
 function renderTrig(id, trig, klass = "") {
     const parent = $(id);
-    const [_, w = 350, s = 8, scale=1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
-    const parsed = parse(trig,`{w:${w},s:${s}}`);
+    const [_, w = 350, s = 8, scale = 1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
+    const parsed = parse(trig, `{w:${w},s:${s}}`);
     const lines = parsed.split('\n').filter(e => e != "");
     const svg = code2svg(lines, w, s);
     parent.innerHTML = `<svg id="${id}" width="${w}" viewBox="0 0  ${w} ${w}"> 
