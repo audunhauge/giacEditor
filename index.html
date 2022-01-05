@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Editor</title>
+    <title>MathEd</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="/js/remarkable.min.js"></script>
+    <script src="/js/mathlex.min.js"></script>
+    <script src="/js/katex/katex.min.js"></script>
+    <script src="/js/d3.min.js"></script>
+    <script src="/js/function-plot.js"></script>
+    <link rel="stylesheet" href="/js/katex/katex.min.css">
+    <link rel="stylesheet" href="css/maed.css">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+    <script type="module">
+        window.onload = () => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker
+                    .register('./sw.js');
+            }
+        }
+        import './js/editor.js';
+    </script>
+    
+</body>
+</html>

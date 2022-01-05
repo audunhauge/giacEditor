@@ -1,0 +1,37 @@
+{
+    "short_name": "MathEd",
+    "name": "Math Editor",
+    "start_url": "/index.html",
+    "background_color": "#3367D6",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#3367D6",
+    "description": "Math Editor",
+    "icons": [
+        {
+            "src": "media/maed-128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "media/maed-144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        }
+    ],
+    "file_handlers": [
+        {
+          "action": "/index.html",
+          "accept": {
+            "text/plain": [".mxy"]
+          },
+          "icons": [
+            {
+              "src": "mxy-icon.png",
+              "sizes": "256x256",
+              "type": "image/png"
+            }
+          ]
+        }
+      ]
+}

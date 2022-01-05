@@ -1,0 +1,36 @@
+.hidden {
+    display: none;
+}
+
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+
+.listing {
+    max-width: 40rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.listing>div {
+    width: fit-content;
+    text-align: center;
+    min-width: 5rem;
+    margin: 4px;
+    padding: 4px;
+    background-color: darkseagreen;
+    color: white;
+    border-radius: 2px;
+}
+
+.listing label {
+    pointer-events: none;
+}
+
+#home.hidden,
+#app.hidden {
+    display: none;
+}

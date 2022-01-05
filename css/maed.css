@@ -1,0 +1,336 @@
+#frame {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    counter-reset: oppg-count;
+}
+
+div.section {
+    counter-increment: oppg-count;
+    color: rgb(2, 49, 2);
+    font-size: 1em;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+div.oppgave::before {
+    content: "Oppgave "counter(oppg-count) ". ";
+    color: blue;
+    font-size: 1.5em;
+}
+
+h1 {
+    display: grid;
+    grid-template-areas: "aa bb";
+    grid-template-columns: 1fr 200px;
+}
+
+h1 span.date {
+    grid-area: "bb";
+}
+
+.red {
+    animation: blush 800ms forwards;
+}
+
+@keyframes blush {
+    0% {
+        background-color: rgba(255, 0, 0, 0.055);
+    }
+
+    99% {
+        background-color: rgba(255, 0, 0, 0.055);
+    }
+
+    99% {
+        background-color: inherit;
+    }
+}
+
+div.section.fasit {
+    counter-reset: oppg-count -1;
+}
+
+@media print {
+
+    div.format.page,
+    div.format.side {
+        page-break-after: always;
+    }
+
+    .oppgave, .math, .algebra, .plots, code {
+        page-break-inside: avoid;
+    }
+
+    code {
+        color: black;
+    }
+
+    .gui,
+    div.section.fasit.skjult {
+        display: none;
+    }
+
+
+
+    div.section.fasit.skjult ~ * {
+        display: none;
+    }
+}
+
+div.oppgave.fasit::before {
+    content: "Fasit ";
+    color: rgb(90, 17, 12);
+    font-size: 2em;
+}
+
+#frame>div {
+    margin: 1rem;
+    padding: 5px;
+}
+
+#editor {
+    position: relative;
+}
+
+#mathView {
+    padding: 3px;
+}
+
+#editor>textarea {
+    font-size: 1.2rem;
+    line-height: 1.7rem;
+    height: calc(min(60vh, 60rem));
+    width: 90%;
+}
+
+#edbox>div {
+    height: 16px;
+}
+
+div.algebra,
+div.math {
+    counter-reset: math-count 0;
+}
+
+div.algebra>div,
+div.math>div {
+    position: relative;
+    margin-left: 3rem;
+}
+
+div.algebra>div,
+div.math>div {
+    counter-increment: math-count;
+}
+
+.math div.eq {
+    display: grid;
+    grid-template-columns: 10fr 1fr 10fr;
+}
+
+div.algebra.bokstav>div::before,
+div.algebra.abc>div::before,
+div.math.abc>div>div:before,
+div.math.bokstav>div>div:before {
+    content: counter(math-count, lower-alpha) ") ";
+    position: absolute;
+    left: -40px;
+    top: 0;
+}
+
+div.math.number>div::before,
+div.algebra.nummer>div::before,
+div.algebra.number>div::before,
+div.math.nummer>div::before {
+    content: counter(math-count) ") ";
+    position: absolute;
+    left: -40px;
+    top: 0;
+}
+
+div.algebra.iv>div::before,
+div.math.likningssett>div>div:before,
+div.math.likningsett>div>div:before {
+    content: counter(math-count, lower-roman) ") ";
+    position: absolute;
+    left: -40px;
+    top: 0;
+}
+
+
+pre>code.language-python {
+    position: relative;
+    display: block;
+    padding: 3px 20px 3px 30px;
+    margin-left: 2rem;
+    width: fit-content;
+    background-color: rgba(232, 236, 236, 0.294);
+    border-radius: 5px;
+    border: solid black 1px;
+    box-shadow: 2px 2px 2px gray;
+    overflow: hidden;
+}
+
+
+/* line numbering for code */
+pre>code::before {
+    position: absolute;
+    display: block;
+    white-space: break-spaces;
+    color: darkgreen;
+    text-align: right;
+    left: 10px;
+    top: 4px;
+    width: 1rem;
+    height: 40rem;
+    content: "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25";
+}
+
+div.senter>div {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.senter.abc, div.senter.nummer,
+div.senter.number, div.senter.bokstav {
+    margin-left: 3rem;
+}
+
+
+div.eq>span:nth-child(1) {
+    text-align: right;
+}
+
+div.eq>span:nth-child(2) {
+    text-align: center;
+}
+
+div.format.br {
+    min-height: 1rem;
+}
+
+div.format.number+ul,
+div.format.abc+ul {
+    counter-reset: ul-count;
+    padding: 0;
+    padding-left: 3rem;
+    list-style-type: none;
+}
+
+span.date {
+    color:green;
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+div.format.number+ul>li,
+div.format.abc+ul>li {
+    position: relative;
+}
+
+div.format.number+ul>li::before,
+div.format.abc+ul>li::before {
+    counter-increment: ul-count;
+    position: absolute;
+    left: -40px;
+    top: 0px;
+}
+
+div.format.abc~ul>li::before {
+    content: counter(ul-count, lower-alpha) ") ";
+}
+
+div.format.number~ul>li::before {
+    content: counter(ul-count) ") ";
+}
+
+#menu {
+    display: grid;
+    width: 25rem;
+    grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
+}
+
+#menu>div.button {
+    background-color: rgb(61, 61, 180);
+    color: white;
+    border-radius: 5px;
+    padding: 2px 4px;
+    width: 5rem;
+    text-align: center;
+    box-shadow: 2px 2px 2px black;
+    transition: 200ms;
+    cursor: pointer;
+    user-select: none;
+}
+
+#menu>div.button:hover {
+    background-color: rgb(112, 112, 204);
+}
+
+
+#menu>div.button:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+div.plots {
+    --min: 400px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--min), 1fr));
+    counter-reset: plot-count;
+}
+
+div.plots>div {
+    position: relative;
+    counter-increment: plot-count;
+    padding-right: 2rem;
+    width: fit-content;
+}
+
+div.plots>div::before {
+    position: absolute;
+    left: 5px;
+    top: 10px;
+    color: blue;
+}
+
+div.plots.abc>div::before {
+    content: counter(plot-count, lower-alpha) ") ";
+
+}
+
+div.plots.roman>div::before {
+    content: counter(plot-count, lower-roman) ") ";
+}
+
+
+div.plots.nummer>div::before {
+    content: counter(plot-count) ") ";
+}
+
+div.algebra>div {
+    display: grid;
+    grid-template-columns: 10fr 1fr 10fr 5fr;
+    padding-bottom: 4px;
+    color: darkgreen;
+}
+
+div.algebra>div>span:nth-child(1) {
+    text-align: right;
+    color: blue;
+}
+
+div.algebra>div>span:nth-child(2) {
+    text-align: center;
+    padding: 0 16px;
+}
+
+div.algebra>div>span:nth-child(4) {
+    text-align: left;
+    padding: 0 16px;
+    color: gray;
+}
+
+div.trig svg {
+    border:solid rgba(128, 128, 128, 0.144) 1px;
+}
