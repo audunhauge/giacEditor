@@ -1035,7 +1035,8 @@ var ASM_CONSTS = [function ($0, $1, $2, $3) {
     , function ($0) {
         if (UI.warnpy) {
             var msg = UTF8ToString($0);
-            alert(msg)
+            //alert(msg)
+            console.log(msg);
         }
     }
     , function () {

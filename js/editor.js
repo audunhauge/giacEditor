@@ -7,7 +7,7 @@ import {
 
 
 const { home, app, back, aktiv, help, info, newfile,
-    mathView, ed, examples, savedFiles } = thingsWithId();
+    mathView, ed, examples, savedFiles, sp } = thingsWithId();
 
 
 import { saveFileButton, readFileButton } from './filehandling.js';
@@ -32,13 +32,19 @@ const goEdit = () => {
     oldSession = getLocalJSON(sessionID);  // previous contents
     const filename = getLocalJSON("filename") || "test.mxy"; // filename
     // set starting font size to 50/50 rem
-    web.fs = 50;   // math region font size
-    web.efs = 50;  // editor font size
+    web.fs = 50;    // math region font size
+    web.efs = 50;   // editor font size
+    web.sp = 50;    // spacing between questions
     ed.value = oldSession || "";
     web.filename = filename;
     if (oldSession) {
         renderAll();
     }
+}
+
+sp.oninput = () => {
+    const root = document.documentElement;
+    root.style.setProperty("--spacing", `${web.sp / 50}rem`);
 }
 
 help.onclick = () => {
@@ -102,32 +108,62 @@ import { code2svg, parse } from './trig.js';
 
 const { min, max } = Math;
 
+
+const giaClean = exp => exp.replace(/["*]/g, '').replace('mbox', 'boxed');
+
 const solve = exp => {
     try {
         // @ts-ignore
-        return UI.eval(`latex(solve(${exp}))`).replace(/"/g, '');
-        //return g.replace(/list\[(.+)\]/g, (_,a)=>`\\{${a}\\}`)
+        return giaClean(UI.eval(`latex(solve(${exp}))`));
     } catch (e) {
         console.log("Solve ", e, exp);
         return exp;
     }
 }
 
-
-
-const simplify = exp => {
+const giaTex = exp => {
     try {
-        return (exp.charAt(0) === ' ')
-            ? UI.eval(`latex((${exp}))`).replace(/"/g, '')
-            : UI.eval(`latex(simplify(${exp}))`).replace(/"/g, '');
+        // @ts-ignore
+        return giaClean(UI.eval(`latex(${exp})`));
+    } catch (e) {
+        console.log("Latex ", e, exp);
+        return exp;
+    }
+}
+
+const operate = (exp, op) => {
+    try {
+        if ((op.charAt(0) === " ")) {
+            // dont simplify
+            // @ts-ignore
+            return UI.eval(`(${exp})${op.substr(1)}`)
+        } else if ("+-*/".includes(op.charAt(0))) {
+            // @ts-ignore
+            return UI.eval(`simplify((${exp})${op})`)
+        } else {
+            // @ts-ignore
+            return UI.eval(`(${op}(${exp}))`)
+        }
     } catch (e) {
         console.log("Simplyfy ", e, exp);
         return exp;
     }
 }
 
-// algebrite to latex
-const alg2tex = alg => alg.replace(/\*/g, "");
+
+const simplify = exp => {
+    try {
+        const g = (exp.charAt(0) === ' ')
+            // @ts-ignore
+            ? UI.eval(`latex((${exp}))`)
+            // @ts-ignore
+            : UI.eval(`latex(simplify(${exp}))`)
+        return giaClean(g);
+    } catch (e) {
+        console.log("Simplyfy ", e, exp);
+        return exp;
+    }
+}
 
 
 
@@ -189,8 +225,15 @@ const renderLikning = (line, { mode, klass }) => {
     <span>${rightLatex}</span></div>`;
 }
 
+/**
+ * 
+ * @param {string} id div containing result
+ * @param {string} txt lines of algebra
+ * @param {string} size TODO remove
+ * @returns {number} percentage of lines+1 with comments 
+ */
 function renderAlgebra(id, txt, size = "") {
-    UI.eval("restart");
+    let comments = 0;
     const newMath = [];
     const mode = size.includes("senter");
     const klass = size;
@@ -198,19 +241,57 @@ function renderAlgebra(id, txt, size = "") {
     const gives = renderSimple("\\rightarrow", { mode, klass });
     for (let i = 0; i < lines.length; i++) {
         const [line, comment = ""] = lines[i].split("::");
+        comments += comment ? 1 : 0;  // count number of comments
         const clean = cleanUpMathLex(line);
         const assign = clean.includes(":=");
-        const [lhs, rhs] = clean.split("=");
-        const math = assign ?
-            alg2tex(simplify(clean))
+        const [lhs, rhs, ...xs] = clean.split("=");
+        const math = (assign || xs) ?
+            simplify(clean)
             : (lhs && rhs && rhs.length >= 1)
-                ? alg2tex(solve(`(${lhs}=(${rhs}))`))
-                : alg2tex(simplify(lhs));
+                ? solve(`(${lhs}=(${rhs}))`)
+                : simplify(lhs);
         newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
         <span>${gives}</span>
         <span>${katx(math, mode)}</span><span>${comment}</span>`;
     }
     $(id).innerHTML = wrap(newMath, 'div');
+    return comments / (lines.length + 1);
+}
+
+
+/**
+ * 
+ * @param {string} id div containing result
+ * @param {string} txt lines of algebra
+ * @param {string} size TODO remove
+ * @returns {number} percentage of lines+1 with comments 
+ */
+function renderEquation(id, txt, size = "") {
+    let comments = 0;
+    const newMath = [];
+    const mode = size.includes("senter");
+    const klass = size;
+    const lines = txt.split('\n').filter(e => e != "");
+    let lhs, rhs;
+    for (let i = 0; i < lines.length; i++) {
+        const [line, comment = ""] = lines[i].split("::");
+        comments += comment ? 1 : 0;  // count number of comments
+        const clean = cleanUpMathLex(line);
+        if (i === 0) {
+            [lhs, rhs] = clean.split("=");
+            newMath[i] = `<span>${katx((simplify((lhs))))}</span>
+           <span>=</span>
+           <span>${katx((simplify(rhs)))}</span><span>${comment}</span>`;
+        } else {
+            lhs = operate(lhs, line);
+            [rhs] = operate(rhs, line).split("=");
+            newMath[i] = `<span>${katx(giaTex(lhs))}</span>
+            <span>=</span>
+            <span>${katx(giaTex(rhs))}</span><span>${line} <span class="comment">${comment}</span></span>`;
+        }
+    }
+    $(id).innerHTML = wrap(newMath, 'div');
+    return comments / (lines.length + 1);
 }
 
 function renderMath(id, math, size = "") {
@@ -288,6 +369,7 @@ const renderAll = () => {
     const maths = [];
     const algebra = [];
     const trigs = [];
+    const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     let ofs = 1234; // uniq id for math,alg etc
     const sections = textWithSingleNewLineAtEnd.split(/@opp/gm).map(e => e.replace(/\s+$/, '\n'));
     const mdLatex = txt => md.render(txt).replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" }));
@@ -308,17 +390,25 @@ const renderAll = () => {
                 maths.push({ math, id: `ma${seg}_${ofs}`, size, seg });
                 return `<div  class="math ${size}" id="ma${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@alg( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
+            .replace(/^@cas( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
                 algebra.push({ math, id: `alg${seg}_${ofs}`, size, seg });
                 return `<div  class="algebra ${size}" id="alg${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@opp( fasit)?( synlig)?( .*)?$/gm, (_, fasit, synlig, txt) => {
+            .replace(/^@eq( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
+                ofs++;
+                eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
+                return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/^@opp( fasit)?( synlig)?( kolonner)?( .*)?$/gm, (_, fasit, synlig, kolonner, txt) => {
                 const hr = fasit ? '<hr>' : '';
-                return `<div class="oppgave ${fasit || ""} ${synlig || ""}">${txt || ""} ${hr} </div>\n`;
+                return `<div class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}">${txt || ""} ${hr} </div>\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
                 return `<div class="format ${format}"></div>\n`;
+            })
+            .replace(/^@ans( .*)?$/gm, (_, ans) => {
+                return `<div><span class="answer"><span>${ans}</span></span></div>\n`;
             })
             .replace(/@dato( \d+)?/gm, (_, ofs) => {
                 const theDay = new Date();
@@ -365,6 +455,7 @@ const renderAll = () => {
     }
 
     // lift fasit out to the section level
+    // expect only one fasit - strange to have more than one
     const fasit = qs(".section > .fasit");
     if (fasit) {
         fasit.parentNode.classList.add("fasit");
@@ -374,6 +465,11 @@ const renderAll = () => {
         }
     }
 
+    // lift kolonner out to the section level
+    const kolonner = qsa(".section > .kolonner");
+    kolonner.forEach(k => k.parentNode.classList.add("kolonner"));
+
+
 
 
 
@@ -382,13 +478,37 @@ const renderAll = () => {
 
     oldRest = sections.slice();  // make copy
 
+
     maths.forEach(({ math, id, size, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderMath(id, math, size);
     });
+    let segnum = {};  // have we reset giac for this segment?
+    eqs.forEach(({ math, id, size, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            // @ts-ignore  First alg in this seg, reset giac
+            UI.eval("restart");
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            const perc = renderEquation(id, math, size);
+            const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
+            $(id).classList.remove("manycomments", "nocomments");
+            $(id).classList.add(klass);
+        }
+    });
     algebra.forEach(({ math, id, size, seg }) => {
-        if (rerend || dirtyList.includes(seg))
-            renderAlgebra(id, math, size)
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            // @ts-ignore  First alg in this seg, reset giac
+            UI.eval("restart");
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            const perc = renderAlgebra(id, math, size);
+            const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
+            $(id).classList.remove("manycomments", "nocomments");
+            $(id).classList.add(klass);
+        }
     });
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))

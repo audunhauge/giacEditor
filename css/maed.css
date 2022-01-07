@@ -1,3 +1,6 @@
+:root {
+    --spacing:0.5rem;
+}
 #frame {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -8,8 +11,21 @@ div.section {
     counter-increment: oppg-count;
     color: rgb(2, 49, 2);
     font-size: 1em;
-    margin-bottom: 5px;
-    margin-top: 5px;
+    margin-top: 2px;
+    margin-bottom: var(--spacing);
+}
+
+div.section.kolonner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+div.section.kolonner > * {
+    max-width: 90%;
+}
+
+div.section.kolonner div.oppgave {
+    grid-column: 1/3;
 }
 
 div.oppgave::before {
@@ -57,7 +73,7 @@ div.section.fasit {
         page-break-after: always;
     }
 
-    .oppgave, .math, .algebra, .plots, code {
+    .section, .oppgave, .math, .algebra, .equation, .plots, code {
         page-break-inside: avoid;
     }
 
@@ -107,17 +123,19 @@ div.oppgave.fasit::before {
     height: 16px;
 }
 
-div.algebra,
+div.algebra, div.equation,
 div.math {
     counter-reset: math-count 0;
 }
 
+div.equation>div,
 div.algebra>div,
 div.math>div {
     position: relative;
     margin-left: 3rem;
 }
 
+div.equation>div,
 div.algebra>div,
 div.math>div {
     counter-increment: math-count;
@@ -138,6 +156,8 @@ div.math.bokstav>div>div:before {
     top: 0;
 }
 
+div.equation.nummer>div::before,
+div.equation.number>div::before,
 div.math.number>div::before,
 div.algebra.nummer>div::before,
 div.algebra.number>div::before,
@@ -308,27 +328,73 @@ div.plots.nummer>div::before {
     content: counter(plot-count) ") ";
 }
 
+div.equation>div {
+    display: grid;
+    grid-template-columns: 10fr 1fr 10fr 5fr;
+    padding-bottom: 4px;
+    color: darkblue; 
+}
 div.algebra>div {
     display: grid;
     grid-template-columns: 10fr 1fr 10fr 5fr;
     padding-bottom: 4px;
     color: darkgreen;
 }
-
-div.algebra>div>span:nth-child(1) {
-    text-align: right;
-    color: blue;
+span.answer {
+    display: inline-block;
+    height: 2em;
+    border-bottom: solid 1px darkblue;
+    padding-bottom:0.2em;
+    margin-bottom:0.5em;
+}
+span.answer > span {
+    font-size: 1.1em;
+    padding-bottom: 0.4em;
+    margin-bottom: 2px;
+    border-bottom: solid 1px darkblue;
 }
 
+div.equation.manycomments>div, 
+div.algebra.manycomments>div {
+    grid-template-columns: 10fr 1fr 10fr 10fr;
+}
+
+div.algebra.nocomments>div {
+    grid-template-columns: 10fr 1fr 10fr 1fr;
+}
+
+span.comment {
+    color:blue;
+}
+
+div.equation>div>span:nth-child(1),
+div.algebra>div>span:nth-child(1) {
+    text-align: right;
+    color: darkblue;
+}
+
+div.equation>div>span:nth-child(2),
 div.algebra>div>span:nth-child(2) {
     text-align: center;
     padding: 0 16px;
 }
 
+div.equation>div>span:nth-child(4):empty,
+div.algebra>div>span:nth-child(4):empty {
+    border:none;
+}
+
+
+div.equation>div>span:nth-child(4),
 div.algebra>div>span:nth-child(4) {
     text-align: left;
     padding: 0 16px;
     color: gray;
+    /*font-family: "KaTex_Main";*/
+    font-family:Verdana, sans-serif;
+    font-style: oblique;
+    font-size: 0.8em;
+    border-left:solid rgba(128, 128, 128, 0.164) 1px;
 }
 
 div.trig svg {
