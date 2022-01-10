@@ -1,4 +1,4 @@
-const cacheName = 'mathEditor';
+const cacheName = 'mathEditorCas';
 const version = 2.2;
 const filesToCache = [
   '/',
