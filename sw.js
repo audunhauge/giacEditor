@@ -1,12 +1,17 @@
 const cacheName = 'mathEditorCas';
-const version = 2.2;
+const version = 2.3;
 const filesToCache = [
   '/',
   '/index.html',
   '/aside.html',
+  '/examples.json',
+  '/giacwasm.js',
+  '/giacwasm.wasm',
+
   '/css/maed.css',
   '/css/index.css',
   '/css/aside.css',
+
   '/media/maed-128.png',
   '/media/maed-144.png',
   '/media/mxy-icon.png',
@@ -17,6 +22,7 @@ const filesToCache = [
   '/media/exR2.md',
   '/media/exS1.md',
   '/media/exS2.md',
+  
   '/js/remarkable.min.js',
   '/js/katex/katex.min.js',
   '/js/katex/katex.min.css',
@@ -27,8 +33,6 @@ const filesToCache = [
   '/js/translate.js',
   '/js/d3.min.js',
   '/js/giacsimple.js',
-  '/giacwasm.js',
-  '/giacwasm.wasm',
   '/js/editor.js',
   '/js/trig.js',
   '/js/filemanager.js',
