@@ -30,6 +30,11 @@ export function startReplay(editor, renderer) {
     document.addEventListener("keydown", navigate);
 }
 
+const lastSection = () => {
+    const last = document.querySelector("#mathView > div:last-child");
+    last?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+}
+
 
 function navigate(e) {
     const p = player;
@@ -41,6 +46,7 @@ function navigate(e) {
         }
         p.editor.value = p.lineBuffer.slice(0, p.current).join('\n');
         p.renderer();
+        lastSection();
     }
 
     if (e.key === "ArrowUp") {
@@ -51,6 +57,8 @@ function navigate(e) {
         }
         p.editor.value = p.lineBuffer.slice(0, p.current).join('\n');
         p.renderer();
+        e.preventDefault();
+        lastSection();
     }
     if (e.key === "ArrowLeft") {
         p.current = 0;
@@ -66,6 +74,8 @@ function navigate(e) {
         p.editor.value = p.lineBuffer.join("\n");
         document.removeEventListener("keydown", navigate);
         p.renderer();
+        const event = new Event('replayOver');
+        document.dispatchEvent(event);
     }
 
 }

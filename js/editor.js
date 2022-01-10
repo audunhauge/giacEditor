@@ -27,15 +27,24 @@ const sessionID = "mathEd";
 web.lang = 0;  // start with first lang in list
 $("lang").setAttribute("max", String(langlist.length - 1))
 
-$("lang").onchange = () => {
+$("lang").onchange = () => setLang()
+
+function setLang() {
     currentLanguage = web.chosen;
     translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
     renderAll();
 }
 
+let replayActive = false;
+
 $("replay").onclick = () => {
-    startReplay(ed,renderAll);
+    replayActive = true;
+    startReplay(ed, renderAll);
 }
+
+document.addEventListener("replayOver", (e) => {
+    replayActive = false;
+})
 
 
 const goHome = () => {
@@ -245,7 +254,7 @@ const makeLatex = (txt, { mode, klass }) => {
     }
 }
 
-const renderSimple = (line, { mode, klass }, comment='') => {
+const renderSimple = (line, { mode, klass }, comment = '') => {
     const latex = makeLatex(line, { mode, klass });
     return `<div><span>${latex}</span><span>${comment}</span></div>`;
 }
@@ -401,7 +410,7 @@ function renderMath(id, math, size = "") {
         if (likning) {
             newMath[i] = renderLikning(line, comment, { mode, klass });
         } else {
-            newMath[i] = renderSimple(line, { mode, klass },comment);
+            newMath[i] = renderSimple(line, { mode, klass }, comment);
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
@@ -459,8 +468,28 @@ function renderTrig(id, trig, klass = "") {
 
 let oldRest = [];
 
+const scrollit = (target) => {
+    if (!replayActive) target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+}
+
+const commentMe = (id,perc) => {
+    const target = $(id);
+    const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
+    target.classList.remove("manycomments", "nocomments");
+    target.classList.add(klass);
+}
+
 export const renderAll = () => {
-    const textWithSingleNewLineAtEnd = ed.value.replace(/\n*$/, '\n').replace(/^@fasit/gm, '@question fasit');
+    const textWithSingleNewLineAtEnd = ed.value
+        .replace(/\n*$/, '\n').replace(/^@fasit/gm, '@question fasit')
+        .replace(/@lang ([a-z]+)/gm, '');
+    const [_, mylang] = (ed.value.match(/@lang ([a-z]+)/)) || [];
+    if (langlist.includes(mylang)) {
+        if (web.chosen !== mylang) {
+            web.lang = langlist.indexOf(mylang);
+            setLang();
+        }
+    }
     const plots = [];
     const maths = [];
     const algebra = [];
@@ -469,7 +498,7 @@ export const renderAll = () => {
     const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     let ofs = 1234; // uniq id for math,alg etc
     const splitter = lang[currentLanguage]?.splitter || 'question';
-    const splitReg = new RegExp(`@${splitter}`,"gm");
+    const splitReg = new RegExp(`@${splitter}`, "gm");
     const sections = textWithSingleNewLineAtEnd.split(splitReg).map(e => e.replace(/\s+$/, '\n'));
     const mdLatex = txt => md.render(txt).replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" }));
     const prepped = (textWithSingleNewLineAtEnd, seg) => {
@@ -505,9 +534,13 @@ export const renderAll = () => {
                 eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
                 return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@question( fasit)?( synlig)?( kolonner)?( .*)?$/gm, (_, fasit, synlig, kolonner, txt) => {
+            .replace(/^@question( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, fasit, synlig, kolonner,poeng, myown,txt) => {
                 const hr = fasit ? '<hr>' : '';
-                return `<div class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${txt || ""}${hr}</div>\n`;
+                txt = txt ? txt : '';
+                const instead = myown ? myown.substr(2) + txt: '';
+                txt = myown ? '' : txt;                
+                const points = poeng ? `data-poeng="${poeng.slice(2,-2)}"` : '';
+                return `<div ${points} class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${instead}${hr}</div>\n${txt}\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
                 return `<div class="format ${format}"></div>\n`;
@@ -545,6 +578,8 @@ export const renderAll = () => {
         const plain = `<div class="section" id="seg${seg}">\n` + prepped('@question' + newSection, seg) + '\n</div>';
         div.innerHTML = mdLatex(plain);
         mathView.append(div);
+        scrollit(div);
+        //.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     } else {
         // same length -just update the dirty ones
         for (let i = 0; i < dirtyList.length; i++) {
@@ -557,6 +592,7 @@ export const renderAll = () => {
             } else {
                 section.innerHTML = mdLatex(prepped('@question' + txt, seg));
             }
+            scrollit(section); //.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
         }
     }
 
@@ -576,10 +612,6 @@ export const renderAll = () => {
     kolonner.forEach(k => k.parentNode.classList.add("kolonner"));
 
 
-
-
-
-
     // now figure out which views have changed
 
     oldRest = sections.slice();  // make copy
@@ -588,6 +620,7 @@ export const renderAll = () => {
     maths.forEach(({ math, id, size, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderMath(id, math, size);
+            //scrollit(id);
     });
     let segnum = {};  // have we reset giac for this segment?
     eqs.forEach(({ math, id, size, seg }) => {
@@ -598,9 +631,8 @@ export const renderAll = () => {
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderEquation(id, math, size);
-            const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
-            $(id).classList.remove("manycomments", "nocomments");
-            $(id).classList.add(klass);
+            commentMe(id,perc);
+            //scrollit(id);
         }
     });
     eqsets.forEach(({ eq, id, size, seg }) => {
@@ -611,6 +643,7 @@ export const renderAll = () => {
         }
         if (rerend || dirtyList.includes(seg)) {
             renderEqnSet(id, eq, size);
+            //scrollit(id);
         }
     });
     algebra.forEach(({ math, id, size, seg }) => {
@@ -621,18 +654,19 @@ export const renderAll = () => {
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderAlgebra(id, math, size);
-            const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
-            $(id).classList.remove("manycomments", "nocomments");
-            $(id).classList.add(klass);
+            commentMe(id,perc);
+            //scrollit(id);
         }
     });
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderPlot(id, plot, klass);
+            //scrollit(id);
     });
     trigs.forEach(({ trig, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderTrig(id, trig, klass);
+            //scrollit(id);
     });
     setLocalJSON(sessionID, ed.value);
 }

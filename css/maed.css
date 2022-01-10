@@ -188,6 +188,12 @@ div.math.likningsett>div>div:before {
     top: 0;
 }
 
+div.oppgave[data-poeng]:after {
+    content:" (" attr(data-poeng) "p)";
+    color:darkslateblue;
+    font-size: 0.9em;
+}
+
 div.math > div > div  {
     display: grid;
     grid-template-columns: 5fr 2fr;
@@ -201,7 +207,7 @@ div.math > div > div > span:nth-child(2) {
 pre>code.language-python {
     position: relative;
     display: block;
-    padding: 3px 20px 3px 30px;
+    padding: 3px 20px 3px 2em;
     margin-left: 2rem;
     width: fit-content;
     background-color: rgba(232, 236, 236, 0.294);
