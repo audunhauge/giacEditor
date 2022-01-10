@@ -1,12 +1,12 @@
 {
-    "short_name": "MathEdCas",
-    "name": "Math Editor CAS",
-    "start_url": "/index.html",
+    "short_name": "MathCas",
+    "name": "MathCAS",
+    "start_url": "/",
     "background_color": "#3367D6",
     "display": "standalone",
-    "scope": "/",
+    "Scope": "/",
     "theme_color": "#3367D6",
-    "description": "Math Editor CAS",
+    "description": "Math CAS editor",
     "icons": [
         {
             "src": "media/maed-128.png",
@@ -18,20 +18,5 @@
             "sizes": "144x144",
             "type": "image/png"
         }
-    ],
-    "file_handlers": [
-        {
-          "action": "/index.html",
-          "accept": {
-            "text/plain": [".mxy"]
-          },
-          "icons": [
-            {
-              "src": "mxy-icon.png",
-              "sizes": "256x256",
-              "type": "image/png"
-            }
-          ]
-        }
-      ]
+    ]
 }

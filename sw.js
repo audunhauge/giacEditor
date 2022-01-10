@@ -1,5 +1,5 @@
 const cacheName = 'mathEditorCas';
-const version = 2.3;
+const version = 2.4;
 const filesToCache = [
   '/',
   '/index.html',
@@ -22,7 +22,7 @@ const filesToCache = [
   '/media/exR2.md',
   '/media/exS1.md',
   '/media/exS2.md',
-  
+
   '/js/remarkable.min.js',
   '/js/katex/katex.min.js',
   '/js/katex/katex.min.css',
