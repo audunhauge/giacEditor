@@ -1,10 +1,10 @@
 {
     "short_name": "MathCas",
     "name": "MathCAS",
-    "start_url": "https://mcas/onrender.com/",
+    "start_url": "https://mcas.onrender.com/",
     "background_color": "#3367D6",
     "display": "standalone",
-    "Scope": "https://mcas/onrender.com/",
+    "Scope": "https://mcas.onrender.com/",
     "theme_color": "#3367D6",
     "description": "Math CAS editor",
     "icons": [
