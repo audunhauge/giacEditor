@@ -2,18 +2,41 @@
 
 import {
     thingsWithId, updateMyProperties, qsa, qs,
-    wrap, $, create, getLocalJSON, setLocalJSON
+    wrap, $, create, getLocalJSON, setLocalJSON, curry,
 } from './Minos.js';
 
 
-const { home, app, back, aktiv, help, info, newfile,
+import { lang, trans, _translateAtCommands } from './translate.js';
+
+const { home, app, back, aktiv, help, info, newfile, aside, editor,
     mathView, ed, examples, savedFiles, sp } = thingsWithId();
 
 
 import { saveFileButton, readFileButton } from './filehandling.js';
 
-const web = updateMyProperties();
+import { startReplay } from './replay.js';
+
+const langlist = Object.keys(lang);
+let currentLanguage = "english";
+let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
+
+
+const web = updateMyProperties({ langlist });
 const sessionID = "mathEd";
+
+web.lang = 0;  // start with first lang in list
+$("lang").setAttribute("max", String(langlist.length - 1))
+
+$("lang").onchange = () => {
+    currentLanguage = web.chosen;
+    translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
+    renderAll();
+}
+
+$("replay").onclick = () => {
+    startReplay(ed,renderAll);
+}
+
 
 const goHome = () => {
     const filename = web.filename;
@@ -54,6 +77,24 @@ help.onclick = () => {
 back.onclick = goHome;
 
 aktiv.onclick = goEdit;
+
+let asideEd = null; // global variable
+
+aside.onclick = async () => {
+    if (asideEd == null || asideEd.closed) {
+        asideEd = await window.open("aside.html", "AsideEdit",
+            "popup,width=820,height=520");
+    }
+    // give aside editor time to render
+    setTimeout(() => {
+        const aed = asideEd.document.querySelector("#ed");
+        aed.value = ed.value;
+        editor.classList.toggle("hidden");
+        if (!editor.classList.contains("hidden")) {
+            asideEd.focus();
+        };
+    }, 100);
+}
 
 
 
@@ -111,38 +152,33 @@ const { min, max } = Math;
 
 const giaClean = exp => exp.replace(/["*]/g, '').replace('mbox', 'boxed');
 
-const solve = exp => {
+const giaEval = exp => {
+    const txt = trans(lang[web.chosen], exp);
     try {
         // @ts-ignore
-        return giaClean(UI.eval(`latex(solve(${exp}))`));
+        return UI.eval(txt);
     } catch (e) {
-        console.log("Solve ", e, exp);
+        console.log("Eval ", e, exp, txt);
         return exp;
     }
 }
 
-const giaTex = exp => {
-    try {
-        // @ts-ignore
-        return giaClean(UI.eval(`latex(${exp})`));
-    } catch (e) {
-        console.log("Latex ", e, exp);
-        return exp;
-    }
-}
+const solve = exp => giaEval(`latex(solve(${exp}))`);
+const giaTex = exp => giaClean(giaEval(`latex(${exp})`));
+
 
 const operate = (exp, op) => {
     try {
         if ((op.charAt(0) === " ")) {
             // dont simplify
             // @ts-ignore
-            return UI.eval(`(${exp})${op.substr(1)}`)
-        } else if ("+-*/".includes(op.charAt(0))) {
+            return giaEval(`(${exp})${op.substr(1)}`)
+        } else if ("+-*/|".includes(op.charAt(0))) {
             // @ts-ignore
-            return UI.eval(`simplify((${exp})${op})`)
+            return giaEval(`simplify((${exp})${op})`)
         } else {
             // @ts-ignore
-            return UI.eval(`(${op}(${exp}))`)
+            return giaEval(`(${op}(${exp}))`)
         }
     } catch (e) {
         console.log("Simplyfy ", e, exp);
@@ -155,9 +191,9 @@ const simplify = exp => {
     try {
         const g = (exp.charAt(0) === ' ')
             // @ts-ignore
-            ? UI.eval(`latex((${exp}))`)
+            ? giaEval(`latex((${exp}))`)
             // @ts-ignore
-            : UI.eval(`latex(simplify(${exp}))`)
+            : giaEval(`latex(simplify(${exp}))`)
         return giaClean(g);
     } catch (e) {
         console.log("Simplyfy ", e, exp);
@@ -209,12 +245,12 @@ const makeLatex = (txt, { mode, klass }) => {
     }
 }
 
-const renderSimple = (line, { mode, klass }) => {
+const renderSimple = (line, { mode, klass }, comment='') => {
     const latex = makeLatex(line, { mode, klass });
-    return `<div>${latex}</div>`;
+    return `<div><span>${latex}</span><span>${comment}</span></div>`;
 }
 
-const renderLikning = (line, { mode, klass }) => {
+const renderLikning = (line, comment, { mode, klass }) => {
     const [sep = "="] = (line.match(/>=|<=|>|<|=/) || []);
     const [left = "", right = "0"] = line.split(sep);
     const leftLatex = makeLatex(left, { mode, klass });
@@ -222,8 +258,9 @@ const renderLikning = (line, { mode, klass }) => {
     const sepLatex = katx(seplist[sep], mode);
     return `<div class="eq"><span>${leftLatex}</span>
     <span> ${sepLatex} </span>
-    <span>${rightLatex}</span></div>`;
+    <span>${rightLatex}</span><span>${comment}</span></div>`;
 }
+
 
 /**
  * 
@@ -237,10 +274,25 @@ function renderAlgebra(id, txt, size = "") {
     const newMath = [];
     const mode = size.includes("senter");
     const klass = size;
+    const plotSizeW = Number(size.match(/\d+/)?.[0] || 200);
+    const plotSizeH = plotSizeW * 0.6;
     const lines = txt.split('\n').filter(e => e != "");
     const gives = renderSimple("\\rightarrow", { mode, klass });
     for (let i = 0; i < lines.length; i++) {
         const [line, comment = ""] = lines[i].split("::");
+        if (line.includes('plot')) {
+            // assume geometric commands
+            const rawSvg = giaEval(line);
+            const cleanSvg = rawSvg ?
+                rawSvg.slice(1, -1).replace(/width="(.+?)cm"/, `width="${plotSizeW}px"`)
+                    .replace(/height="(.+?)cm"/, `height="${plotSizeH}px"`)
+                : 'unable to plot this';
+            // newMath[i] = cleanSvg;
+            newMath[i] = `<span>${cleanSvg}</span>
+            <span></span>
+            <span>${line.replace(/</g, "&lt;")}</span><span>${comment}</span>`;
+            continue;
+        }
         comments += comment ? 1 : 0;  // count number of comments
         const clean = cleanUpMathLex(line);
         const assign = clean.includes(":=");
@@ -250,9 +302,16 @@ function renderAlgebra(id, txt, size = "") {
             : (lhs && rhs && rhs.length >= 1)
                 ? solve(`(${lhs}=(${rhs}))`)
                 : simplify(lhs);
-        newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
-        <span>${gives}</span>
-        <span>${katx(math, mode)}</span><span>${comment}</span>`;
+        if (assign) {
+            const [exp] = clean.split(":=");
+            newMath[i] = `<span>${exp}</span>
+            <span> := </span>
+            <span>${katx(math, mode)}</span><span>${comment}</span>`;
+        } else {
+            newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
+            <span>${gives}</span>
+            <span>${katx(math, mode)}</span><span>${comment}</span>`;
+        }
     }
     $(id).innerHTML = wrap(newMath, 'div');
     return comments / (lines.length + 1);
@@ -269,8 +328,6 @@ function renderAlgebra(id, txt, size = "") {
 function renderEquation(id, txt, size = "") {
     let comments = 0;
     const newMath = [];
-    const mode = size.includes("senter");
-    const klass = size;
     const lines = txt.split('\n').filter(e => e != "");
     let lhs, rhs;
     for (let i = 0; i < lines.length; i++) {
@@ -294,6 +351,45 @@ function renderEquation(id, txt, size = "") {
     return comments / (lines.length + 1);
 }
 
+
+
+const renderEqnSet = (id, txt, size = "") => {
+    let comments = 0;
+    const newMath = [];
+    const lines = txt.split('\n').filter(e => e != "");
+    let eqs = [];
+    if (lines.length < 2) {
+        $(id).innerHTML = "Must have exactly two equations"
+        return;
+    }
+    for (let i = 0; i < 2; i++) {
+        const [line, comment = ""] = lines[i].split("::");
+        eqs[i] = line;
+        const clean = cleanUpMathLex(line);
+        newMath[i] = `<span data-nr="${'i'.repeat(i + 1)}" class="eqset">${katx(clean)}</span>`;
+    }
+    for (let i = 2; i < lines.length; i++) {
+        const [todo, comment = ""] = lines[i].split("::");
+        comments += comment ? 1 : 0;            // count number of comments
+        const [idx, line] = todo.split(":");     //  "1:+2"  "2:*3"
+        const [a, op, b] = todo.split('');
+        if ("+-".includes(op) && +a + +b === 3) {
+            // 1+2 2-1 2+1 1-2
+            const nuline = giaEval(`simplify((${eqs[+a - 1]})${op}(${eqs[+b - 1]}))`);
+            eqs[+a - 1] = nuline;
+            newMath[i] = `<span data-nr="${'i'.repeat(+a)}" class="eqset">${katx(eqs[+a - 1])}</span><span>${todo}</span>`;
+            continue;
+        }
+        if (line) {
+            const orig = eqs[(+idx) - 1];
+            const eq = operate(orig, line);
+            eqs[+idx - 1] = eq;
+            newMath[i] = `<span data-nr="${'i'.repeat(idx)}" class="eqset">${katx(eq)}</span><span>${todo}</span>`;
+        }
+    }
+    $(id).innerHTML = wrap(newMath, 'div');
+}
+
 function renderMath(id, math, size = "") {
     const newMath = [];
     const mode = size.includes("senter");
@@ -301,11 +397,11 @@ function renderMath(id, math, size = "") {
     const klass = size;
     const lines = math.split('\n').filter(e => e != "");
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+        const [line, comment = ""] = lines[i].split("::");
         if (likning) {
-            newMath[i] = renderLikning(line, { mode, klass });
+            newMath[i] = renderLikning(line, comment, { mode, klass });
         } else {
-            newMath[i] = renderSimple(line, { mode, klass });
+            newMath[i] = renderSimple(line, { mode, klass },comment);
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
@@ -363,18 +459,22 @@ function renderTrig(id, trig, klass = "") {
 
 let oldRest = [];
 
-const renderAll = () => {
-    const textWithSingleNewLineAtEnd = ed.value.replace(/\n*$/, '\n').replace(/^@fasit/gm, '@opp fasit');
+export const renderAll = () => {
+    const textWithSingleNewLineAtEnd = ed.value.replace(/\n*$/, '\n').replace(/^@fasit/gm, '@question fasit');
     const plots = [];
     const maths = [];
     const algebra = [];
+    const eqsets = [];
     const trigs = [];
     const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     let ofs = 1234; // uniq id for math,alg etc
-    const sections = textWithSingleNewLineAtEnd.split(/@opp/gm).map(e => e.replace(/\s+$/, '\n'));
+    const splitter = lang[currentLanguage]?.splitter || 'question';
+    const splitReg = new RegExp(`@${splitter}`,"gm");
+    const sections = textWithSingleNewLineAtEnd.split(splitReg).map(e => e.replace(/\s+$/, '\n'));
     const mdLatex = txt => md.render(txt).replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" }));
-    const prepped = (textWithSingleNewLineAtEnd, seg) =>
-        textWithSingleNewLineAtEnd
+    const prepped = (textWithSingleNewLineAtEnd, seg) => {
+        const international = translateAtCommands(textWithSingleNewLineAtEnd);
+        return international
             .replace(/@plot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
                 ofs++;
                 plots.push({ plot, id: `graf${seg}_${ofs}`, klass, seg });
@@ -384,6 +484,11 @@ const renderAll = () => {
                 ofs++;
                 trigs.push({ trig, id: `trig${seg}_${ofs}`, klass, seg });
                 return `<div class="trig ${klass}" id="trig${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@eqset( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
+                ofs++;
+                eqsets.push({ eq, id: `eqs${seg}_${ofs}`, klass, seg });
+                return `<div class="equation qset ${klass}" id="eqs${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@math( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
@@ -400,9 +505,9 @@ const renderAll = () => {
                 eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
                 return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@opp( fasit)?( synlig)?( kolonner)?( .*)?$/gm, (_, fasit, synlig, kolonner, txt) => {
+            .replace(/^@question( fasit)?( synlig)?( kolonner)?( .*)?$/gm, (_, fasit, synlig, kolonner, txt) => {
                 const hr = fasit ? '<hr>' : '';
-                return `<div class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}">${txt || ""} ${hr} </div>\n`;
+                return `<div class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${txt || ""}${hr}</div>\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
                 return `<div class="format ${format}"></div>\n`;
@@ -415,6 +520,7 @@ const renderAll = () => {
                 theDay.setDate(theDay.getDate() + Number(ofs));
                 return `<span class="date">${theDay.toLocaleDateString('en-GB')}</span>`;
             })
+    }
 
 
     const dirtyList = [];
@@ -428,15 +534,15 @@ const renderAll = () => {
         // just rerender everything
         const preludeMath = `<div class="prelude" id="seg0">\n` + mdLatex(prepped(sections[0], 0)) + '</div>';
         const theSections = sections.slice(1);
-        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@opp' + e, i) + '\n</div>').join("");
+        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i) + '\n</div>').join("");
         mathView.innerHTML = mdLatex(preludeMath + restMath);
         rerend = true;
     } else if (dirtyList.length === 1 && dirtyList[0] === oldRest.length) {
         // just append a new section
         const seg = dirtyList[0];
-        const newSection = sections[seg];  // the new @opp
+        const newSection = sections[seg];  // the new @question
         const div = create('div');
-        const plain = `<div class="section" id="seg${seg}">\n` + prepped('@opp' + newSection, seg) + '\n</div>';
+        const plain = `<div class="section" id="seg${seg}">\n` + prepped('@question' + newSection, seg) + '\n</div>';
         div.innerHTML = mdLatex(plain);
         mathView.append(div);
     } else {
@@ -449,7 +555,7 @@ const renderAll = () => {
             if (seg === 0) {
                 section.innerHTML = mdLatex(prepped(txt, seg));
             } else {
-                section.innerHTML = mdLatex(prepped('@opp' + txt, seg));
+                section.innerHTML = mdLatex(prepped('@question' + txt, seg));
             }
         }
     }
@@ -495,6 +601,16 @@ const renderAll = () => {
             const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
             $(id).classList.remove("manycomments", "nocomments");
             $(id).classList.add(klass);
+        }
+    });
+    eqsets.forEach(({ eq, id, size, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            // @ts-ignore  First alg in this seg, reset giac
+            UI.eval("restart");
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            renderEqnSet(id, eq, size);
         }
     });
     algebra.forEach(({ math, id, size, seg }) => {

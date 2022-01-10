@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Editor</title>
     <title>MathEd</title>
-    <link rel="manifest" href="manifest.json">
+    <!--link rel="manifest" href="manifest.json"-->
     <script src="/js/remarkable.min.js"></script>
     <script src="/js/mathlex.min.js"></script>
     <script src="/js/katex/katex.min.js"></script>
@@ -166,20 +166,11 @@
                 <div class="button" id="back">Home</div>
                 <div class="button" id="save">Save</div>
                 <div class="button" id="load">Open</div>
+                <div class="button" id="aside">SideEdit</div>
                 <div id="filename"><input type="text" id="filename"></div>
             </div>
         </header>
         <div id="frame">
-            <div id="editor" class="gui">
-                <div>
-                    <label>Editor font size
-                        <input id="efs" type="range" min="30" max="100">
-                    </label>{efs/50}
-                </div>
-                <textarea name="ed" id="ed" cols="30" rows="10" stil="font-size:{efs/50}rem;line-height:{efs/50}rem;">
-
-            </textarea>
-            </div>
             <div>
                 <div class="gui">
                     <label>Font size
@@ -188,24 +179,50 @@
                     <label>Question spacing
                         <input id="sp" type="range" min="10" max="200"> {sp/50}
                     </label>
+                    <label>Width A4
+                        <input id="a4" type="checkbox">
+                    </label>
+                    <label>
+                        <button id="replay" type="button">Replay</button>
+                    </label>
                 </div>
-                <div id="mathView" stil="font-size:{fs/50}rem;width:{bw}rem;">
+                <div id="mathView" stil="font-size:{fs/50}rem;width:{bw}rem;{a4?'max-width:210mm;':''}">
 
                 </div>
             </div>
+            <div id="editor" class="gui">
+                <div>
+                    <label>Editor font size
+                        <input id="efs" type="range" min="30" max="100">
+                    </label>{efs/50}
+                </div>
+                <div>
+                    <label>Language
+                        <input id="lang" type="range" min="0" max="1">
+                    </label>{chosen:=langlist[lang]}
+                </div>
+                <textarea name="ed" id="ed" cols="30" rows="10" stil="font-size:{efs/50}rem;line-height:{efs/50}rem;">
+                </textarea>
+            </div>
+            
         </div>
     </div>
 
     <div id="output"></div>
+    <script>
+        var render = 12;
+    </script>
 
     <script type="module">
+        /*
         window.onload = () => {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker
                     .register('./sw.js');
             }
-        }
-        import './js/editor.js';
+        }*/
+        import {renderAll} from './js/editor.js';
+        render = renderAll;
     </script>
 
 </body>

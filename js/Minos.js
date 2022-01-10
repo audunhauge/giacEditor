@@ -144,7 +144,7 @@ function prepTheWebPage(klas="minos") {
             }
         });
         named.forEach(k => {
-            // a named expression {x#y+3}
+            // a named expression {x:=y+3}
             // name is "x", value "y+3"
             const [name, exp] = k.split(':=');
             namedVariables[name] = allnames[k]
@@ -318,6 +318,7 @@ export function updateMyProperties(obj = {}) {
             pro[name] = inp.value;
         }
     }
+    Object.keys(obj).forEach(k => valueOfNamedVars[k] = obj[k]);
     Object.keys(repeatList).forEach(k => obj[k] = repeatProxy(k));
     Object.keys(namedVariables).forEach(k => obj[k] = undefined);
 
@@ -344,7 +345,7 @@ export function updateMyProperties(obj = {}) {
             }
             // named expressions done first - so straight exps get latest value
             // internal order not considered - x:y+1  might use old y if y:n+1 comes after
-            evalNamedExp(property);
+            evalNamedExp(target, property);
             evalExp(property);
             // interpolate values into styles
             updateStyles(property);
@@ -381,7 +382,7 @@ const evalExp = (property) => Object.keys(expressions).forEach(k => {
     }
 });
 
-const evalNamedExp = (property) => Object.keys(namedExpressions).forEach(k => {
+const evalNamedExp = (target, property) => Object.keys(namedExpressions).forEach(k => {
     const exp = namedExpressions[k];
     if (exp.includes(String(property))) {
         // expression looks like it depends on this property
@@ -392,7 +393,7 @@ const evalNamedExp = (property) => Object.keys(namedExpressions).forEach(k => {
             t.innerHTML = v;
             // the expression has a name - update its value
             valueOfNamedVars[k] = v;
-            // target[property] = v;
+            target[k] = v;
         }
     }
 });
