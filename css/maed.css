@@ -467,3 +467,20 @@ div.equation.qset > div > span {
 div.qset >div:nth-child(n+3) > span {
     color:blue;
 }
+
+span.num {
+    color:darkolivegreen;
+    padding-right: 0.5em;
+}
+span.deno {
+    color:blue;
+    padding: 0 0.5em 0 0.5em;
+}
+span.ans {
+    color:indigo;
+    padding-left: 0.5em;
+}
+
+span.filler {
+    color:transparent;
+}
