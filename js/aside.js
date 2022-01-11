@@ -23,3 +23,6 @@ ed.onkeyup = (e) => {
         }
     }
 }
+
+const event = new Event('asideReady');
+window.opener.document.dispatchEvent(event);

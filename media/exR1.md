@@ -1,4 +1,6 @@
-## Prøve R1 fredag 10 desember 2021
+## Prøve R1  @dato 2
+
+*Dato +2 da du gjerne skriver ut 1-2 dager før*
 
 @question  
 Løs likningssystemet
@@ -30,18 +32,17 @@ x**2-2x-2;3x-6,-3,5,-4,8
 
 @fasit skriv synlig rett bak fasit: @fasit synlig, ellers skjult
 
-
-Klargjør noen beregninger
-@cas  
-A=[[1,2],[3,4]]::venstreside
-B=[16,-22]::høyreside
-
-
-A og B brukes til å løse likningssystemet
-
 @question
+Løser likningssystemet med matriser
 @cas  
-dot(inv(A),B)::løsning for likningssystemet
+A:=[[1,2],[3,4]]::venstreside
+B:=tran([[16,-22]])::høyreside
+Ainv:=inv(A)
+[[x,y]]:=tran(Ainv*B)
+x
+y
+
+
 
 @question  forenkle
 @cas abc
@@ -51,13 +52,13 @@ dot(inv(A),B)::løsning for likningssystemet
 
 @question løs likninger
 @cas likning abc
-roots(x**2-5x+4)
-roots(2x**2-x)
-roots((x+4)(x+4)-2-3(x+4))
+solve(x**2-5x+4=0)
+solve(2x**2-x=0)
+solve((x+4)(x+4)-2-3(x+4)=0)
 
 
 
-@question Nullpunkt
+@question (2p) Nullpunkt
 Les av skjæring mellom $g(x)$ og $f(x)$
-@cas  
+@cas likning
 (x**2-2x-2-(3x-6))=0

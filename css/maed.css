@@ -469,7 +469,7 @@ div.qset >div:nth-child(n+3) > span {
 }
 
 span.num {
-    color:darkolivegreen;
+    color:#820d46;
     padding-right: 0.5em;
 }
 span.deno {
@@ -483,4 +483,8 @@ span.ans {
 
 span.filler {
     color:transparent;
+}
+
+#last {
+    min-height: 200px;
 }

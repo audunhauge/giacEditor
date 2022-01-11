@@ -31,8 +31,8 @@ export function startReplay(editor, renderer) {
 }
 
 const lastSection = () => {
-    const last = document.querySelector("#mathView > div:last-child");
-    last?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    const last = document.querySelector("#last");
+    last?.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
 }
 
 

@@ -5,8 +5,10 @@ import {
     $, create, getLocalJSON, setLocalJSON, curry,
 } from './Minos.js';
 
-import { renderAlgebra, renderPoldiv,renderEqnSet,
-        renderEquation,renderMath, renderPlot, renderTrig} from './render.js'; 
+import {
+    renderAlgebra, renderPoldiv, renderEqnSet,
+    renderEquation, renderMath, renderPlot, renderTrig
+} from './render.js';
 
 import { lang, _translateAtCommands } from './translate.js';
 
@@ -95,16 +97,22 @@ aside.onclick = async () => {
     if (asideEd == null || asideEd.closed) {
         asideEd = await window.open("aside.html", "AsideEdit",
             "popup,width=820,height=520");
-    }
-    // give aside editor time to render
-    setTimeout(() => {
+        document.addEventListener("asideReady", (e) => {
+            const aed = asideEd.document.querySelector("#ed");
+            aed.value = ed.value;
+            if (!editor.classList.contains("hidden")) {
+                asideEd.focus();
+            };
+        });
+    } else {
         const aed = asideEd.document.querySelector("#ed");
         aed.value = ed.value;
-        editor.classList.toggle("hidden");
         if (!editor.classList.contains("hidden")) {
             asideEd.focus();
         };
-    }, 100);
+    }
+
+    editor.classList.toggle("hidden");
 }
 
 
@@ -201,7 +209,7 @@ const scrollit = (target) => {
     if (!replayActive) target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
 }
 
-const commentMe = (id,perc) => {
+const commentMe = (id, perc) => {
     const target = $(id);
     const klass = perc > 0.6 ? "manycomments" : perc === 0 ? "nocomments" : "some";
     target.classList.remove("manycomments", "nocomments");
@@ -269,12 +277,12 @@ export const renderAll = () => {
                 eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
                 return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@question( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, fasit, synlig, kolonner,poeng, myown,txt) => {
+            .replace(/^@question( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, fasit, synlig, kolonner, poeng, myown, txt) => {
                 const hr = fasit ? '<hr>' : '';
                 txt = txt ? txt : '';
-                const instead = myown ? myown.substr(2) + txt: '';
-                txt = myown ? '' : txt;                
-                const points = poeng ? `data-poeng="${poeng.slice(2,-2)}"` : '';
+                const instead = myown ? myown.substr(2) + txt : '';
+                txt = myown ? '' : txt;
+                const points = poeng ? `data-poeng="${poeng.slice(2, -2)}"` : '';
                 return `<div ${points} class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${instead}${hr}</div>\n${txt}\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
@@ -285,7 +293,7 @@ export const renderAll = () => {
             })
             .replace(/@dato( \d+)?/gm, (_, ofs) => {
                 const theDay = new Date();
-                theDay.setDate(theDay.getDate() + Number(ofs||0));
+                theDay.setDate(theDay.getDate() + Number(ofs || 0));
                 return `<span class="date">${theDay.toLocaleDateString('en-GB')}</span>`;
             })
     }
@@ -303,7 +311,7 @@ export const renderAll = () => {
         const preludeMath = `<div class="prelude" id="seg0">\n` + mdLatex(prepped(sections[0], 0)) + '</div>';
         const theSections = sections.slice(1);
         const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i) + '\n</div>').join("");
-        mathView.innerHTML = mdLatex(preludeMath + restMath);
+        mathView.innerHTML = mdLatex(preludeMath + restMath) + '<div id="last" class="gui"></div>';
         rerend = true;
     } else if (dirtyList.length === 1 && dirtyList[0] === oldRest.length) {
         // just append a new section
@@ -355,7 +363,7 @@ export const renderAll = () => {
     maths.forEach(({ math, id, size, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderMath(id, math, size);
-            //scrollit(id);
+        //scrollit(id);
     });
     let segnum = {};  // have we reset giac for this segment?
     eqs.forEach(({ math, id, size, seg }) => {
@@ -366,7 +374,7 @@ export const renderAll = () => {
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderEquation(id, math, size);
-            commentMe(id,perc);
+            commentMe(id, perc);
             //scrollit(id);
         }
     });
@@ -400,19 +408,19 @@ export const renderAll = () => {
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderAlgebra(id, math, size);
-            commentMe(id,perc);
+            commentMe(id, perc);
             //scrollit(id);
         }
     });
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderPlot(id, plot, klass);
-            //scrollit(id);
+        //scrollit(id);
     });
     trigs.forEach(({ trig, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderTrig(id, trig, klass);
-            //scrollit(id);
+        //scrollit(id);
     });
     setLocalJSON(sessionID, ed.value);
 }

@@ -122,15 +122,19 @@ export const renderPoldiv = (id, txt, size = "") => {
         $(id).innerHTML = "Must have exactly two equations"
         return;
     }
-    const [numerator, denominator] = lines;
+    const [numerator, denominator,...rest] = lines;
+    // if rest is non empty then reveal as many lines as given by rest
     const answer = giaEval(`propfrac((${numerator})/(${denominator}))`);
-    const heading = `<div class="poldiv"><span class="num">${katx(simplify(numerator))}</span><span> : </span>
-                    <span class="deno">${katx(giaTex(denominator))}</span><span> = </span> <span class="ans">${katx(giaTex(answer))}</span></div>`;
     const parts = answer.replace(/\(.+?\)/g,'u').replace(/([+-])/g, (_, pm) => '#' + pm).split('#');
+    const pnumber = parts.length;
+    const howmany = min(rest.length || pnumber,pnumber);
+    const visibleAnswer = (howmany === pnumber) ? answer : parts.slice(0,howmany).join("");
+    const heading = `<div class="poldiv"><span class="num">${katx(simplify(numerator))}</span><span> : </span>
+                    <span class="deno">${katx(giaTex(denominator))}</span><span> = </span> <span class="ans">${katx(giaTex(visibleAnswer))}</span></div>`;
     const filler = simplify(numerator).replace(/([+-])/g, (_, pm) => '#' + pm).split('#')
     let pol = numerator;
     let howto = ''
-    for (let i = 0; i < parts.length; i++) {
+    for (let i = 0; i < howmany; i++) {
         const f = i ? '<span class="filler">' + katx(filler.slice(0, i).join("") + '+') + '</span>' : '';
         const u = '<span class="filler">' + katx(filler.slice(0, i + 1).join("") + '+') + '</span>'
         const p = parts[i]
