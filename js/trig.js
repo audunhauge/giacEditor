@@ -200,6 +200,17 @@ class T {
         return `<line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}"   stroke="${color}" />`;
     }
 
+    static bez = (p, q, r, t, s) => {
+        const size = s || T.size;
+        let color = size.c || "blue";
+        const b = `<path d="M ${fx(p.x, size)} ${fy(p.y, size)} 
+                    C ${fx(q.x, size)} ${fy(q.y, size)},
+                      ${fx(r.x, size)} ${fy(r.y, size)},
+                      ${fx(t.x, size)} ${fy(t.y, size)}"
+                        stroke="${color}"  fill="none" />`;
+        return b;
+    }
+
     static dot = (p, s) => {
         const size = s || T.size;
         let color = size.c || "blue";
@@ -227,7 +238,7 @@ class T {
         </textpath></text>`;
     }
 
-    static square = (p, q, a, b,z) => {
+    static square = (p, q, a, b, z) => {
         //      r_____s
         //      |     |
         //      |     |b
@@ -559,11 +570,11 @@ const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π,
     log: ln, log10: lg, log, abs, max, min, random: rnd } = Math;
 
 
-const {circle, line, square, text, dot, tri2svg, tri} = T;
+const { circle, line, bez, square, text, dot, tri2svg, tri } = T;
 
 const mathEnvironment = {
     SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc,
-    circle, line, square, text, dot, tri2svg, tri,
+    circle, line, bez, square, text, dot, tri2svg, tri,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log,
     sin, cos, tan, asin, atan2, acos, atan, π,
 }
@@ -579,7 +590,7 @@ const eva = (exp, variables) => {
     } catch (error) {
         console.log(error, exp, variables);
     }
-    if ( ( (value && value.charAt(0) === '>') || !value) && v && v.charAt(0) === '<') {
+    if (((value && value.charAt(0) === '>') || !value) && v && v.charAt(0) === '<') {
         // not p=xxx, assume we have svg fragment
         variables.SVG += v;
     }
@@ -608,7 +619,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\-\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.sub(new Point(${u},${v}))`)
     .replace(/^dot\((.+),(.+)\)$/gm, (_, u, v) => `dot(new Point(${u},${v}))`)
     .replace(/^dot\((.+)\)$/gm, (_, p) => `dot(${p})`)
-    .replace(/^square\(([^,)]+),([^,)]+),([^,)]+)\)$/gm, (_, p, w,h) => `square(${p},null,${w},${h})`)
+    .replace(/^square\(([^,)]+),([^,)]+),([^,)]+)\)$/gm, (_, p, w, h) => `square(${p},null,${w},${h})`)
     .replace(/^text\(([^,)]+),([^,)]+)\)$/gm, (_, p, s) => `text(${p},null,${s})`)
     .replace(/^text\(([^,)]+),([^,)]+),([^,)]+)\)$/gm, (_, p, q, s) => `text(${p},${q},${s})`)
     .replace(/^(.+)=tri\(([^{,]+),(.+),(.+),(.+)\)$/gm, (_, t, p, a, b, c) => `${t}=tri({p:${p},a:${a},b:${b},c:${c} })`)
@@ -624,7 +635,7 @@ export const code2svg = (kode, w, s) => {
     const variables = { SVG: "" };
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .split("").forEach(e => variables[e] = 0);
-    T.size = { w, s,c:"blue" };
+    T.size = { w, s, c: "blue" };
     Object.assign(variables, mathEnvironment);
     kode.forEach(line => {
         eva(line, variables);
