@@ -11,7 +11,7 @@ const english = {
     atcommands: {
         plot: "plot",
         trig: "trig",
-        qset: "qset",
+        eqset: "eqset",
         math: "math",
         cas: "cas",
         eq: "eq",
@@ -34,7 +34,7 @@ const norwegian = {
     atcommands: {
         plot: "plot",
         trig: "trig",
-        likninger: "qset",
+        likninger: "eqset",
         matte: "math",
         cas: "cas",
         likning: "eq",

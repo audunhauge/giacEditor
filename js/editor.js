@@ -19,6 +19,7 @@ const { home, app, back, aktiv, help, info, newfile, aside, editor,
 import { saveFileButton, readFileButton } from './filehandling.js';
 
 import { startReplay } from './replay.js';
+import { toast } from './util.js';
 
 const langlist = Object.keys(lang);
 let currentLanguage = "english";
@@ -452,6 +453,7 @@ ed.onkeyup = (e) => {
         replayActive = false;
         const event = new Event('killReplay');
         document.dispatchEvent(event);
+        toast("Ending replay",{delay:0.2});
     }
     const now = Date.now();
     const k = e.key;

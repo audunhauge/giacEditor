@@ -35,3 +35,48 @@ export const qs = rule => document.querySelector(rule);
 export const qsa = rule => document.querySelectorAll(rule);
 export const fill = (selector,v) => qsa(selector).forEach(e => e.innerHTML = String(v));
 export const wipe = (selector) => fill(selector,'');
+
+
+// assumes div.toast and css with --width ...
+export function toast(
+    message,
+    {
+      delay = 3,  // before skittering away
+      background = "aliceblue",
+      boxshadow = "red",
+      width = 18,
+      move = false,
+      close = false,
+    } = {}
+  ) {
+    const div = qs(".toast");
+    if (!div) return;
+    if (delay === 0) {
+      div.style.visibility = "hidden";
+      return;
+    }
+  
+    div.style.visibility = "visible";
+    div.innerHTML = message;
+    div.classList.remove("toast");
+    void div.offsetWidth;
+    div.classList.add("toast");
+    div.style.setProperty("--boxshadow", boxshadow);
+    div.style.setProperty("--background", background);
+    div.style.setProperty("--delay", delay + "s");
+    div.style.setProperty("--width", width + "rem");
+    if (close) {
+      const divAbove = document.createElement("div");
+      div.prepend(divAbove);
+      divAbove.innerHTML = '<span id="notoast">close</span>';
+      div.removeEventListener("click", closeMe);
+      div.addEventListener("click", closeMe);
+    }
+  }
+
+  function closeMe(e) {
+    if (e.target.id === "notoast") {
+      const div = qs(".toast")
+      div.style.visibility = "hidden";
+    }
+  }

@@ -158,7 +158,8 @@
 
             </section>
         </main>
-        <footer></footer>
+        <footer>
+        </footer>
     </div>
     <div id="app" class="hidden minos">
         <header class="gui">
@@ -204,10 +205,10 @@
                 <textarea name="ed" id="ed" cols="30" rows="10" stil="font-size:{efs/50}rem;line-height:{efs/50}rem;">
                 </textarea>
             </div>
-            
+
         </div>
     </div>
-
+    <div class="toast">Starting ... </div>
     <div id="output"></div>
     <script>
         var render = 12;
@@ -220,7 +221,7 @@
                     .register('./sw.js');
             }
         }
-        import {renderAll} from './js/editor.js';
+        import { renderAll } from './js/editor.js';
         render = renderAll;
     </script>
 

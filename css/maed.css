@@ -76,6 +76,12 @@ div.section.fasit {
     counter-reset: oppg-count -1;
 }
 
+#mathView {
+    padding: 3px;
+    /*max-width:210mm;*/
+    border-right:solid rgba(128, 128, 128, 0.192) 1px;
+}
+
 @media print {
 
     div.format.page,
@@ -94,6 +100,10 @@ div.section.fasit {
     .gui,
     div.section.fasit.skjult {
         display: none;
+    }
+
+    #mathView {
+        border-right:none;
     }
 
 
@@ -118,10 +128,7 @@ div.oppgave.fasit::before {
     position: relative;
 }
 
-#mathView {
-    padding: 3px;
-    /*max-width:210mm;*/
-}
+
 
 #editor>textarea {
     font-size: 1.2rem;
@@ -445,10 +452,10 @@ span.eqset {
 span.eqset::before {
     position: absolute;
     content: attr(data-nr) ")";
-    color:blue;
-    padding-right: 5px;
-    left:-42px;
-    top:0;
+    color:saddlebrown;
+    padding-right: 0.5em;
+    left:-1.6em;
+    top:0.4em;
 }
 
 div.equation.qset>div>span {
@@ -465,7 +472,7 @@ div.equation.qset > div > span {
 }
 
 div.qset >div:nth-child(n+3) > span {
-    color:blue;
+    color:midnightblue;
 }
 
 span.num {
@@ -488,3 +495,41 @@ span.filler {
 #last {
     min-height: 200px;
 }
+
+div.toast {
+    --boxshadow: red;
+    --background: aliceblue;
+    --delay: 2s;
+    --width: 18rem;
+    border: solid gray 1px;
+    border-radius: 4px;
+    position: absolute;
+    top: 12rem;
+    left: calc(50% - var(--width) / 2);
+    background-color: var(--background);
+    box-shadow: 2px 2px 2px var(--boxshadow);
+    width: var(--width);
+    min-height: 3rem;
+    padding: 1rem;
+    animation: goaway 0.5s forwards;
+    animation-delay: var(--delay);
+  }
+  
+  @keyframes goaway {
+    85% {
+      opacity: 1;
+      box-shadow: 2px 2px 2px gray;
+    }
+    90% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+
+  span.ok_gold {
+      display: inline-block;
+      min-width: 4em;
+  }

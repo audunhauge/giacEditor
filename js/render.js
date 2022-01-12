@@ -162,7 +162,8 @@ export const renderEqnSet = (id, txt, size = "") => {
         const [line, comment = ""] = lines[i].split("::");
         eqs[i] = line;
         const clean = cleanUpMathLex(line);
-        newMath[i] = `<span data-nr="${'i'.repeat(i + 1)}" class="eqset">${katx(clean)}</span>`;
+        const kalex = renderLikning(clean, comment, { mode:false, klass:"" });
+        newMath[i] = `<span data-nr="${'I'.repeat(i + 1)}" class="eqset">${kalex}</span>`;
     }
     for (let i = 2; i < lines.length; i++) {
         const [todo, comment = ""] = lines[i].split("::");
@@ -173,14 +174,16 @@ export const renderEqnSet = (id, txt, size = "") => {
             // 1+2 2-1 2+1 1-2
             const nuline = giaEval(`simplify((${eqs[+a - 1]})${op}(${eqs[+b - 1]}))`);
             eqs[+a - 1] = nuline;
-            newMath[i] = `<span data-nr="${'i'.repeat(+a)}" class="eqset">${katx(eqs[+a - 1])}</span><span>${todo}</span>`;
+            const kalex = renderLikning(nuline, comment, { mode:false, klass:"" });
+            newMath[i] = `<span data-nr="${'I'.repeat(+a)}" class="eqset">${kalex}</span><span>${todo}</span>`;
             continue;
         }
         if (line) {
             const orig = eqs[(+idx) - 1];
             const eq = operate(orig, line);
             eqs[+idx - 1] = eq;
-            newMath[i] = `<span data-nr="${'i'.repeat(idx)}" class="eqset">${katx(eq)}</span><span>${todo}</span>`;
+            const kalex = renderLikning(eq, comment, { mode:false, klass:"" });
+            newMath[i] = `<span data-nr="${'I'.repeat(idx)}" class="eqset">${kalex}</span><span>${todo}</span>`;
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
