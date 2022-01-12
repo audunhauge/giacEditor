@@ -448,6 +448,11 @@ saveFileButton("save", web.filename, (newName) => {
 let timestep = 0;
 let oldtext = "";
 ed.onkeyup = (e) => {
+    if (replayActive) {
+        replayActive = false;
+        const event = new Event('killReplay');
+        document.dispatchEvent(event);
+    }
     const now = Date.now();
     const k = e.key;
     const render = k === "Enter" || k.includes("Arrow");

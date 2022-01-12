@@ -36,6 +36,16 @@ const lastSection = () => {
 }
 
 
+// editing original text will kill the replay
+document.addEventListener("killReplay", () => {
+    document.removeEventListener("keydown", navigate);
+    player.editor.value = player.lineBuffer.join("\n");
+    const event = new Event('replayOver');
+    document.dispatchEvent(event);
+    player.renderer();
+});
+
+
 function navigate(e) {
     const p = player;
     if (e.key === "ArrowDown") {

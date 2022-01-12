@@ -221,7 +221,7 @@ class T {
         const size = z || T.size;
         let now = String(Math.random()).slice(2, 10);
         if (q === null || q === undefined) {
-            const l = Math.max(1,Number((s.length/5).toFixed(2)));
+            const l = Math.max(1,Number((s.length/2).toFixed(2)));
             let v = new Point(l, 0); // direction of path for text
             q = p.add(v);
         }
