@@ -219,9 +219,10 @@ class T {
 
     static text = (p, q, s, z) => {
         const size = z || T.size;
-        let now = String(Math.random()).substr(2, 8);
+        let now = String(Math.random()).slice(2, 10);
         if (q === null || q === undefined) {
-            let v = new Point(1, 0); // direction of path for text
+            const l = Math.max(1,Number((s.length/5).toFixed(2)));
+            let v = new Point(l, 0); // direction of path for text
             q = p.add(v);
         }
         let path = `M ${fx(p.x, size)} ${fy(p.y, size)} L ${fx(q.x, size)} ${fy(q.y, size)}`;
@@ -590,8 +591,9 @@ const eva = (exp, variables) => {
     } catch (error) {
         console.log(error, exp, variables);
     }
-    if (((value && value.charAt(0) === '>') || !value) && v && v.charAt(0) === '<') {
-        // not p=xxx, assume we have svg fragment
+    //if (((value && value.charAt(0) === '>') || !value) && v && v.charAt(0) === '<') {
+    if (((value && lhs.length > 3) || !value) && v && v.charAt(0) === '<') {
+        // not (p=xxx, p1=xxx  p12=xxx): assume we have svg fragment
         variables.SVG += v;
     }
     return v;
