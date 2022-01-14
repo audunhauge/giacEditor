@@ -6,7 +6,7 @@ import {
 } from './Minos.js';
 
 import {
-    renderAlgebra, renderPoldiv, renderEqnSet,
+    renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
     renderEquation, renderMath, renderPlot, renderTrig
 } from './render.js';
 
@@ -43,12 +43,22 @@ function setLang() {
 let replayActive = false;
 
 $("replay").onclick = () => {
+    if (replayActive) {
+        replayActive = false;    
+        const event = new Event('killReplay');
+        document.dispatchEvent(event);
+        return;
+    }
     replayActive = true;
+    toast("Starting replay - use arrow keys to controll<p>'Esc' to end.", { delay: 0.8 });
     startReplay(ed, renderAll);
 }
 
+
+
 document.addEventListener("replayOver", (e) => {
     replayActive = false;
+    toast("Ending replay", { delay: 0.2 });
 })
 
 
@@ -233,6 +243,7 @@ export const renderAll = () => {
     const algebra = [];
     const eqsets = [];
     const trigs = [];
+    const python = [];
     const poldivs = [];
     const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     let ofs = 1234; // uniq id for math,alg etc
@@ -247,6 +258,11 @@ export const renderAll = () => {
                 ofs++;
                 plots.push({ plot, id: `graf${seg}_${ofs}`, klass, seg });
                 return `<div class="plots ${klass}" id="graf${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@python( .*)?$([^€]+?)^$^/gm, (_, klass, pyt) => {
+                ofs++;
+                python.push({ pyt, id: `py${seg}_${ofs}`, klass, seg });
+                return `<div class="plots ${klass}" id="py${seg}_${ofs}"></div>\n`;
             })
             .replace(/@trig( .*)?$([^€]+?)^$^/gm, (_, klass, trig) => {
                 ofs++;
@@ -418,6 +434,10 @@ export const renderAll = () => {
             renderPlot(id, plot, klass);
         //scrollit(id);
     });
+    python.forEach(({ pyt, id, klass, seg }) => {
+        if (rerend || dirtyList.includes(seg))
+            renderPy(id, pyt, klass);
+    });
     trigs.forEach(({ trig, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderTrig(id, trig, klass);
@@ -453,7 +473,7 @@ ed.onkeyup = (e) => {
         replayActive = false;
         const event = new Event('killReplay');
         document.dispatchEvent(event);
-        toast("Ending replay",{delay:0.2});
+        toast("Ending replay", { delay: 0.2 });
     }
     const now = Date.now();
     const k = e.key;

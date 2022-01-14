@@ -175,16 +175,6 @@ const circumcirc = (param) => {
 }
 
 
-const svgOuter = (contents, w = 500) => {
-    let s = w / 500;
-    let id = "s" + Date.now();
-    return `<svg id="${id}" width="${w}" viewBox="0 0  ${w} ${w}"> 
-    <g transform="scale(${s})">
-      ${contents}
-    </g>
-  </svg>`;
-}
-
 class T {
     static size = { w: 300, s: 8, c: "blue" };
 
@@ -215,6 +205,13 @@ class T {
         const size = s || T.size;
         let color = size.c || "blue";
         return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="3" fill="${color}"/>`;
+    }
+
+    // many dots
+    static dots = (...s) => {
+        const size = T.size;
+        let color = size.c || "blue";
+        return s.map(p=>`<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="3" fill="${color}"/>`).join("");
     }
 
     static text = (p, q, s, z) => {
@@ -571,11 +568,11 @@ const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π,
     log: ln, log10: lg, log, abs, max, min, random: rnd } = Math;
 
 
-const { circle, line, bez, square, text, dot, tri2svg, tri } = T;
+const { circle, line, bez, square, text, dot, dots, tri2svg, tri } = T;
 
 const mathEnvironment = {
     SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc,
-    circle, line, bez, square, text, dot, tri2svg, tri,
+    circle, line, bez, square, text, dot, dots, tri2svg, tri,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log,
     sin, cos, tan, asin, atan2, acos, atan, π,
 }
@@ -592,7 +589,7 @@ const eva = (exp, variables) => {
         console.log(error, exp, variables);
     }
     //if (((value && value.charAt(0) === '>') || !value) && v && v.charAt(0) === '<') {
-    if (((value && lhs.length > 3) || !value) && v && v.charAt(0) === '<') {
+    if (((value && lhs.length > 3) || !value) && v && v.charAt && v.charAt(0) === '<') {
         // not (p=xxx, p1=xxx  p12=xxx): assume we have svg fragment
         variables.SVG += v;
     }
@@ -619,8 +616,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^([a-zA-Z])=\((.+),(.+)\)$/gm, (_, p, u, v) => `${p}=new Point(${u},${v})`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\+\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.add(new Point(${u},${v}))`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\-\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.sub(new Point(${u},${v}))`)
-    .replace(/^dot\((.+),(.+)\)$/gm, (_, u, v) => `dot(new Point(${u},${v}))`)
-    .replace(/^dot\((.+)\)$/gm, (_, p) => `dot(${p})`)
+    .replace(/^dot\(([-+0-9.]+),([-+0-9.]+)\)$/gm, (_, u, v) => `dot(new Point(${u},${v}))`)    // dot(1,2)
     .replace(/^square\(([^,)]+),([^,)]+),([^,)]+)\)$/gm, (_, p, w, h) => `square(${p},null,${w},${h})`)
     .replace(/^text\(([^,)]+),([^,)]+)\)$/gm, (_, p, s) => `text(${p},null,${s})`)
     .replace(/^text\(([^,)]+),([^,)]+),([^,)]+)\)$/gm, (_, p, q, s) => `text(${p},${q},${s})`)
@@ -644,4 +640,46 @@ export const code2svg = (kode, w, s) => {
     });
     return variables.SVG;
 
+}
+
+/**
+ * TODO  this code lets user add points to a @trig
+ */
+
+let B = null;
+function mm(e) {
+    const x = e.clientX - B.x;
+    const y = e.clientY - B.y;
+    //web.mx = x;
+    //web.my = y;
+}
+
+let ed;  // DUMMY
+
+function mp(e) {
+    const x = e.clientX - B.x;
+    const y = e.clientY - B.y;
+    //let wx = 300 * x / 8;
+    if (! ed.value.endsWith('\n')) {
+        ed.value += '\n';
+    }
+    ed.value += `q=(${nice(8*x/350)},${nice(-8*(y - 350)/350)});p.push(q)\n`;
+}
+
+let movePoints = false;
+//$("pointer").onclick = () => {
+() => {
+    const trig = null; //qs("div.trig svg");
+    if (trig) {
+        B = trig.getBoundingClientRect(); // x,y for top left corner of canvas
+        if (movePoints) {
+            trig.removeEventListener("mousemove", mm);
+            trig.removeEventListener("click", mp);
+            movePoints = false;
+        } else {
+            trig.addEventListener("mousemove", mm);
+            trig.addEventListener("click", mp);
+            movePoints = true;
+        }
+    }
 }

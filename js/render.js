@@ -54,7 +54,11 @@ const makeLatex = (txt, { mode, klass }) => {
 }
 
 
-const giaClean = exp => exp.replace(/["*]/g, '').replace('mbox', 'boxed');
+const giaClean = (exp, fallback = "?") => {
+    const v = exp.replace(/["*]/g, '').replace('mbox', 'boxed');
+    if (v.startsWith("GIAC")) return fallback;
+    return v;
+}
 
 const giaEval = exp => {
     const txt = trans(lang[web.chosen], exp);
@@ -68,21 +72,20 @@ const giaEval = exp => {
 }
 
 const solve = exp => giaEval(`latex(solve(${exp}))`);
-const giaTex = exp => giaClean(giaEval(`latex(${exp})`));
+//const giaTex = exp => giaClean(giaEval(`latex(${exp})`));
+const giaTex = (exp, old = "?") => giaClean(exp, old);
 
 
 const operate = (exp, op) => {
+    const sim = (op.charAt(0) === " ") ? '' : 'simplify';
     try {
-        if ((op.charAt(0) === " ")) {
-            // dont simplify
+        op = sim ? op : op.slice(1);
+        if ("+-*/|".includes(op.charAt(0))) {
             // @ts-ignore
-            return giaEval(`(${exp})${op.substr(1)}`)
-        } else if ("+-*/|".includes(op.charAt(0))) {
-            // @ts-ignore
-            return giaEval(`simplify((${exp})${op})`)
+            return giaEval(`${sim}((${exp})${op})`)
         } else {
             // @ts-ignore
-            return giaEval(`(${op}(${exp}))`)
+            return giaEval(`${sim}(${op}(${exp}))`)
         }
     } catch (e) {
         console.log("Simplyfy ", e, exp);
@@ -122,13 +125,13 @@ export const renderPoldiv = (id, txt, size = "") => {
         $(id).innerHTML = "Must have exactly two equations"
         return;
     }
-    const [numerator, denominator,...rest] = lines;
+    const [numerator, denominator, ...rest] = lines;
     // if rest is non empty then reveal as many lines as given by rest
     const answer = giaEval(`propfrac((${numerator})/(${denominator}))`);
-    const parts = answer.replace(/\(.+?\)/g,'u').replace(/([+-])/g, (_, pm) => '#' + pm).split('#');
+    const parts = answer.replace(/\(.+?\)/g, 'u').replace(/([+-])/g, (_, pm) => '#' + pm).split('#');
     const pnumber = parts.length;
-    const howmany = min(rest.length || pnumber,pnumber);
-    const visibleAnswer = (howmany === pnumber) ? answer : parts.slice(0,howmany).join("");
+    const howmany = min(rest.length || pnumber, pnumber);
+    const visibleAnswer = (howmany === pnumber) ? answer : parts.slice(0, howmany).join("");
     const heading = `<div class="poldiv"><span class="num">${katx(simplify(numerator))}</span><span> : </span>
                     <span class="deno">${katx(giaTex(denominator))}</span><span> = </span> <span class="ans">${katx(giaTex(visibleAnswer))}</span></div>`;
     const filler = simplify(numerator).replace(/([+-])/g, (_, pm) => '#' + pm).split('#')
@@ -162,7 +165,7 @@ export const renderEqnSet = (id, txt, size = "") => {
         const [line, comment = ""] = lines[i].split("::");
         eqs[i] = line;
         const clean = cleanUpMathLex(line);
-        const kalex = renderLikning(clean, comment, { mode:false, klass:"" });
+        const kalex = renderLikning(clean, comment, { mode: false, klass: "" });
         newMath[i] = `<span data-nr="${'I'.repeat(i + 1)}" class="eqset">${kalex}</span>`;
     }
     for (let i = 2; i < lines.length; i++) {
@@ -174,7 +177,7 @@ export const renderEqnSet = (id, txt, size = "") => {
             // 1+2 2-1 2+1 1-2
             const nuline = giaEval(`simplify((${eqs[+a - 1]})${op}(${eqs[+b - 1]}))`);
             eqs[+a - 1] = nuline;
-            const kalex = renderLikning(nuline, comment, { mode:false, klass:"" });
+            const kalex = renderLikning(nuline, comment, { mode: false, klass: "" });
             newMath[i] = `<span data-nr="${'I'.repeat(+a)}" class="eqset">${kalex}</span><span>${todo}</span>`;
             continue;
         }
@@ -182,7 +185,7 @@ export const renderEqnSet = (id, txt, size = "") => {
             const orig = eqs[(+idx) - 1];
             const eq = operate(orig, line);
             eqs[+idx - 1] = eq;
-            const kalex = renderLikning(eq, comment, { mode:false, klass:"" });
+            const kalex = renderLikning(eq, comment, { mode: false, klass: "" });
             newMath[i] = `<span data-nr="${'I'.repeat(idx)}" class="eqset">${kalex}</span><span>${todo}</span>`;
         }
     }
@@ -293,11 +296,14 @@ export function renderEquation(id, txt, size = "") {
            <span>=</span>
            <span>${katx((simplify(rhs)))}</span><span>${comment}</span>`;
         } else {
+            const [ol, or] = [lhs, rhs];
             lhs = operate(lhs, line);
+            lhs = lhs.startsWith("GIAC") ? ol : lhs;
             [rhs] = operate(rhs, line).split("=");
-            newMath[i] = `<span>${katx(giaTex(lhs))}</span>
+            rhs = rhs.startsWith("GIAC") ? or : rhs;
+            newMath[i] = `<span>${katx(giaTex(lhs, ol))}</span>
             <span>=</span>
-            <span>${katx(giaTex(rhs))}</span><span>${line} <span class="comment">${comment}</span></span>`;
+            <span>${katx(giaTex(rhs, or))}</span><span>${line} <span class="comment">${comment}</span></span>`;
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
@@ -319,6 +325,24 @@ export function renderMath(id, math, size = "") {
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
+}
+
+export function renderPy(id, py, klass) {
+    if (py.endsWith("GO!\n")) {
+        if (!UI.micropy_initialized) {
+            UI.mp_init(UI.micropy_heap);
+            console.log('mp_init done');
+            try {
+                UI.mp_eval("1");
+            }
+            catch (err) { console.log('mp_init eval(1)', err); }
+        }
+        UI.python_output = '';
+        const res = UI.mp_eval(py);
+        $(id).innerHTML = UI.python_output;
+    } else {
+        $(id).innerHTML = "End python prog with '#GO!' as last line";
+    }
 }
 
 
