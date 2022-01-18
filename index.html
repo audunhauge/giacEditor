@@ -14,6 +14,8 @@
     <script src="/js/d3.min.js"></script>
     <script src="/js/function-plot.js"></script>
     <script src="/js/giacsimple.js" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.10.3/brython.min.js" async></script>;
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.10.3/brython_stdlib.js" async></script>;
     <link rel="stylesheet" href="/js/katex/katex.min.css">
     <link rel="stylesheet" href="css/maed.css">
     <link rel="stylesheet" href="css/index.css">
@@ -211,7 +213,9 @@
     <div class="toast">Starting ... </div>
     <div id="output"></div>
     <script>
-        var render = 12;
+        var render;
+        var bryson = {};  // interface to BRYTHON
+        // each @python will set params on this global
     </script>
 
     <script type="module">

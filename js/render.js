@@ -329,6 +329,33 @@ export function renderMath(id, math, size = "") {
 
 export function renderPy(id, py, klass) {
     if (py.endsWith("GO!\n")) {
+        // @ts-ignore
+        if (__BRYTHON__) {
+            // @ts-ignore
+            bryson.id = id;
+            const fu = id + "_fu";
+            const bar = id + "_bar";
+            const bas = id + "_bas";
+            // set up div for graphics, print and code
+            $(id).innerHTML = `<div id="${fu}"></div>\n <div id="${bar}"></div>\n <div id="${bas}"></div>`;
+            // @ts-ignore
+            const ajscode = __BRYTHON__.python_to_js(py);
+            try {
+                eval(ajscode);
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
+    } else {
+        $(id).innerHTML = "End python prog with '#GO!' as last line";
+    }
+}
+
+
+/*
+export function renderPy(id, py, klass) {
+    if (py.endsWith("GO!\n")) {
         if (!UI.micropy_initialized) {
             UI.mp_init(UI.micropy_heap);
             console.log('mp_init done');
@@ -344,6 +371,7 @@ export function renderPy(id, py, klass) {
         $(id).innerHTML = "End python prog with '#GO!' as last line";
     }
 }
+*/
 
 
 
