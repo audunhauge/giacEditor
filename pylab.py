@@ -44,8 +44,12 @@ def array(xs):
 
 
 options = {
-    "target"  :"#fu",
-      "data"  : [
+   "xAxis": {},
+   "yAxis": {},
+   "width":300,
+   "height":300,
+   "target"  :"#fu",
+   "data"  : [
            ]
    }
 
@@ -55,9 +59,23 @@ def replot():
 def xdomain(a,b):
    options["xAxis"] = { "domain":[a,b] }
 
-
 def ydomain(a,b):
    options["yAxis"] = { "domain":[a,b] }
+
+def yscale(l="linear"):
+   options["yAxis"]["type"] = l
+
+def xscale(l="linear"):
+   options["xAxis"]["type"] = l
+
+def title(l=""):
+   options["title"] = l
+
+def plotsize(w=200,h=200):
+   options["width"] = w
+   options["height"] = h
+
+
 
 def xlabel(l="x"):
    if "xAxis" in options:
