@@ -33,11 +33,12 @@ def choice(a,p=[],size=0):
 
 parameters = window.bryson;
 
-id = parameters.id
-fu = "#" + id + "_fu"
-bar = id + "_bar"
-bas = id + "_bas"
-
+targets = {
+   "id":"",
+   "fu":"",
+   "bar":"",
+   "bas":""
+}
 
 def array(xs):
    return _arr.array('d',xs)
@@ -54,7 +55,13 @@ options = {
    }
 
 def replot():
+   id = parameters.id
    options["data"] = []
+   options["target"] = "#" + id + "_fu"
+   targets["id"] = id
+   targets["fu"] = "#" + id + "_fu"
+   targets["bar"] = id + "_bar"
+   targets["bas"] = id + "_bas"
 
 def xdomain(a,b):
    options["xAxis"] = { "domain":[a,b] }
@@ -75,6 +82,9 @@ def plotsize(w=200,h=200):
    options["width"] = w
    options["height"] = h
 
+def grid(on=True):
+   options["grid"] = (1 if on else 0)
+
 
 
 def xlabel(l="x"):
@@ -91,9 +101,18 @@ def ylabel(l="x"):
 
 
 
-def plot(xs,ys,target=fu,color="",type="polyline"):
+def plot(xs,ys,color="",type="polyline"):
+   if not "domain" in options["xAxis"]: 
+      # domain not set - calc from xs
+      ma = max(xs)
+      mi = min(xs)
+      options["xAxis"] = {"domain":[mi,ma]}
+   if not "domain" in options["yAxis"]:
+      # domain not set - calc from xs
+      ma = max(ys)
+      mi = min(ys)
+      options["yAxis"] = {"domain":[mi,ma]}
    v = list(map(lambda x,y:[x,y],xs,ys))
-   options["target"] = target
    options["data"].append( {"points":v,"fnType":"points","graphType":type})
   
 
@@ -110,7 +129,8 @@ def linspace(start,stop,amount):
    return xs
 
 def print(*args):
+   t = targets["bar"]
    s = ""
    for e in args:
       s += str(e)
-   document[bar].attach(html.SPAN(s)).attach(html.BR())
+   document[t].attach(html.SPAN(s)).attach(html.BR())

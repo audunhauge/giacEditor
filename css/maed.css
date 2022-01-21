@@ -213,32 +213,32 @@ div.math > div > div  {
 div.math > div > div > span:nth-child(2) {
     color:green;
 }
-
-
-pre>code.language-python {
+pre>code[class^=language] {
     position: relative;
     display: block;
-    padding: 3px 20px 3px 2em;
+    padding: 3px 20px 3px 2.5em;
     margin-left: 2rem;
     width: fit-content;
+    overflow: hidden;  
+}
+
+pre>code.language-python {
     background-color: rgba(232, 236, 236, 0.294);
     border-radius: 5px;
     border: solid black 1px;
     box-shadow: 2px 2px 2px gray;
-    overflow: hidden;
 }
 
 
 /* line numbering for code */
-pre>code::before {
+pre>code[class^=language]::before {
     position: absolute;
     display: block;
     white-space: break-spaces;
     color: darkgreen;
-    text-align: right;
-    left: 10px;
+    left: 5px;
     top: 4px;
-    width: 1rem;
+    width: 1.2rem;
     height: 40rem;
     content: "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25";
 }
@@ -537,3 +537,8 @@ div.toast {
       display: inline-block;
       min-width: 4em;
   }
+
+div.plots.code {
+    display:flex;
+    flex-wrap: wrap;
+}

@@ -4,16 +4,17 @@ import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse } from './trig.js';
+import { toast } from './util.js';
 
 const { min, max } = Math;
 
 // @ts-ignore
-const katx = (s, mode) => katex.renderToString(String(s), {
+export const katx = (s, mode) => katex.renderToString(String(s), {
     throwOnError: false,
     displayMode: mode,
 });
 
-function cleanUpMathLex(code) {
+export function cleanUpMathLex(code) {
     if (code === "") return "";
     return code
         .replace(/\*\*/gm, "^")
@@ -39,7 +40,7 @@ const simplify = exp => {
 }
 
 
-const makeLatex = (txt, { mode, klass }) => {
+export const makeLatex = (txt, { mode, klass }) => {
     const clean = cleanUpMathLex(txt);
     try {
         // @ts-ignore
@@ -327,6 +328,21 @@ export function renderMath(id, math, size = "") {
     $(id).innerHTML = wrap(newMath, 'div');
 }
 
+const parsePy = py => {
+    const prelude = "from pylab import *\nreplot()\n";
+    try {
+        // @ts-ignore
+        return __BRYTHON__.python_to_js(prelude + py);
+    } catch (e) {
+        if (e.name) {
+            const msg = `Error at line ${Number(e.lineno) - 3}<br>`
+                + `${e.msg}`;
+            toast(msg);
+        }
+    }
+    return '';
+}
+
 export function renderPy(id, py, klass) {
     if (py.endsWith("GO!\n")) {
         // @ts-ignore
@@ -338,43 +354,27 @@ export function renderPy(id, py, klass) {
             const bas = id + "_bas";
             // set up div for graphics, print and code
             $(id).innerHTML = `<div id="${fu}"></div>\n <div id="${bar}"></div>\n <div id="${bas}"></div>`;
-            // @ts-ignore
-            const ajscode = __BRYTHON__.python_to_js(py);
+            const ajscode = parsePy(py);
             try {
                 eval(ajscode);
             } catch (e) {
+                if (e.name) {
+                    const msg = `Error at line ${Number(e.$line_info.split(',')[0]) - 3}<br>`
+                        + `${e.name} is perhaps undefined?`;
+                    toast(msg);
+                }
                 console.log(e);
             }
-
-        }
-    } else {
-        $(id).innerHTML = "End python prog with '#GO!' as last line";
-    }
-}
-
-
-/*
-export function renderPy(id, py, klass) {
-    if (py.endsWith("GO!\n")) {
-        if (!UI.micropy_initialized) {
-            UI.mp_init(UI.micropy_heap);
-            console.log('mp_init done');
-            try {
-                UI.mp_eval("1");
+            if (klass && klass.includes("code")) {
+                const code = py.slice(1,-5).replace(/\&amp;/g,'&').replace(/\&gt;/g,'>').replace(/\&lt;/g,'<');
+                $(bas).innerHTML = `<pre><code class="language-python">${code}</code></pre>`;
             }
-            catch (err) { console.log('mp_init eval(1)', err); }
+
         }
-        UI.python_output = '';
-        const res = UI.mp_eval(py);
-        $(id).innerHTML = UI.python_output;
     } else {
         $(id).innerHTML = "End python prog with '#GO!' as last line";
     }
 }
-*/
-
-
-
 
 
 function plotGraph(parent, fu, size, colors) {

@@ -6,7 +6,8 @@ import {
 } from './Minos.js';
 
 import {
-    renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
+    renderAlgebra, renderPoldiv, renderEqnSet, renderPy, 
+    makeLatex,
     renderEquation, renderMath, renderPlot, renderTrig
 } from './render.js';
 
@@ -179,40 +180,6 @@ savedFiles.onclick = async (e) => {
 
 // @ts-ignore
 const md = new remarkable.Remarkable("full", { html: true });
-
-
-
-// @ts-ignore
-const katx = (s, mode) => katex.renderToString(String(s), {
-    throwOnError: false,
-    displayMode: mode,
-});
-
-function cleanUpMathLex(code) {
-    if (code === "") return "";
-    return code
-        .replace(/\*\*/gm, "^")
-        .replace(/\)\(/gm, ")*(") // (x+a)(x-2) => (x+a)*(x-2)
-        .replace(/([0-9])\(/gm, (m, a, b) => a + "*(")  // 3( => 3*(
-        .replace(/([0-9])([a-z])/gm, (m, a, b) => a + "*" + b); // 3a => 3*a
-}
-
-
-const makeLatex = (txt, { mode, klass }) => {
-    const clean = cleanUpMathLex(txt);
-    try {
-        // @ts-ignore
-        const m = MathLex.parse(clean);
-        // @ts-ignore
-        const tex = MathLex.render(m, "latex");
-        return katx(String(tex), mode);
-    } catch (e) {
-        //console.log(e, txt, clean);
-        return katx(String(clean), mode);
-    }
-}
-
-
 
 let oldRest = [];
 
