@@ -45,8 +45,8 @@ def array(xs):
 
 
 options = {
-   "xAxis": {},
-   "yAxis": {},
+   "xAxis": { "label":"x"},
+   "yAxis": { "label":"y"},
    "width":300,
    "height":300,
    "target"  :"#fu",
@@ -57,6 +57,8 @@ options = {
 def replot():
    id = parameters.id
    options["data"] = []
+   options["xAxis"] = { "label":"x"}
+   options["yAxis"] = { "label":"y"}
    options["target"] = "#" + id + "_fu"
    targets["id"] = id
    targets["fu"] = "#" + id + "_fu"
@@ -64,10 +66,10 @@ def replot():
    targets["bas"] = id + "_bas"
 
 def xdomain(a,b):
-   options["xAxis"] = { "domain":[a,b] }
+   options["xAxis"]["domain"] = [a,b]
 
 def ydomain(a,b):
-   options["yAxis"] = { "domain":[a,b] }
+   options["yAxis"]["domain"] = [a,b] 
 
 def yscale(l="linear"):
    options["yAxis"]["type"] = l
@@ -85,33 +87,30 @@ def plotsize(w=200,h=200):
 def grid(on=True):
    options["grid"] = (1 if on else 0)
 
+def axhline(y=0,color="",*s):
+   return 1
+
+def axvline(x=0,color="",*s):
+   return 1
 
 
 def xlabel(l="x"):
-   if "xAxis" in options:
-      options["xAxis"]["label"] = l
-   else:
-      options["xAxis"] = { "label":l }
+   options["xAxis"]["label"] = l
    
 def ylabel(l="x"):
-   if "yAxis" in options:
-      options["yAxis"]["label"] = l
-   else:
-      options["yAxis"] = { "label":l }
-
-
+   options["yAxis"]["label"] = l
 
 def plot(xs,ys,color="",type="polyline"):
    if not "domain" in options["xAxis"]: 
       # domain not set - calc from xs
       ma = max(xs)
       mi = min(xs)
-      options["xAxis"] = {"domain":[mi,ma]}
+      options["xAxis"]["domain"]=[mi,ma]
    if not "domain" in options["yAxis"]:
       # domain not set - calc from xs
       ma = max(ys)
       mi = min(ys)
-      options["yAxis"] = {"domain":[mi,ma]}
+      options["yAxis"]["domain"]=[mi,ma]
    v = list(map(lambda x,y:[x,y],xs,ys))
    options["data"].append( {"points":v,"fnType":"points","graphType":type})
   

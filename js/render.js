@@ -3,7 +3,7 @@
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
-import { code2svg, parse } from './trig.js';
+import { code2svg, parse, eva, range } from './trig.js';
 import { toast } from './util.js';
 
 const { min, max } = Math;
@@ -151,6 +151,26 @@ export const renderPoldiv = (id, txt, size = "") => {
         howto += `<div>${f}${katx(giaTex(rem))}</div><div>${u}${katx(giaTex(pol))}</div>`
     }
     $(id).innerHTML = heading + howto;
+}
+
+export const renderSigram = (id, txt, size = "") => {
+    const lines = txt.split('\n').filter(e => e != "");
+    if (lines.length < 1) {
+        $(id).innerHTML = "Enter polynomial"
+        return;
+    }
+    const [expression] = lines;
+    const exp = cleanUpMathLex(expression).replace('^','**');
+    const f = new Function("x",`{ return(Math.sign(${exp})) }`);
+    const d = range(-10,10,0.1);
+    const res = d.map(x =>f(x));
+    let sgn = d[0];
+    let s ='';
+    for ( let i=1; i< d.length; i++ ) {
+        
+    }
+    console.log(res);
+    $(id).innerHTML = "";
 }
 
 export const renderEqnSet = (id, txt, size = "") => {
@@ -343,6 +363,34 @@ const parsePy = py => {
     return '';
 }
 
+/**
+ * check if we have :: xs = linspace(..); ys = f(xs)
+ * If so then replace with :: ys = list(map(f,xs))
+ * This is a hack to save switching from brython  ~ 0.75Mb
+ * to pyodide ~ 12Mb
+ * @param {string} py python code
+ * @returns {string}
+ */
+function magicNumPyFix(py) {
+    if (py.includes('linspace')) {
+        // match pattern 'xxx = linspace(...)
+        const def = py.match(/^(.+)= *linspace\(/m)
+        if (def && def[1]) {
+            // found xxx = linspace
+            const xs = def[1].trimStart().trimEnd();
+            // match pattern :: yyy = fu(varname)
+            const reg = new RegExp(`^(.+) *= *(.+)\\(${xs}\\)$`,"m");
+            const use = py.match(reg);
+            if (use && use[1]) {
+                const ys = use[1].trimEnd().trimStart();
+                const fx = use[2].trimEnd().trimStart();
+                py = py.replace(reg,`${ys} = list(map(${fx},${xs}))`);
+            }
+        }
+    }
+    return py
+}
+
 export function renderPy(id, py, klass) {
     if (py.endsWith("GO!\n")) {
         // @ts-ignore
@@ -354,7 +402,8 @@ export function renderPy(id, py, klass) {
             const bas = id + "_bas";
             // set up div for graphics, print and code
             $(id).innerHTML = `<div id="${fu}"></div>\n <div id="${bar}"></div>\n <div id="${bas}"></div>`;
-            const ajscode = parsePy(py);
+            const fixedPy = magicNumPyFix(py);
+            const ajscode = parsePy(fixedPy);
             try {
                 eval(ajscode);
             } catch (e) {

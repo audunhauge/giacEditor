@@ -7,7 +7,7 @@ import {
 
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy, 
-    makeLatex,
+    makeLatex, renderSigram,
     renderEquation, renderMath, renderPlot, renderTrig
 } from './render.js';
 
@@ -211,6 +211,7 @@ export const renderAll = () => {
     const eqsets = [];
     const trigs = [];
     const python = [];
+    const sigrams = [];  // sign diagrams
     const poldivs = [];
     const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     let ofs = 1234; // uniq id for math,alg etc
@@ -245,6 +246,11 @@ export const renderAll = () => {
                 ofs++;
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
                 return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
+                ofs++;
+                sigrams.push({ eq, id: `sig${seg}_${ofs}`, klass, seg });
+                return `<div class="sigram ${klass}" id="sig${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@math( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
@@ -382,6 +388,16 @@ export const renderAll = () => {
         if (rerend || dirtyList.includes(seg)) {
             renderPoldiv(id, eq, size);
             //scrollit(id);
+        }
+    });
+    sigrams.forEach(({ eq, id, size, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            // @ts-ignore  First alg in this seg, reset giac
+            UI.eval("restart");
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            renderSigram(id, eq, size);
         }
     });
     algebra.forEach(({ math, id, size, seg }) => {

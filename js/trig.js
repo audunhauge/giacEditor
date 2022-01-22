@@ -59,7 +59,7 @@ const shuffle = (elements) => {
     }
     return shuffled;
 }
-const range = (lo, hi, step = 1) => {
+export const range = (lo, hi, step = 1) => {
     // range(1,10,1) => [1,2,3,4,5,6,7,8,9]
     // range(1,4,0.1) => [1.0, 1.1, 1.2, 1.3 .. 3.9]
     step = step === 0 || isNaN(step) ? 1 : step;
@@ -577,7 +577,7 @@ const mathEnvironment = {
     sin, cos, tan, asin, atan2, acos, atan, π,
 }
 
-const eva = (exp, variables) => {
+export const eva = (exp, variables) => {
     let v = "";
     const [lhs, value] = exp.split("=");
     try {
