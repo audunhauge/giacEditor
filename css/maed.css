@@ -542,3 +542,50 @@ div.plots.code {
     display:flex;
     flex-wrap: wrap;
 }
+
+span[class^=sign] {
+    position: relative;
+    display: inline-block;
+    height: 1px;
+    border: solid transparent 1px;
+}
+span.sign1 {
+    border-top:solid blue 3px;
+}
+span.sign-1 {
+    border-top:dotted red 3px;
+}
+span.sign1::after {
+    position: absolute;
+    font-size: 0.5em;
+    right: -10px;
+    top:4px;
+    content: attr(data-x);
+}
+
+span.sign-1::after {
+    position: absolute;
+    font-size: 0.5em;
+    right: -10px;
+    top:-14px;
+    content: attr(data-x);
+}
+div.sigram > div {
+   display: grid;
+   grid-template-columns: 3fr 4fr;
+   margin-bottom: 0.6em;
+}
+
+div.sigram {
+    margin:0.5em;
+}
+
+
+div.sigline {
+    width:200px;
+    position: relative;
+}
+div.sigline > span {
+    position: absolute;
+    top:10px;
+}

@@ -159,18 +159,41 @@ export const renderSigram = (id, txt, size = "") => {
         $(id).innerHTML = "Enter polynomial"
         return;
     }
-    const [expression] = lines;
-    const exp = cleanUpMathLex(expression).replace('^','**');
-    const f = new Function("x",`{ return(Math.sign(${exp})) }`);
-    const d = range(-10,10,0.1);
-    const res = d.map(x =>f(x));
-    let sgn = d[0];
-    let s ='';
-    for ( let i=1; i< d.length; i++ ) {
-        
+    const signums = [];
+    for (let i = 0; i < lines.length; i++) {
+        const [a, b] = lines[i].split(':');
+        const expression = b ? b : a;
+        const name = b ? a : "";
+        const d = range(-10, 10, 0.1);
+        let r;
+        try {
+            const exp = cleanUpMathLex(expression).replace('^', '**');
+            //const f = (new Function('expression', 'context', 'with(context){return eval(expression)}'))(exp, Math);
+            const f = new Function("x", `with(Math){ return(Math.sign(${exp})) }`);
+            r = d.map(x => f(Number(x)));
+        } catch (err) {
+            r = d.map(v => 0);  // dummy sign line
+        }
+        r.push(2);
+        let p = r[0];
+        let s = [];
+        let c = 0;
+        // find sign change
+        for (let i = 1; i < r.length; i++) {
+            const v = r[i];
+            if (v !== p) {
+                s.push({ i, c });
+                p = v;
+                c = i;
+            }
+        }
+        const latex = makeLatex((name || expression), { mode: false, klass: "" });
+        const sgn = `<div><div>${latex}</div><div class="sigline">` +
+            s.map(v => `<span data-x="${d[v.i] ?? d[v.i - 1]}" class="sign${r[v.i - 1]
+                }" style="width:${v.i - v.c}px;left:${v.c}px"></span>`).join("") + '</div></div>';
+        signums.push(sgn);
     }
-    console.log(res);
-    $(id).innerHTML = "";
+    $(id).innerHTML = signums.join('');
 }
 
 export const renderEqnSet = (id, txt, size = "") => {
@@ -379,12 +402,12 @@ function magicNumPyFix(py) {
             // found xxx = linspace
             const xs = def[1].trimStart().trimEnd();
             // match pattern :: yyy = fu(varname)
-            const reg = new RegExp(`^(.+) *= *(.+)\\(${xs}\\)$`,"m");
+            const reg = new RegExp(`^(.+) *= *(.+)\\(${xs}\\)$`, "m");
             const use = py.match(reg);
             if (use && use[1]) {
                 const ys = use[1].trimEnd().trimStart();
                 const fx = use[2].trimEnd().trimStart();
-                py = py.replace(reg,`${ys} = list(map(${fx},${xs}))`);
+                py = py.replace(reg, `${ys} = list(map(${fx},${xs}))`);
             }
         }
     }
@@ -415,7 +438,7 @@ export function renderPy(id, py, klass) {
                 console.log(e);
             }
             if (klass && klass.includes("code")) {
-                const code = py.slice(1,-5).replace(/\&amp;/g,'&').replace(/\&gt;/g,'>').replace(/\&lt;/g,'<');
+                const code = py.slice(1, -5).replace(/\&amp;/g, '&').replace(/\&gt;/g, '>').replace(/\&lt;/g, '<');
                 $(bas).innerHTML = `<pre><code class="language-python">${code}</code></pre>`;
             }
 
