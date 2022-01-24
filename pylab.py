@@ -43,8 +43,16 @@ targets = {
    "bas":""
 }
 
-def array(xs):
-   return _arr.array('d',xs)
+
+class array(list):
+    def __init(self,list):
+        self.ar = _arr.array('d',list)
+    def __str__(self) -> str:
+        return super().__str__()
+    def __add__(self, other):
+        return array([x+y for (x,y) in zip(self,other)])
+    def __sub__(self, other):
+        return array([x-y for (x,y) in zip(self,other)])
 
 
 options = {
