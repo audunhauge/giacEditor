@@ -2,7 +2,10 @@
 from browser import html,document,window, alert as message
 import array as _arr  ## someone might well use array as a name ...
 import functools  ## no such risk - eh?
-from random import *
+import random
+
+def randint(a,b):
+   return random.randint(a,b-1)
 
 def _subchoice(a,p):
     q = random.random()
