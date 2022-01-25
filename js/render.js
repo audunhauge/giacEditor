@@ -5,6 +5,7 @@ import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast } from './util.js';
+import { autocom } from './autotags.js';
 
 const { min, max } = Math;
 
@@ -155,7 +156,7 @@ export const renderPoldiv = (id, txt, size = "") => {
 
 const diff = arr => {
     if (arr.length < 2) return arr;
-    const d = arr.map((v,i) => arr[i+1] ? arr[i+1] -v : 0);
+    const d = arr.map((v,i) => arr[i+1] -v );
     d[d.length] = d[d.length-1];
     return d;
 }
@@ -167,17 +168,24 @@ export const renderSigram = (id, txt, size = "") => {
         return;
     }
     const signums = [];
+    const d = range(-10, 10, 0.1);
     for (let i = 0; i < lines.length; i++) {
         const [a, b] = lines[i].split(':');
         const expression = b ? b : a;
         const name = b ? a : "";
-        const d = range(-10, 10, 0.1);
         let r;
         try {
             const exp = cleanUpMathLex(expression).replace('^', '**');
             //const f = (new Function('expression', 'context', 'with(context){return eval(expression)}'))(exp, Math);
-            const f = new Function("x", `with(Math){ return(Math.sign(${exp})) }`);
+            const f = new Function("x", `with(Math){ return((${exp.replace(/'/g,"")})) }`);
             r = d.map(x => f(Number(x)));
+            if (exp.startsWith("'")) {
+                r = diff(r)
+            }
+            if (exp.startsWith("''")) {
+                r = diff(r)
+            }
+            r = r.map(Math.sign);
         } catch (err) {
             r = d.map(v => 0);  // dummy sign line
         }

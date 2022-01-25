@@ -45,6 +45,8 @@ export function toast(
       background = "aliceblue",
       boxshadow = "red",
       width = 18,
+      top = 0,
+      left = 0,
       move = false,
       close = false,
     } = {}
@@ -61,6 +63,8 @@ export function toast(
     div.classList.remove("toast");
     void div.offsetWidth;
     div.classList.add("toast");
+    if (left) div.style.setProperty("--left", left + "px");
+    if (top) div.style.setProperty("--top", top + "px");
     div.style.setProperty("--boxshadow", boxshadow);
     div.style.setProperty("--background", background);
     div.style.setProperty("--delay", delay + "s");
