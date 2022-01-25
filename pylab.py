@@ -50,9 +50,13 @@ class array(list):
     def __str__(self) -> str:
         return super().__str__()
     def __add__(self, other):
-        return array([x+y for (x,y) in zip(self,other)])
+        return array([x+y for (x,y) in zip(self,array(other))])
     def __sub__(self, other):
-        return array([x-y for (x,y) in zip(self,other)])
+        return array([x-y for (x,y) in zip(self,array(other))])
+    def __rsub__(self, other):
+        return array([y-x for (x,y) in zip(self,array(other))])
+
+
 
 
 options = {
@@ -136,7 +140,7 @@ def linspace(start,stop,amount):
    while v < stop:
       xs.append(v)
       v += d
-   return xs
+   return array(xs)
 
 def print(*args):
    t = targets["bar"]

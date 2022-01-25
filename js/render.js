@@ -153,6 +153,13 @@ export const renderPoldiv = (id, txt, size = "") => {
     $(id).innerHTML = heading + howto;
 }
 
+const diff = arr => {
+    if (arr.length < 2) return arr;
+    const d = arr.map((v,i) => arr[i+1] ? arr[i+1] -v : 0);
+    d[d.length] = d[d.length-1];
+    return d;
+}
+
 export const renderSigram = (id, txt, size = "") => {
     const lines = txt.split('\n').filter(e => e != "");
     if (lines.length < 1) {
@@ -407,7 +414,7 @@ function magicNumPyFix(py) {
             if (use && use[1]) {
                 const ys = use[1].trimEnd().trimStart();
                 const fx = use[2].trimEnd().trimStart();
-                py = py.replace(reg, `${ys} = list(map(${fx},${xs}))`);
+                py = py.replace(reg, `${ys} = array(map(${fx},${xs}))`);
             }
         }
     }
