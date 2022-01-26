@@ -55,6 +55,8 @@ export const makeLatex = (txt, { mode, klass }) => {
     }
 }
 
+const litex = txt => makeLatex(txt,{mode:false,klass:""});
+
 
 const giaClean = (exp, fallback = "?") => {
     const v = exp.replace(/["*]/g, '').replace('mbox', 'boxed');
@@ -135,7 +137,7 @@ export const renderPoldiv = (id, txt, size = "") => {
     const howmany = min(rest.length || pnumber, pnumber);
     const visibleAnswer = (howmany === pnumber) ? answer : parts.slice(0, howmany).join("");
     const heading = `<div class="poldiv"><span class="num">${katx(simplify(numerator))}</span><span> : </span>
-                    <span class="deno">${katx(giaTex(denominator))}</span><span> = </span> <span class="ans">${katx(giaTex(visibleAnswer))}</span></div>`;
+                    <span class="deno">${litex(denominator)}</span><span> = </span> <span class="ans">${litex(visibleAnswer)}</span></div>`;
     const filler = simplify(numerator).replace(/([+-])/g, (_, pm) => '#' + pm).split('#')
     let pol = numerator;
     let howto = ''
@@ -149,7 +151,7 @@ export const renderPoldiv = (id, txt, size = "") => {
         }
         const rem = giaEval(`simplify((${p})*(${denominator}))`);
         pol = giaEval(`simplify((${pol})-(${rem}))`);
-        howto += `<div>${f}${katx(giaTex(rem))}</div><div>${u}${katx(giaTex(pol))}</div>`
+        howto += `<div>${f}${litex(rem)}</div><div>${u}${litex(pol)}</div>`
     }
     $(id).innerHTML = heading + howto;
 }
@@ -227,10 +229,11 @@ export const renderEqnSet = (id, txt, size = "") => {
         const kalex = renderLikning(clean, comment, { mode: false, klass: "" });
         newMath[i] = `<span data-nr="${'I'.repeat(i + 1)}" class="eqset">${kalex}</span>`;
     }
+    let eqnb = 1;
     for (let i = 2; i < lines.length; i++) {
         const [todo, comment = ""] = lines[i].split("::");
         comments += comment ? 1 : 0;            // count number of comments
-        const [idx, line] = todo.split(":");     //  "1:+2"  "2:*3"
+        let [idx, line] = todo.split(":");     //  "1:+2"  "2:*3"
         const [a, op, b] = todo.split('');
         if ("+-".includes(op) && +a + +b === 3) {
             // 1+2 2-1 2+1 1-2
@@ -240,12 +243,18 @@ export const renderEqnSet = (id, txt, size = "") => {
             newMath[i] = `<span data-nr="${'I'.repeat(+a)}" class="eqset">${kalex}</span><span>${todo}</span>`;
             continue;
         }
+        if (line === undefined) {
+            // no idx - use previous
+            line = idx;
+        } else {
+            eqnb = Number(idx);
+        }
         if (line) {
-            const orig = eqs[(+idx) - 1];
+            const orig = eqs[(eqnb) - 1];
             const eq = operate(orig, line);
-            eqs[+idx - 1] = eq;
+            eqs[eqnb - 1] = eq;
             const kalex = renderLikning(eq, comment, { mode: false, klass: "" });
-            newMath[i] = `<span data-nr="${'I'.repeat(idx)}" class="eqset">${kalex}</span><span>${todo}</span>`;
+            newMath[i] = `<span data-nr="${'I'.repeat(eqnb)}" class="eqset">${kalex}</span><span>${todo}</span>`;
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');

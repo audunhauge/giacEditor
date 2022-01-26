@@ -57,7 +57,27 @@ text(r,q,"abba")
 triangle(p,q,r)
 circle(q,2)`,
 eq: "Dispaly an equation, step by step solution",
-eqset: "Step by step solution of equationsets",
+eqset: `Step by step solution of equationsets
+
+## Solving an equationset
+Note by default commands work on eq1 or previous eq.
+
+* *2 means multiply eq1 by 2  
+* 2+1  adds eq1 to eq2  
+* 2:/11  2: selects eq2, divide it by eleven  
+* 1:|x=2   1: select eq1 again, subst x=2  
+* -12   still eq1 - subtract 12  
+* /8    still eq1 - divide by 8  
+
+@eqset  
+3x+4y=26  
+5x-8y=-30  
+*2  
+2+1  
+2:/11  
+1:|x=2  
+-12  
+/8`,
 format: "page for new page,br for newline",
 ans: "Draws two lines under following text",
 dato: "dato 1  show date for tomorrow",
