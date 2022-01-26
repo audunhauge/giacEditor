@@ -9,27 +9,44 @@ const aulist = "sign,question,poldiv,plot,cas,math,python,trig,eq,eqset,format,a
 const auwords = aulist.split(",");
 
 const explain = {
-    sign: `Draws sign table for expressions
-    (x+2)(x-1)(x-4)    ------+++++----+++++
-    '(x+2)(x-1)(x-4)   +++++++++----+++++++
-    ''(x+2)(x-1)(x-4)  -----------+++++++++`,
-    question: `Creates a numbered question heading
-    @question            =>  Question 1.
-    @question (4p)       =>  Question 2. (4p)
-    @question :My Own    =>  My own`,
-    poldiv: "Polynomial division with remainder",
-    plot: "Plots graph for one or more functions",
-    cas: "Computer Algebra System, same as in GeoGebra",
-    math: `Write flat math - get nice rendered math
-    @math
-    x/(x+2)     => latex fraction x/(x+2)`,
-    python: "Starts a python script inline",
-    trig: "Create a trig drawing, triangles etc",
-    eq: "Dispaly an equation, step by step solution",
-    eqset: "Step by step solution of equationsets",
-    format: "page for new page,br for newline",
-    ans: "Draws two lines under following text",
-    dato: "dato 1  show date for tomorrow",
+sign: `Draws sign table for expressions
+(x+2)(x-1)(x-4)    ------+++++----+++++
+'(x+2)(x-1)(x-4)   +++++++++----+++++++
+''(x+2)(x-1)(x-4)  -----------+++++++++`,
+question: `Creates a numbered question heading
+@question            =>  Question 1.
+@question (4p)       =>  Question 2. (4p)
+@question :My Own    =>  My own`,
+poldiv: "Polynomial division with remainder",
+plot: "Plots graph for one or more functions",
+cas: "Computer Algebra System, same as in GeoGebra",
+math: `Write flat math - get nice rendered math
+@math abc
+x/(x+2)=3
+2x-4=0
+Gives
+a) x/(x+2) = 3
+b)   2x -4 = 0
+Nicely printed with latex
+`,
+python: `Starts a python script inline
+def f(x):
+  return x*x-3*x
+xs = linspace(-5,5,100)
+ys = f(xs)
+plot(xs,ys)
+grid()
+show()
+#GO!`,
+trig: "Create a trig drawing, triangles etc",
+eq: "Dispaly an equation, step by step solution",
+eqset: "Step by step solution of equationsets",
+format: "page for new page,br for newline",
+ans: "Draws two lines under following text",
+dato: "dato 1  show date for tomorrow",
+linspace:`linspace(start,stop,num)
+creates array [start, ..., stop]
+with num elements evenly spaced.`
 }
 
 const commands = {
