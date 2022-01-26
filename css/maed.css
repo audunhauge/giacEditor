@@ -505,11 +505,13 @@ div.toast {
     --background: aliceblue;
     --delay: 2s;
     --width: 18rem;
+    --top:12rem;
+    --left:calc(50% - var(--width) / 2);
     border: solid gray 1px;
     border-radius: 4px;
     position: absolute;
-    top: 12rem;
-    left: calc(50% - var(--width) / 2);
+    top: var(--top);
+    left: var(--left);
     background-color: var(--background);
     box-shadow: 2px 2px 2px var(--boxshadow);
     width: var(--width);
@@ -517,6 +519,21 @@ div.toast {
     padding: 1rem;
     animation: goaway 0.5s forwards;
     animation-delay: var(--delay);
+    white-space: pre-wrap;
+  }
+
+  #notoast {
+      position: absolute;
+      right:10px;
+      top:-10px;
+      display: inline-block;
+      background-color: cadetblue;
+      color:white;
+      border:solid gray 1px;
+      box-shadow: 2px 2px 2px black;
+      padding:5px;
+      margin:4px;
+      cursor:pointer;
   }
   
   @keyframes goaway {

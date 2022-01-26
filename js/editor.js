@@ -6,7 +6,7 @@ import {
 } from './Minos.js';
 
 import {
-    renderAlgebra, renderPoldiv, renderEqnSet, renderPy, 
+    renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
     makeLatex, renderSigram,
     renderEquation, renderMath, renderPlot, renderTrig
 } from './render.js';
@@ -21,6 +21,7 @@ import { saveFileButton, readFileButton } from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
+import { autocom, helptxt } from './autotags.js';
 
 const langlist = Object.keys(lang);
 let currentLanguage = "english";
@@ -45,7 +46,7 @@ let replayActive = false;
 
 $("replay").onclick = () => {
     if (replayActive) {
-        replayActive = false;    
+        replayActive = false;
         const event = new Event('killReplay');
         document.dispatchEvent(event);
         return;
@@ -447,8 +448,19 @@ saveFileButton("save", web.filename, (newName) => {
     return ed.value;
 });
 
+document.addEventListener('selectionchange', () => {
+    const word = document.getSelection().toString();
+    const pos = ed.selectionStart;
+    const lines = ed.value.slice(0,pos).split('\n');
+    const line = lines.length;
+    const ofs = lines.slice(-1).length;
+    // helptxt(word);
+    helptxt(word, line, ofs, ed.getBoundingClientRect(), Number(web.efs) / 50);
+});
+
 
 // some simple attempts to avoid rerender
+let auton = 0;      // autocomplete
 let timestep = 0;
 let oldtext = "";
 ed.onkeyup = (e) => {
@@ -461,6 +473,34 @@ ed.onkeyup = (e) => {
     const now = Date.now();
     const k = e.key;
     const render = k === "Enter" || k.includes("Arrow");
+    if (auton > 0) {
+        const pos = ed.selectionStart;
+        const sofar = ed.value.slice(0, pos);
+        const at = sofar.lastIndexOf("@");
+        const word = (k === "Enter") ? sofar.slice(at + 1, -1) : sofar.slice(at + 1);
+        console.log(word, k);
+        if (word.length < 5) {
+            const line = sofar.split('\n').length;
+            const hit = autocom(word, line, ed.getBoundingClientRect(), Number(web.efs) / 50);
+            console.log(hit, k);
+            if (hit && k === "Enter" && word.length < hit.length) {
+                // user pressed enter on single suggestion
+                // also user has not written the whole word
+                const adjusted = sofar.slice(0, at + 1) + hit + ed.value.slice(pos);
+                ed.value = adjusted;
+                ed.selectionEnd = pos + hit.length - word.length - 1;
+                auton = 0;
+            }
+        }
+        auton--;
+    }
+    if (k === '@') {
+        const p = ed.selectionStart;
+        const q = ed.value.slice(0, p - 1);
+        if (q.endsWith("\n")) {
+            auton = 5;  // check n next chars
+        }
+    }
     if (render) {
         // remove hot edit markers
         qsa(".red").forEach(e => e.classList.remove("red"));

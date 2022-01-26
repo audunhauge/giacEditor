@@ -613,7 +613,8 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^linje/gm, 'line')
     .replace(/^tekst/gm, 'text')
     .replace(/^sirkel/gm, 'circle')
-    .replace(/^trekant\((.+),(.+),(.+)\)$/gm, (_, p, q, r) => `line(${p},${q})\nline(${q},${r})\nline(${p},${r})`)
+    .replace(/^trekant/gm,'triangle')
+    .replace(/^triangle\((.+),(.+),(.+)\)$/gm, (_, p, q, r) => `line(${p},${q})\nline(${q},${r})\nline(${p},${r})`)
     .replace(/^([a-zA-Z])=\((.+),(.+)\)$/gm, (_, p, u, v) => `${p}=new Point(${u},${v})`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\+\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.add(new Point(${u},${v}))`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\-\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.sub(new Point(${u},${v}))`)
@@ -622,7 +623,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^text\(([^,)]+),([^,)]+)\)$/gm, (_, p, s) => `text(${p},null,${s})`)
     .replace(/^text\(([^,)]+),([^,)]+),([^,)]+)\)$/gm, (_, p, q, s) => `text(${p},${q},${s})`)
     .replace(/^(.+)=tri\(([^{,]+),(.+),(.+),(.+)\)$/gm, (_, t, p, a, b, c) => `${t}=tri({p:${p},a:${a},b:${b},c:${c} })`)
-    .replace(/^trekant\((.+)\)$/gm, (_, t) => `tri2svg(${t},${size})`)
+    .replace(/^triangle\((.+)\)$/gm, (_, t) => `tri2svg(${t},${size})`)
 
 
 

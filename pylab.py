@@ -99,7 +99,7 @@ def plotsize(w=200,h=200):
    options["width"] = w
    options["height"] = h
 
-def grid(on=True):
+def grid(on=1):
    options["grid"] = (1 if on else 0)
 
 def axhline(y=0,color="",*s):
