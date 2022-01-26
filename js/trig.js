@@ -216,9 +216,10 @@ class T {
 
     static text = (p, q, s, z) => {
         const size = z || T.size;
+        const txt = String(s);
         let now = String(Math.random()).slice(2, 10);
         if (q === null || q === undefined) {
-            const l = Math.max(1,Number((s.length/2).toFixed(2)));
+            const l = Math.max(1,Number((txt.length/2).toFixed(2)));
             let v = new Point(l, 0); // direction of path for text
             q = p.add(v);
         }
@@ -231,7 +232,7 @@ class T {
         <text ${fz}><textPath x="${p.x}" y="${p.y}" 
          startOffset="25%" href="#mm${now}">
         <tspan dy="-5">
-        ${s}
+        ${txt}
         </tspan>
         </textpath></text>`;
     }
