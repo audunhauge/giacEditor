@@ -450,7 +450,12 @@ saveFileButton("save", web.filename, (newName) => {
 
 document.addEventListener('selectionchange', () => {
     const word = document.getSelection().toString();
-    helptxt(word);
+    const pos = ed.selectionStart;
+    const lines = ed.value.slice(0,pos).split('\n');
+    const line = lines.length;
+    const ofs = lines.slice(-1).length;
+    // helptxt(word);
+    helptxt(word, line, ofs, ed.getBoundingClientRect(), Number(web.efs) / 50);
 });
 
 
