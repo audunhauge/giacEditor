@@ -5,8 +5,7 @@ import { toast } from "./util.js";
 // in editor: writing @ as first char on a line should trigger autocomplete
 // assumed triggered by eventlistener in editor
 
-const aulist = "sign,question,poldiv,plot,cas,math,python,trig,eq,eqset,format,ans,dato";
-const auwords = aulist.split(",");
+
 
 const explain = {
 sign: `Draws sign table for expressions
@@ -18,7 +17,7 @@ question: `Creates a numbered question heading
 @question (4p)       =>  Question 2. (4p)
 @question :My Own    =>  My own`,
 poldiv: "Polynomial division with remainder",
-plot: "Plots graph for one or more functions",
+fplot: "Plots graph for one or more functions",
 cas: "Computer Algebra System, same as in GeoGebra",
 math: `Write flat math - get nice rendered math
 @math abc
@@ -156,14 +155,19 @@ grid(0) turns the grid off
 Used together with plot() and show()`,
 }
 
-export const autocom = (word, line, rect, ems) => {
+
+let aulist = "sign,question,poldiv,plot,cas,math,python,trig,eq,eqset,format,ans,dato";
+let auwords = aulist.split(",");
+let help;
+
+export const autocom = (word, line, rect, scy, ems) => {
     if (aulist.includes(word)) {
-        const top = line * ems * 16 + rect.top;
+        const top = line * ems * 16 + rect.top + window.scrollY - scy;
         const left = rect.left + 16 * (word.length + 2);
         const hits = auwords.filter(w => w.startsWith(word));
         let exp = '';
         if (hits.length === 1) {
-            exp = '<br>' + explain[hits[0]];
+            exp = '<br>' + help[hits[0]];
         }
         toast(hits.map(w => w + '<br>').join('') + exp,
             { delay: 1, left, top });
@@ -172,11 +176,25 @@ export const autocom = (word, line, rect, ems) => {
     return null;
 }
 
-const help = Object.assign({}, explain, commands);
+export const prep = lang => {
+    auwords = Object.keys(lang.atcommands);
+    const ua = {};  // reverse lookup
+    auwords.forEach(k => {
+        ua[lang.atcommands[k]] = k;
+    })
+    aulist = auwords.join(",");
+    const myexplain = {};
+    Object.keys(explain).forEach(k => {
+        const tran = ua[k];
+        myexplain[tran] = lang.explain[tran] || explain[k];
+    });
+    help = Object.assign({}, myexplain, commands);
+}
 
-export const helptxt = (word, line, ofs, rect, ems) => {
+
+export const helptxt = (word, line, ofs, rect, scy, ems) => {
     if (help[word]) {
-        const top = line * ems * 16 + rect.top;
+        const top = line * ems * 16 + rect.top  + window.scrollY - scy;
         const left = rect.left + 16 * (ofs + 2);
         toast(help[word],
             { delay: 25, close: true, boxshadow: "blue", top, left });

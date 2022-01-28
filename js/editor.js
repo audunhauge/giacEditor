@@ -7,11 +7,12 @@ import {
 
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
-    makeLatex, renderSigram,
+    makeLatex, renderSigram, renderPiece,
     renderEquation, renderMath, renderPlot, renderTrig
 } from './render.js';
 
 import { lang, _translateAtCommands } from './translate.js';
+import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, aside, editor,
     mathView, ed, examples, savedFiles, sp } = thingsWithId();
@@ -21,17 +22,18 @@ import { saveFileButton, readFileButton } from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
-import { autocom, helptxt } from './autotags.js';
+
 
 const langlist = Object.keys(lang);
-let currentLanguage = "english";
+let currentLanguage = getLocalJSON("lang") || "english";
 let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
 
 
 export const web = updateMyProperties({ langlist });
 const sessionID = "mathEd";
 
-web.lang = 0;  // start with first lang in list
+// web.lang = 0;  // start with first lang in list
+web.lang = langlist.indexOf(currentLanguage);
 $("lang").setAttribute("max", String(langlist.length - 1))
 
 $("lang").onchange = () => setLang()
@@ -40,7 +42,10 @@ function setLang() {
     currentLanguage = web.chosen;
     translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
     renderAll();
+    setLocalJSON("lang", currentLanguage);
 }
+
+prep(lang[currentLanguage]);
 
 let replayActive = false;
 
@@ -211,19 +216,20 @@ export const renderAll = () => {
     const algebra = [];
     const eqsets = [];
     const trigs = [];
+    const piece = [];
     const python = [];
     const sigrams = [];  // sign diagrams
     const poldivs = [];
     const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     let ofs = 1234; // uniq id for math,alg etc
-    const splitter = lang[currentLanguage]?.splitter || 'question';
-    const splitReg = new RegExp(`@${splitter}`, "gm");
+    const splitter = lang[currentLanguage]?.splitter || '€€';
+    const splitReg = new RegExp(`@${splitter}|@question`, "gm");
     const sections = textWithSingleNewLineAtEnd.split(splitReg).map(e => e.replace(/\s+$/, '\n'));
     const mdLatex = txt => md.render(txt).replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" }));
     const prepped = (textWithSingleNewLineAtEnd, seg) => {
         const international = translateAtCommands(textWithSingleNewLineAtEnd);
         return international
-            .replace(/@plot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
+            .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
                 ofs++;
                 plots.push({ plot, id: `graf${seg}_${ofs}`, klass, seg });
                 return `<div class="plots ${klass}" id="graf${seg}_${ofs}"></div>\n`;
@@ -242,6 +248,11 @@ export const renderAll = () => {
                 ofs++;
                 eqsets.push({ eq, id: `eqs${seg}_${ofs}`, klass, seg });
                 return `<div class="equation qset ${klass}" id="eqs${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@piecewise( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
+                ofs++;
+                piece.push({ eq, id: `piece${seg}_${ofs}`, klass, seg });
+                return `<div class="piecewise ${klass}" id="piece${seg}_${ofs}"></div>\n`;
             })
             .replace(/@poldiv( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
                 ofs++;
@@ -391,6 +402,11 @@ export const renderAll = () => {
             //scrollit(id);
         }
     });
+    piece.forEach(({ eq, id, size, seg }) => {
+        if (rerend || dirtyList.includes(seg)) {
+            renderPiece(id, eq, size);
+        }
+    });
     sigrams.forEach(({ eq, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
@@ -455,7 +471,7 @@ document.addEventListener('selectionchange', () => {
     const line = lines.length;
     const ofs = lines.slice(-1).length;
     // helptxt(word);
-    helptxt(word, line, ofs, ed.getBoundingClientRect(), Number(web.efs) / 50);
+    helptxt(word, line, ofs, ed.getBoundingClientRect(), ed.scrollTop, Number(web.efs) / 50);
 });
 
 
@@ -479,7 +495,7 @@ ed.onkeypress = (e) => {
         // attach the pressed key to word if key != enter
         if (word.length < 5) {
             const line = sofar.split('\n').length;
-            const hit = autocom(word, line, ed.getBoundingClientRect(), Number(web.efs) / 50);
+            const hit = autocom(word, line, ed.getBoundingClientRect(), ed.scrollTop, Number(web.efs) / 50);
             console.log(hit, k);
             if (hit && k === "Enter" && word.length < hit.length) {
                 // user pressed enter on single suggestion
@@ -505,7 +521,7 @@ ed.onkeypress = (e) => {
 ed.onkeyup = (e) => {
     const now = Date.now();
     const k = e.key;
-    const render = k === "Enter" || k.includes("Arrow"); 
+    const render = k === "Enter" || k.includes("Arrow");
     if (render) {
         // remove hot edit markers
         qsa(".red").forEach(e => e.classList.remove("red"));
@@ -517,3 +533,5 @@ ed.onkeyup = (e) => {
         }
     }
 }
+
+setLang();

@@ -5,7 +5,7 @@ import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast } from './util.js';
-import { autocom } from './autotags.js';
+// import { autocom } from './autotags.js';
 
 const { min, max } = Math;
 
@@ -56,6 +56,17 @@ export const makeLatex = (txt, { mode, klass }) => {
 }
 
 const litex = txt => makeLatex(txt,{mode:false,klass:""});
+
+
+const lotex = txt => {
+    try {
+      const simplex = cleanUpMathLex(txt);
+       // @ts-ignore 
+      return MathLex.render(MathLex.parse(simplex),"latex");
+    } catch(er) {
+        return txt;
+    }
+}
 
 
 const giaClean = (exp, fallback = "?") => {
@@ -258,6 +269,24 @@ export const renderEqnSet = (id, txt, size = "") => {
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
+}
+
+export const renderPiece = (id, txt, size = "") => {
+    const lines = txt.split('\n').filter(e => e != "");
+    //let lat = `f(a,b) =   \begin{cases} 2 \cdot x+a \quad \text{for } x\le 1 \\\\      x^2+bx  \quad \text{for } x \gt 1
+    //\end{cases}`;
+    if (lines.length < 3) {
+        $(id).innerHTML = "Expecting<br>f(x)<br>part1:limits<br>part2:limits<br>..more parts"
+        return;
+    }
+    const funcName = lines[0];
+    let lat = funcName + '=' + '\\begin{cases}\n';
+    for (let i = 1; i < lines.length; i++) {
+        const [exp, limit] = lines[i].split(":");
+        lat += lotex(exp) + ' \\quad \\text{for } ' + lotex(limit) + '\\\\\n'; 
+    }
+    lat += ' \\end{cases}\n';
+    $(id).innerHTML = katx(lat,true);
 }
 
 

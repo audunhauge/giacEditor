@@ -6,20 +6,27 @@ const english = {
         division: "quorem",      // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         factor: "factor",        // factor(x^2-3x-2) => (x-2)(x+1)
         poldiv: "propfrac",      // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        plotinequation:"plotinequation",
     },
-    splitter:"question",
+    splitter: "question",
     atcommands: {
-        plot: "plot",
-        trig: "trig",
+        fplot: "fplot",
+        sign: "sign",
+        poldiv: "poldiv",
+        python: "python",
         eqset: "eqset",
+        trig: "trig",
         math: "math",
         cas: "cas",
         eq: "eq",
         question: "question",
         format: "format",
         ans: "ans",
-        date: "date",
-    }
+        date: "dato",
+    },
+    explain: {  // override explanation in autotags
+
+    },
 }
 
 const norwegian = {
@@ -30,20 +37,38 @@ const norwegian = {
         poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotulikhet: "plotinequation",
     },
-    splitter:"oppgave",
+    splitter: "oppgave",
     atcommands: {
-        plot: "plot",
+        fplot: "fplot",
+        fortegn: "sign",
+        poldiv: "poldiv",
+        python: "python",
         trig: "trig",
         likninger: "eqset",
         matte: "math",
         cas: "cas",
         likning: "eq",
-        oppgave:"question",
+        oppgave: "question",
         //question:"oppgave",  // inverse
         format: "format",
         svar: "ans",
-        date: "dato",
-    }
+        dato: "dato",
+    },
+    explain: {
+        fortegn: `Tegner fortegsskjema
+x+2  => fortegnslinje
+'(x+2) => fortegnslinje til derivert
+''(x+2) => fortegn dobbeltderivert
+f:(x+2)(x-1) => viser  f +++---+++
+Du kan navngi ved å skrive 
+navn:uttrykk
+Viser navn + fortegnslinje
+
+(x+2)(x-1)(x-4)    ------+++++----+++++
+'(x+2)(x-1)(x-4)   +++++++++----+++++++
+''(x+2)(x-1)(x-4)  -----------+++++++++`,
+    },
+
 }
 
 const italiano = {
@@ -54,20 +79,27 @@ const italiano = {
         poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotdisuguaglianza: "plotinequation",
     },
-    splitter:"domanda",
+    splitter: "domanda",
     atcommands: {
-        tracciare: "plot",
+        tracciare: "fplot",
+        segno: "sign",
+        poldiv: "poldiv",
+        python: "python",
         trig: "trig",
         qinsieme: "qset",
         matematica: "math",
         cas: "cas",
         eq: "eq",
-        domanda:"question",
+        domanda: "question",
         //question:"domanda", // inverse
         formato: "format",
         riposta: "ans",
         data: "date",
-    }
+    },
+    explain: {  // override explanation in autotags
+
+    },
+
 }
 
 export const lang = { english, norwegian, italiano }
@@ -85,7 +117,7 @@ export const trans = (lang, text) => {
 const s = (lang, word) => lang?.atcommands[word] || word;
 
 export const _translateAtCommands = (lang, text) => {
-    return text.replace(/@([^ \n]+)/g, (_,command) => {
-       return '@'+ s(lang,command);
+    return text.replace(/@([^ \n]+)/g, (_, command) => {
+        return '@' + s(lang, command);
     });
 }
