@@ -12,6 +12,7 @@ const english = {
     atcommands: {
         fplot: "fplot",
         sign: "sign",
+        piecewise: "piecewise",
         poldiv: "poldiv",
         python: "python",
         eqset: "eqset",
@@ -40,6 +41,7 @@ const norwegian = {
     splitter: "oppgave",
     atcommands: {
         fplot: "fplot",
+        delt:"piecewise",
         fortegn: "sign",
         poldiv: "poldiv",
         python: "python",
@@ -67,6 +69,11 @@ Viser navn + fortegnslinje
 (x+2)(x-1)(x-4)    ------+++++----+++++
 '(x+2)(x-1)(x-4)   +++++++++----+++++++
 ''(x+2)(x-1)(x-4)  -----------+++++++++`,
+delt:`Delt forskrift
+
+f(x)                       /  x-2 for x<1
+x-2:x<1        f()  {  
+x^2:x>=1             \\  x^2 for x>=1`,
     },
 
 }
@@ -85,6 +92,7 @@ const italiano = {
         segno: "sign",
         poldiv: "poldiv",
         python: "python",
+        tratti:"piecewise",
         trig: "trig",
         qinsieme: "qset",
         matematica: "math",

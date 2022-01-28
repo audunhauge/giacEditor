@@ -19,6 +19,11 @@ question: `Creates a numbered question heading
 poldiv: "Polynomial division with remainder",
 fplot: "Plots graph for one or more functions",
 cas: "Computer Algebra System, same as in GeoGebra",
+piecewise: `Function definition in parts
+
+f(x)                       /  x-2 for x<1
+x-2:x<1        f()  {  
+x^2:x>=1             \\  x^2 for x>=1`,      
 math: `Write flat math - get nice rendered math
 @math abc
 x/(x+2)=3
@@ -156,7 +161,7 @@ Used together with plot() and show()`,
 }
 
 
-let aulist = "sign,question,poldiv,plot,cas,math,python,trig,eq,eqset,format,ans,dato";
+let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,trig,eq,eqset,format,ans,dato";
 let auwords = aulist.split(",");
 let help;
 
