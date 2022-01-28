@@ -129,7 +129,11 @@ div.oppgave.fasit::before {
 }
 
 #editor {
-    position: relative;
+    position: fixed;
+    right: 0;
+    top:5rem;
+    min-width: 30%;
+    width:calc(90vw - 210mm);
 }
 
 

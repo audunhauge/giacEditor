@@ -17,12 +17,21 @@ question: `Creates a numbered question heading
 @question (4p)       =>  Question 2. (4p)
 @question :My Own    =>  My own`,
 poldiv: "Polynomial division with remainder",
-fplot: "Plots graph for one or more functions",
+fplot: `Plots graph for one or more functions
+
+@plot abc 200
+sin(x);cos(x)
+x^2-4,-2,5,-6,12
+
+Plots with size=200x200
+sin and cos in same graph, x^2-4 in second graph
+abc names them a) and b)
+The last plot has x=[-2..5] and y=[-6..12]`,
 cas: "Computer Algebra System, same as in GeoGebra",
 piecewise: `Function definition in parts
 
 f(x)                       /  x-2 for x<1
-x-2:x<1        f()  {  
+x-2:x<1        f(x) {  
 x^2:x>=1             \\  x^2 for x>=1`,      
 math: `Write flat math - get nice rendered math
 @math abc
