@@ -1,5 +1,5 @@
 const cacheName = 'mathEditorCas';
-const version = 2.8;
+const version = 2.9;
 const filesToCache = [
   '/',
   '/index.html',
@@ -29,6 +29,8 @@ const filesToCache = [
   '/js/katex/katex.min.css',
   '/js/katex/fonts/KaTeX_AMS-Regular.woff2',
   '/js/util.js',
+  '/js/brython_stdlib.js',
+  '/js/brython.min.js',
   '/js/autotags.js',
   '/js/aside.js',
   '/js/replay.js',
