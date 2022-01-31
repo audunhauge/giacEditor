@@ -19,7 +19,7 @@ question: `Creates a numbered question heading
 poldiv: "Polynomial division with remainder",
 fplot: `Plots graph for one or more functions
 
-@plot abc 200
+@fplot abc 200
 sin(x);cos(x)
 x^2-4,-2,5,-6,12
 

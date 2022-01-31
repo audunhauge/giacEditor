@@ -9,7 +9,7 @@ log(100)-log(4)-log(25)
 
 @question (1p)
 Les av skjæring
-@plot
+@fplot
 1/2x-1;x^2-2x-3
 
 @question Løs likninger (3p)
@@ -22,7 +22,7 @@ e^x-3=e^(-x)
 
 Finn likningen for linja gjennom (2,3),(4,7)
 
-@plot 200
+@fplot 200
 [[0,0],[2,3],[4,7],[8,8]]
 
 @question Indre sirkel

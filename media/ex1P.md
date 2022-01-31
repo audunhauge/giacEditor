@@ -7,7 +7,7 @@
 
 @question (1p)
 Les av skjæring
-@plot
+@fplot
 -x-1;x^2-2x-3
 
 @question (3p)
