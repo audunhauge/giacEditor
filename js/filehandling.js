@@ -1,6 +1,7 @@
 // @ts-check
 
 import { $ } from './util.js'
+import { getLocalJSON } from './Minos.js'
 
 /**
  * Adds eventlistener to a button
@@ -28,7 +29,7 @@ export const readFileButton = (id, cb) => {
             {
                 description: 'Text Files',
                 accept: {
-                    'text/plain': ['.mxy','.txt'],
+                    'text/plain': ['.mxy', '.txt'],
                 },
             },
         ],
@@ -40,7 +41,7 @@ export const readFileButton = (id, cb) => {
         // Do something with the file handle.
         const file = await fileHandle.getFile();
         const contents = await file.text();
-        cb(file,contents);
+        cb(file, contents);
     });
 }
 
@@ -70,11 +71,47 @@ async function writeFile(fileHandle, contents) {
     await writable.close();
 }
 
-export const saveFileButton = (id,filename, cb) => {
+export const saveFileButton = (id, filename, cb) => {
     const saveButton = $(id);
     saveButton.addEventListener("click", async () => {
         const fh = await getNewFileHandle(filename);
-        writeFile(fh,cb(fh.name));
+        writeFile(fh, cb(fh.name));
     })
-    
+
+}
+
+
+const _gitFiles = async (user, repo) => {
+    try {
+        const resp = await fetch(`https://api.github.com/search/code?q=extension:mxy+repo:${user}/${repo}`)
+        const json = await resp.json()
+        return json;
+    } catch (err) {
+        console.log(err);
+        return ({items:[]});  // empty array
+    }
+}
+
+const userRepo = () => {
+    const { user = "audunhauge" } = (getLocalJSON("user") || {});
+    const { repo = "s1Oppgaver" } = (getLocalJSON("repo") || {});
+    return { user, repo };
+}
+
+export const gitFiles = async  () => {
+    const {user,repo} = userRepo();
+    const files = await _gitFiles(user,repo);
+    return files.items.map(f => f.path);
+}
+
+export const getGitFile = async (filename) => {
+    const {user,repo} = userRepo();
+    try {
+        const resp = await fetch(`https://raw.githubusercontent.com/${user}/${repo}/main/${filename}`)
+        const text = await resp.text()
+        return text;
+    } catch (err) {
+        console.log(err);
+        return '' 
+    }
 }

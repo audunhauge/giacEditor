@@ -15,10 +15,10 @@ import { lang, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, aside, editor,
-    mathView, ed, examples, savedFiles, sp } = thingsWithId();
+    mathView, ed, examples, savedFiles, gitlist, sp } = thingsWithId();
 
 
-import { saveFileButton, readFileButton } from './filehandling.js';
+import { saveFileButton, readFileButton, gitFiles, getGitFile } from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
@@ -151,6 +151,8 @@ async function setup() {
     // saved files may be none
     const savedFiles = getLocalJSON("savedfiles") || [];
     web.savedFiles.push(...savedFiles.slice(0, 5));
+    const gitfiles = await gitFiles();
+    web.gitlist.push(...gitfiles);
 }
 
 setup();
@@ -176,6 +178,17 @@ savedFiles.onclick = async (e) => {
     if (t.className === "file") {
         const name = t.dataset.name;
         const txt = getLocalJSON("saved:" + name);
+        setLocalJSON(sessionID, txt);
+        setLocalJSON("filename", name);
+        goEdit();
+    }
+}
+
+gitlist.onclick = async (e) => {
+    const t = e.target;
+    if (t.className === "file") {
+        const name = t.dataset.name;
+        const txt = await getGitFile(name);
         setLocalJSON(sessionID, txt);
         setLocalJSON("filename", name);
         goEdit();
@@ -473,7 +486,6 @@ document.addEventListener('selectionchange', () => {
     // helptxt(word);
     helptxt(word, line, ofs, ed.getBoundingClientRect(), ed.scrollTop, Number(web.efs) / 50);
 });
-
 
 // some simple attempts to avoid rerender
 let auton = 0;      // autocomplete
