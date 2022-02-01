@@ -462,8 +462,8 @@ export const renderAll = () => {
 
 readFileButton("load", (file, text) => {
     ed.value = text;
-    renderAll();
     web.filename = file.name;
+    goEdit();
 });
 
 saveFileButton("save", web.filename, (newName) => {
