@@ -35,13 +35,10 @@ print(round(fart(2,1E-6),2))
 @oppgave
 En funk gitt ved
 
-$ 
-f(a,b) = 
-     \begin{cases}
-       2 \cdot x+a \quad \text{for } x\le 1 \\\\
-       x^2+bx  \quad \text{for } x \gt 1
-     \end{cases}
-$
+@delt
+f(a,b)
+2x+a:x<=1
+x^2+bx:x>1
 
 @format abc
 * Bestem a og b slik at f er deriverbar i 1.
@@ -115,14 +112,10 @@ g|x=x0+k
 
 @oppgave
 
-
-$ 
-f(x) = 
-     \begin{cases}
-       |x^3| \quad \text{for } -3 \le x \le 1 \\\\
-       |3\cdot x-p|  \quad \text{for } 1 \lt x \le 2
-     \end{cases}
-$
+@delt
+f(x)
+x^2:-3 <= x <= 1
+3x-p: 1 < x <= 2
 
 @format abc
 * bestem alle verier for p slik at f er kontinuerlig i 1
