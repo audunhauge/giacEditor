@@ -461,7 +461,7 @@ export const renderAll = () => {
 
 
 readFileButton("load", (file, text) => {
-    ed.value = text;
+    setLocalJSON(sessionID, text);
     web.filename = file.name;
     goEdit();
 });
