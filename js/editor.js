@@ -14,11 +14,13 @@ import {
 import { lang, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, aside, editor,
-    mathView, ed, examples, savedFiles, gitlist, sp } = thingsWithId();
+const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist, gistit,
+     mathView, ed, examples, savedFiles, gitlist, sp }
+    = thingsWithId();
 
 
-import { saveFileButton, readFileButton, gitFiles, getGitFile } from './filehandling.js';
+import { saveFileButton, readFileButton, gitFiles, gistify,
+        getGitFile, getGistFile, gistFiles } from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
@@ -153,6 +155,8 @@ async function setup() {
     web.savedFiles.push(...savedFiles.slice(0, 5));
     const gitfiles = await gitFiles();
     web.gitlist.push(...gitfiles);
+    const gistfiles = await gistFiles();
+    web.gistlist.push(...gistfiles);
 }
 
 setup();
@@ -193,6 +197,31 @@ gitlist.onclick = async (e) => {
         setLocalJSON("filename", name);
         goEdit();
     }
+}
+
+const gist = {
+
+}
+
+gistlist.onclick = async (e) => {
+    const t = e.target;
+    if (t.classList.contains("file")) {
+        const name = t.dataset.name;
+        const url = t.dataset.url;
+        const id = t.dataset.id;
+        const txt = await getGistFile(url);
+        setLocalJSON(sessionID, txt);
+        setLocalJSON("filename", name);
+        gist.name = name;
+        gist.id = id;
+        goEdit();
+    }
+}
+
+gistit.onclick = async () => {
+    const {name,id} = gist;
+    const content = ed.value;
+    gistify(id,name,content);
 }
 
 

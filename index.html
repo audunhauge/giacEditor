@@ -66,6 +66,11 @@
                         <div class="listing" repeat id="gitlist">
                             <div data-name="$" class="file button"><label>$</label></div>
                         </div>
+                        <h3>Gist-files</h3>
+                        Click filename to edit.
+                        <div class="listing" repeat id="gistlist">
+                            <div data-id="{id}" data-name="{name}" data-url="{url}" class="file button"><label>{name}</label></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -171,6 +176,7 @@
             <div id="menu" class="gui">
                 <div class="button" id="back">Home</div>
                 <div class="button" id="save">Save</div>
+                <div class="button" id="gistit">Gitsave</div>
                 <div class="button" id="aside">SideEdit</div>
                 <div id="filename"><input type="text" id="filename"></div>
             </div>
