@@ -266,7 +266,12 @@ div.eq>span:nth-child(2) {
     text-align: center;
 }
 
+div.format {
+    display: none;
+}
+
 div.format.br {
+    display: block;
     min-height: 1rem;
 }
 
