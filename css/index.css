@@ -13,6 +13,7 @@
     max-width: 40rem;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap:0.7rem;
 }
 
 .listing>div {
@@ -24,6 +25,7 @@
     background-color: darkseagreen;
     color: white;
     border-radius: 2px;
+    box-shadow: 2px 2px 2px black;
 }
 
 .listing label {

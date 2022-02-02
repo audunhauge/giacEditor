@@ -317,6 +317,9 @@ div.format.number~ul>li::before {
     border-radius: 5px;
     padding: 2px 4px;
     width: 5rem;
+}
+
+.button {
     text-align: center;
     box-shadow: 2px 2px 2px black;
     transition: 200ms;
@@ -324,12 +327,11 @@ div.format.number~ul>li::before {
     user-select: none;
 }
 
-#menu>div.button:hover {
+.button:hover {
     background-color: rgb(112, 112, 204);
 }
 
-
-#menu>div.button:active {
+.button:active {
     transform: translate(2px, 2px);
     box-shadow: none;
 }

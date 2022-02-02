@@ -159,7 +159,7 @@ setup();
 
 examples.onclick = async (e) => {
     const t = e.target;
-    if (t.className === "file") {
+    if (t.classList.contains("file")) {
         const name = t.dataset.name;
         const url = '/media/' + name;
         const response = await fetch(url);
@@ -175,7 +175,7 @@ examples.onclick = async (e) => {
 
 savedFiles.onclick = async (e) => {
     const t = e.target;
-    if (t.className === "file") {
+    if (t.classList.contains("file")) {
         const name = t.dataset.name;
         const txt = getLocalJSON("saved:" + name);
         setLocalJSON(sessionID, txt);
@@ -186,7 +186,7 @@ savedFiles.onclick = async (e) => {
 
 gitlist.onclick = async (e) => {
     const t = e.target;
-    if (t.className === "file") {
+    if (t.classList.contains("file")) {
         const name = t.dataset.name;
         const txt = await getGitFile(name);
         setLocalJSON(sessionID, txt);
