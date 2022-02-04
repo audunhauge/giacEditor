@@ -253,6 +253,7 @@ export const renderAll = () => {
             setLang();
         }
     }
+    let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
     const plots = [];
     const maths = [];
     const algebra = [];
@@ -301,10 +302,10 @@ export const renderAll = () => {
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
                 return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
             })
-            .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
+            .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
                 ofs++;
-                sigrams.push({ eq, id: `sig${seg}_${ofs}`, klass, seg });
-                return `<div class="sigram ${klass}" id="sig${seg}_${ofs}"></div>\n`;
+                sigrams.push({ eq, id: `sig${seg}_${ofs}`, size, seg });
+                return `<div class="sigram" id="sig${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@math( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
@@ -410,6 +411,19 @@ export const renderAll = () => {
         //scrollit(id);
     });
     let segnum = {};  // have we reset giac for this segment?
+    algebra.forEach(({ math, id, size, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            // @ts-ignore  First alg in this seg, reset giac
+            UI.eval("restart");
+            funks = {};  // named funks cannot leave segment
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            const perc = renderAlgebra(id, math, funks, size);
+            commentMe(id, perc);
+            //scrollit(id);
+        }
+    });
     eqs.forEach(({ math, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
@@ -456,19 +470,7 @@ export const renderAll = () => {
             UI.eval("restart");
         }
         if (rerend || dirtyList.includes(seg)) {
-            renderSigram(id, eq, size);
-        }
-    });
-    algebra.forEach(({ math, id, size, seg }) => {
-        if (segnum[seg] === undefined) {
-            segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
-        }
-        if (rerend || dirtyList.includes(seg)) {
-            const perc = renderAlgebra(id, math, size);
-            commentMe(id, perc);
-            //scrollit(id);
+            renderSigram(id, eq, funks, size);
         }
     });
     plots.forEach(({ plot, id, klass, seg }) => {

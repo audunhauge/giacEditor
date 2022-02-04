@@ -55,15 +55,15 @@ export const makeLatex = (txt, { mode, klass }) => {
     }
 }
 
-const litex = txt => makeLatex(txt,{mode:false,klass:""});
+const litex = txt => makeLatex(txt, { mode: false, klass: "" });
 
 
 const lotex = txt => {
     try {
-      const simplex = cleanUpMathLex(txt);
-       // @ts-ignore 
-      return MathLex.render(MathLex.parse(simplex),"latex");
-    } catch(er) {
+        const simplex = cleanUpMathLex(txt);
+        // @ts-ignore 
+        return MathLex.render(MathLex.parse(simplex), "latex");
+    } catch (er) {
         return txt;
     }
 }
@@ -169,28 +169,33 @@ export const renderPoldiv = (id, txt, size = "") => {
 
 const diff = arr => {
     if (arr.length < 2) return arr;
-    const d = arr.map((v,i) => arr[i+1] -v );
-    d[d.length] = d[d.length-1];
+    const d = arr.map((v, i) => arr[i + 1] - v);
+    d[d.length] = d[d.length - 1];
     return d;
 }
 
-export const renderSigram = (id, txt, size = "") => {
+export const renderSigram = (id, txt, funks, size = "") => {
     const lines = txt.split('\n').filter(e => e != "");
     if (lines.length < 1) {
         $(id).innerHTML = "Enter polynomial"
         return;
     }
+    const [lo, hi] = size.split(",");
+    const a = Number(lo) || -10;
+    const b = Number(hi) || 10;
+    const delta = (b - a) / 200;
     const signums = [];
-    const d = range(-10, 10, 0.1);
+    const d = range(a, b, delta);
     for (let i = 0; i < lines.length; i++) {
         const [a, b] = lines[i].split(':');
         const expression = b ? b : a;
         const name = b ? a : "";
         let r;
         try {
-            const exp = cleanUpMathLex(expression).replace('^', '**');
+            const def = funks[expression];
+            const exp = def ? cleanUpMathLex(def).replace('^', '**') : cleanUpMathLex(expression).replace('^', '**');
             //const f = (new Function('expression', 'context', 'with(context){return eval(expression)}'))(exp, Math);
-            const f = new Function("x", `with(Math){ return((${exp.replace(/'/g,"")})) }`);
+            const f = new Function("x", `with(Math){ return((${exp.replace(/'/g, "")})) }`);
             r = d.map(x => f(Number(x)));
             if (exp.startsWith("'")) {
                 r = diff(r)
@@ -283,10 +288,10 @@ export const renderPiece = (id, txt, size = "") => {
     let lat = funcName + '=' + '\\begin{cases}\n';
     for (let i = 1; i < lines.length; i++) {
         const [exp, limit] = lines[i].split(":");
-        lat += lotex(exp) + ' \\quad \\text{for } ' + lotex(limit) + '\\\\\n'; 
+        lat += lotex(exp) + ' \\quad \\text{for } ' + lotex(limit) + '\\\\\n';
     }
     lat += ' \\end{cases}\n';
-    $(id).innerHTML = katx(lat,true);
+    $(id).innerHTML = katx(lat, true);
 }
 
 
@@ -316,13 +321,13 @@ export const renderLikning = (line, comment, { mode, klass }) => {
 
 
 /**
- * 
+ * Computer Algebra System
  * @param {string} id div containing result
  * @param {string} txt lines of algebra
  * @param {string} size TODO remove
  * @returns {number} percentage of lines+1 with comments 
  */
-export function renderAlgebra(id, txt, size = "") {
+export function renderAlgebra(id, txt, funks, size = "") {
     let comments = 0;
     const newMath = [];
     const mode = size.includes("senter");
@@ -357,6 +362,7 @@ export function renderAlgebra(id, txt, size = "") {
                 : simplify(lhs);
         if (assign) {
             const [exp] = clean.split(":=");
+            funks[exp] = rhs;
             newMath[i] = `<span>${exp}</span>
             <span> := </span>
             <span>${katx(math, mode)}</span><span>${comment}</span>`;
