@@ -90,6 +90,7 @@ div.section.fasit {
 
     div.format.page,
     div.format.side {
+        display: block !important;
         page-break-after: always;
     }
 
