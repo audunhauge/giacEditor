@@ -193,7 +193,7 @@ export const renderSigram = (id, txt, funks, size = "") => {
         let r;
         try {
             const def = funks[expression];
-            const exp = def ? cleanUpMathLex(def).replace('^', '**') : cleanUpMathLex(expression).replace('^', '**');
+            const exp = def ? cleanUpMathLex(def).replace(/\^/g, '**') : cleanUpMathLex(expression).replace(/\^/g, '**');
             //const f = (new Function('expression', 'context', 'with(context){return eval(expression)}'))(exp, Math);
             const f = new Function("x", `with(Math){ return((${exp.replace(/'/g, "")})) }`);
             r = d.map(x => f(Number(x)));
@@ -362,7 +362,7 @@ export function renderAlgebra(id, txt, funks, size = "") {
                 : simplify(lhs);
         if (assign) {
             const [exp] = clean.split(":=");
-            funks[exp] = rhs;
+            funks[exp] = giaEval(rhs);
             newMath[i] = `<span>${exp}</span>
             <span> := </span>
             <span>${katx(math, mode)}</span><span>${comment}</span>`;
@@ -508,12 +508,16 @@ export function renderPy(id, py, klass) {
 }
 
 
-function plotGraph(parent, fu, size, colors) {
+function plotGraph(parent, fu, size,funks, colors) {
     const div = create('div');
     div.id = "plot" + Date.now();
     parent.append(div);
     try {
-        const optdObj = plot(fu, size, colors);
+        const def = fu.replace(/([^,;]+)/g,(a,f) => {
+            if (funks[f]) return funks[f];
+            return a;
+        });
+        const optdObj = plot(def, size, colors);
         optdObj.target = "#" + div.id;
         optdObj.grid = true;
         // @ts-ignore
@@ -533,7 +537,7 @@ const alg2plot = fu => {
         })
 }
 
-export function renderPlot(id, plot, klass = "") {
+export function renderPlot(id, plot, funks, klass = "") {
     const parent = $(id);
     const [_, width = 350] = (klass.match(/ (\d+)$/)) || [];
     parent.style.setProperty("--min", String(width) + "px");
@@ -541,7 +545,7 @@ export function renderPlot(id, plot, klass = "") {
     for (let i = 0; i < lines.length; i++) {
         const pickApart = lines[i].match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
         const [_, fu, size = 500, colors] = pickApart;
-        plotGraph(parent, alg2plot(fu), min(size, +width), colors);
+        plotGraph(parent, alg2plot(fu), min(size, +width), funks, colors);
     }
 }
 

@@ -475,7 +475,7 @@ export const renderAll = () => {
     });
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
-            renderPlot(id, plot, klass);
+            renderPlot(id, plot, funks, klass);
         //scrollit(id);
     });
     python.forEach(({ pyt, id, klass, seg }) => {
