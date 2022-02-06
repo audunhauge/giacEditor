@@ -1,10 +1,11 @@
 :root {
-    --spacing:0.5rem;
+    --spacing: 0.5rem;
 }
 
 #output {
-    display:none !important;
+    display: none !important;
 }
+
 #frame {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -13,7 +14,7 @@
 
 .gui label {
     border: solid 1px rgba(128, 128, 128, 0.301);
-    margin:4px;
+    margin: 4px;
     white-space: nowrap;
 }
 
@@ -30,7 +31,7 @@ div.section.kolonner {
     grid-template-columns: 1fr 1fr;
 }
 
-div.section.kolonner > * {
+div.section.kolonner>* {
     max-width: 90%;
 }
 
@@ -44,7 +45,7 @@ div.oppgave {
 }
 
 div.oppgave:empty::before {
-    content: attr(title) " " counter(oppg-count) ". ";
+    content: attr(title) " "counter(oppg-count) ". ";
     text-transform: capitalize;
 }
 
@@ -83,7 +84,7 @@ div.section.fasit {
 #mathView {
     padding: 3px;
     /*max-width:210mm;*/
-    border-right:solid rgba(128, 128, 128, 0.192) 1px;
+    border-right: solid rgba(128, 128, 128, 0.192) 1px;
 }
 
 @media print {
@@ -108,12 +109,12 @@ div.section.fasit {
     }
 
     #mathView {
-        border-right:none;
+        border-right: none;
     }
 
 
 
-    div.section.fasit.skjult ~ * {
+    div.section.fasit.skjult~* {
         display: none;
     }
 }
@@ -132,9 +133,9 @@ div.oppgave.fasit::before {
 #editor {
     position: fixed;
     right: 0;
-    top:5rem;
+    top: 5rem;
     min-width: 30%;
-    width:calc(90vw - 210mm);
+    width: calc(90vw - 210mm);
 }
 
 
@@ -205,26 +206,27 @@ div.math.likningsett>div>div:before {
 }
 
 div.oppgave[data-poeng]:after {
-    content:" (" attr(data-poeng) "p)";
-    color:darkslateblue;
+    content: " ("attr(data-poeng) "p)";
+    color: darkslateblue;
     font-size: 0.9em;
 }
 
-div.math > div > div  {
+div.math>div>div {
     display: grid;
     grid-template-columns: 5fr 2fr;
 }
 
-div.math > div > div > span:nth-child(2) {
-    color:green;
+div.math>div>div>span:nth-child(2) {
+    color: green;
 }
+
 pre>code[class^=language] {
     position: relative;
     display: block;
     padding: 3px 20px 3px 2.5em;
     margin-left: 2rem;
     width: fit-content;
-    overflow: hidden;  
+    overflow: hidden;
 }
 
 pre>code.language-python {
@@ -278,14 +280,35 @@ div.format.br {
 
 div.format.number+ul,
 div.format.abc+ul {
-    counter-reset: ul-count;
     padding: 0;
     padding-left: 3rem;
     list-style-type: none;
 }
 
+div.format + ul {
+    counter-reset: ul-count;
+}
+
+/* restart counter after digression */
+div.format[data-start="1"] + ul {
+    counter-reset: ul-count 1;
+}
+
+div.format[data-start="2"] + ul {
+    counter-reset: ul-count 2;
+}
+
+div.format[data-start="3"] + ul {
+    counter-reset: ul-count 3;
+}
+
+div.format[data-start="4"] + ul {
+    counter-reset: ul-count 4;
+}
+
+
 span.date {
-    color:green;
+    color: green;
     font-size: 1rem;
     font-weight: normal;
 }
@@ -381,36 +404,39 @@ div.equation.qset>div {
     display: grid;
     grid-template-columns: 3fr 1fr;
     padding-bottom: 4px;
-    color: darkblue; 
+    color: darkblue;
 }
 
 div.equation>div {
     display: grid;
     grid-template-columns: 10fr 1fr 10fr 5fr;
     padding-bottom: 4px;
-    color: darkblue; 
+    color: darkblue;
 }
+
 div.algebra>div {
     display: grid;
     grid-template-columns: 10fr 1fr 10fr 5fr;
     padding-bottom: 4px;
     color: darkgreen;
 }
+
 span.answer {
     display: inline-block;
     height: 2em;
     border-bottom: solid 1px darkblue;
-    padding-bottom:0.2em;
-    margin-bottom:0.5em;
+    padding-bottom: 0.2em;
+    margin-bottom: 0.5em;
 }
-span.answer > span {
+
+span.answer>span {
     font-size: 1.1em;
     padding-bottom: 0.4em;
     margin-bottom: 2px;
     border-bottom: solid 1px darkblue;
 }
 
-div.equation.manycomments>div, 
+div.equation.manycomments>div,
 div.algebra.manycomments>div {
     grid-template-columns: 10fr 1fr 10fr 10fr;
 }
@@ -420,7 +446,7 @@ div.algebra.nocomments>div {
 }
 
 span.comment {
-    color:blue;
+    color: blue;
 }
 
 div.equation>div>span:nth-child(1),
@@ -437,7 +463,7 @@ div.algebra>div>span:nth-child(2) {
 
 div.equation>div>span:nth-child(4):empty,
 div.algebra>div>span:nth-child(4):empty {
-    border:none;
+    border: none;
 }
 
 
@@ -447,18 +473,18 @@ div.algebra>div>span:nth-child(4) {
     padding: 0 16px;
     color: gray;
     /*font-family: "KaTex_Main";*/
-    font-family:Verdana, sans-serif;
+    font-family: Verdana, sans-serif;
     font-style: oblique;
     font-size: 0.8em;
-    border-left:solid rgba(128, 128, 128, 0.164) 1px;
+    border-left: solid rgba(128, 128, 128, 0.164) 1px;
 }
 
 div.trig svg {
-    border:solid rgba(128, 128, 128, 0.144) 1px;
+    border: solid rgba(128, 128, 128, 0.144) 1px;
 }
 
 #editor.hidden {
-    display:none;
+    display: none;
 }
 
 span.eqset {
@@ -468,44 +494,46 @@ span.eqset {
 span.eqset::before {
     position: absolute;
     content: attr(data-nr) ")";
-    color:saddlebrown;
+    color: saddlebrown;
     padding-right: 0.5em;
-    left:-1.6em;
-    top:0.4em;
+    left: -1.6em;
+    top: 0.4em;
 }
 
 div.equation.qset>div>span {
     text-align: left;
 }
 
-div.equation.qset > div:nth-child(2) {
+div.equation.qset>div:nth-child(2) {
     margin-bottom: 15px;
 }
 
-div.equation.qset > div > span {
-    color:green;
-    padding:3px;
+div.equation.qset>div>span {
+    color: green;
+    padding: 3px;
 }
 
-div.qset >div:nth-child(n+3) > span {
-    color:midnightblue;
+div.qset>div:nth-child(n+3)>span {
+    color: midnightblue;
 }
 
 span.num {
-    color:#820d46;
+    color: #820d46;
     padding-right: 0.5em;
 }
+
 span.deno {
-    color:blue;
+    color: blue;
     padding: 0 0.5em 0 0.5em;
 }
+
 span.ans {
-    color:indigo;
+    color: indigo;
     padding-left: 0.5em;
 }
 
 span.filler {
-    color:transparent;
+    color: transparent;
 }
 
 #last {
@@ -517,8 +545,8 @@ div.toast {
     --background: aliceblue;
     --delay: 2s;
     --width: 18rem;
-    --top:12rem;
-    --left:calc(50% - var(--width) / 2);
+    --top: 12rem;
+    --left: calc(50% - var(--width) / 2);
     border: solid gray 1px;
     border-radius: 4px;
     position: absolute;
@@ -532,43 +560,49 @@ div.toast {
     animation: goaway 0.5s forwards;
     animation-delay: var(--delay);
     white-space: pre-wrap;
-  }
+}
 
-  #notoast {
-      position: absolute;
-      right:10px;
-      top:-10px;
-      display: inline-block;
-      background-color: cadetblue;
-      color:white;
-      border:solid gray 1px;
-      box-shadow: 2px 2px 2px black;
-      padding:5px;
-      margin:4px;
-      cursor:pointer;
-  }
-  
-  @keyframes goaway {
+div.toast span.marked {
+    color:blue;
+}
+
+#notoast {
+    position: absolute;
+    right: 10px;
+    top: -10px;
+    display: inline-block;
+    background-color: cadetblue;
+    color: white;
+    border: solid gray 1px;
+    box-shadow: 2px 2px 2px black;
+    padding: 5px;
+    margin: 4px;
+    cursor: pointer;
+}
+
+@keyframes goaway {
     85% {
-      opacity: 1;
-      box-shadow: 2px 2px 2px gray;
+        opacity: 1;
+        box-shadow: 2px 2px 2px gray;
     }
-    90% {
-      opacity: 0.5;
-    }
-    100% {
-      opacity: 0;
-      visibility: hidden;
-    }
-  }
 
-  span.ok_gold {
-      display: inline-block;
-      min-width: 4em;
-  }
+    90% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+span.ok_gold {
+    display: inline-block;
+    min-width: 4em;
+}
 
 div.plots.code {
-    display:flex;
+    display: flex;
     flex-wrap: wrap;
 }
 
@@ -578,17 +612,20 @@ span[class^=sign] {
     height: 1px;
     border: solid transparent 1px;
 }
+
 span.sign1 {
-    border-top:solid blue 3px;
+    border-top: solid blue 3px;
 }
+
 span.sign-1 {
-    border-top:dotted red 3px;
+    border-top: dotted red 3px;
 }
+
 span.sign1::after {
     position: absolute;
     font-size: 0.5em;
     right: -10px;
-    top:4px;
+    top: 4px;
     content: attr(data-x);
 }
 
@@ -596,25 +633,27 @@ span.sign-1::after {
     position: absolute;
     font-size: 0.5em;
     right: -10px;
-    top:-14px;
+    top: -14px;
     content: attr(data-x);
 }
-div.sigram > div {
-   display: grid;
-   grid-template-columns: 3fr 4fr;
-   margin-bottom: 0.6em;
+
+div.sigram>div {
+    display: grid;
+    grid-template-columns: 3fr 4fr;
+    margin-bottom: 0.6em;
 }
 
 div.sigram {
-    margin:0.5em;
+    margin: 0.5em;
 }
 
 
 div.sigline {
-    width:200px;
+    width: 200px;
     position: relative;
 }
-div.sigline > span {
+
+div.sigline>span {
     position: absolute;
-    top:10px;
+    top: 10px;
 }

@@ -138,7 +138,12 @@ aside.onclick = async () => {
 
 
 newfile.onclick = () => {
-    const txt = "# Prøve\n";
+    const txt = `# Prøve
+Dobbeltklikk på ordet på neste linje for å få hjelp
+
+help
+    
+Deretter kan du dobbeltklikke på ord markert med blå skrift.`;
     setLocalJSON(sessionID, txt);
     setLocalJSON("filename", "newfile");
     goEdit();
@@ -331,7 +336,9 @@ export const renderAll = () => {
                 return `<div ${points} class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${instead}${hr}</div>\n${txt}\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
-                return `<div class="format ${format}"></div>\n`;
+                const [type,start] = (format || "").trimStart().trimEnd().split(" ") ;
+                const reset = Number.isInteger(+start) ? Number(start) : 0;
+                return `<div data-start="${reset}" class="format ${format}"></div>\n`;
             })
             .replace(/^@ans( .*)?$/gm, (_, ans) => {
                 return `<div><span class="answer"><span>${ans}</span></span></div>\n`;
@@ -536,10 +543,9 @@ ed.onkeypress = (e) => {
         const at = sofar.lastIndexOf("@");
         const word = sofar.slice(at + 1) + ((k === "Enter") ? '' : k);
         // attach the pressed key to word if key != enter
-        if (word.length < 5) {
+        if (word.length < 7) {
             const line = sofar.split('\n').length;
             const hit = autocom(word, line, ed.getBoundingClientRect(), ed.scrollTop, Number(web.efs) / 50);
-            console.log(hit, k);
             if (hit && k === "Enter" && word.length < hit.length) {
                 // user pressed enter on single suggestion
                 // also user has not written the whole word
@@ -555,7 +561,7 @@ ed.onkeypress = (e) => {
         const p = ed.selectionStart;
         const q = ed.value.slice(0, p - 1);
         if (q.endsWith("\n")) {
-            auton = 5;  // check n next chars
+            auton = 7;  // check n next chars
         }
     }
 }

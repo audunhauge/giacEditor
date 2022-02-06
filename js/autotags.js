@@ -11,12 +11,15 @@ const explain = {
 sign: `Draws sign table for expressions
 (x+2)(x-1)(x-4)    ------+++++----+++++
 '(x+2)(x-1)(x-4)   +++++++++----+++++++
-''(x+2)(x-1)(x-4)  -----------+++++++++`,
+''(x+2)(x-1)(x-4)  -----------+++++++++
+help`,
 question: `Creates a numbered question heading
 @question            =>  Question 1.
 @question (4p)       =>  Question 2. (4p)
-@question :My Own    =>  My own`,
-poldiv: "Polynomial division with remainder",
+@question :My Own    =>  My own
+help`,
+poldiv: `Polynomial division with remainder
+help`,
 fplot: `Plots graph for one or more functions
 
 @fplot abc 200
@@ -26,13 +29,29 @@ x^2-4,-2,5,-6,12
 Plots with size=200x200
 sin and cos in same graph, x^2-4 in second graph
 abc names them a) and b)
-The last plot has x=[-2..5] and y=[-6..12]`,
-cas: "Computer Algebra System, same as in GeoGebra",
+The last plot has x=[-2..5] and y=[-6..12]
+help`,
+cas: `Computer Algebra System, same as in GeoGebra
+
+write "expression::comment"
+
+f(x):=x^2+2x :: defines a function
+f'(x):: derivative
+g:=x+2::functions defined in cas 
+::can be used by fplot or sign
+solve(f'(x) = 0):: solves equation |x=| in geogebra
+fsolve(f(x) = 0):: numerical solution |x≈| geogebra
+int(f(x),x):: ∫f(x)dx
+ factor(x^2-9)::must have leading 
+::space or CAS will simplify back again
+2*pi:: 2*𝜋
+help`,
 piecewise: `Function definition in parts
 
 f(x)                       /  x-2 for x<1
 x-2:x<1        f(x) {  
-x^2:x>=1             \\  x^2 for x>=1`,      
+x^2:x>=1             \\  x^2 for x>=1
+help`,      
 math: `Write flat math - get nice rendered math
 @math abc
 x/(x+2)=3
@@ -41,7 +60,7 @@ Gives
 a) x/(x+2) = 3
 b)   2x -4 = 0
 Nicely printed with latex
-`,
+help`,
 python: `Starts a python script inline
 def f(x):
   return x*x-3*x
@@ -50,7 +69,8 @@ ys = f(xs)
 plot(xs,ys)
 grid()
 show()
-#GO!`,
+#GO!
+help`,
 trig: `Create a trig drawing
 triangle,square,circle etc
 (try the code below)
@@ -68,8 +88,10 @@ dot(7,7)
 square(p,3,4)
 text(r,q,"abba")
 triangle(p,q,r)
-circle(q,2)`,
-eq: "Dispaly an equation, step by step solution",
+circle(q,2)
+help`,
+eq: `Dispaly an equation, step by step solution
+help`,
 eqset: `Step by step solution of equationsets
 
 ## Solving an equationset
@@ -90,7 +112,8 @@ Note by default commands work on eq1 or previous eq.
 2:/11  
 1:|x=2  
 -12  
-/8`,
+/8
+help`,
 format: "page for new page,br for newline",
 ans: "Draws two lines under following text",
 dato: "dato 1  show date for tomorrow",
@@ -167,6 +190,22 @@ grid:`python : grid(1)
 turns grid on in a plot.
 grid(0) turns the grid off
 Used together with plot() and show()`,
+help:`AVAILABLE COMMANDS
+@question
+@cas
+@math
+@fplot
+@sign
+@eq
+@eqset
+@poldiv
+@piecwise
+@python
+@trig
+@format
+@ans
+@dato
+`,
 }
 
 
@@ -205,12 +244,23 @@ export const prep = lang => {
     help = Object.assign({}, myexplain, commands);
 }
 
+const marked = (word) => {
+    const txt = help[word];
+    return txt.replace(/([a-zøæå]+)/gm,(_,w) => {
+        if (help[w] && w !== word) {
+            return '<span class="marked">' + w + '</span>';
+        }
+        return w;
+    })
+
+}
+
 
 export const helptxt = (word, line, ofs, rect, scy, ems) => {
     if (help[word]) {
         const top = line * ems * 16 + rect.top  + window.scrollY - scy;
         const left = rect.left + 16 * (ofs + 2);
-        toast(help[word],
+        toast(marked(word),
             { delay: 25, close: true, boxshadow: "blue", top, left });
     }
 }

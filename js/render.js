@@ -19,8 +19,10 @@ export function cleanUpMathLex(code) {
     if (code === "") return "";
     return code
         .replace(/\*\*/gm, "^")
+        .replace(/x\(/gm, (m,a) => 'x*(')   //  x(x-2) => x*(x+2)
+        // only for x so that sin(x) != sin*(x)
         .replace(/\)\(/gm, ")*(") // (x+a)(x-2) => (x+a)*(x-2)
-        .replace(/([0-9])\(/gm, (m, a, b) => a + "*(")  // 3( => 3*(
+        .replace(/([0-9])\(/gm, (m, a) => a + "*(")  // 3( => 3*(
         .replace(/([0-9])([a-z])/gm, (m, a, b) => a + "*" + b); // 3a => 3*a
 }
 
