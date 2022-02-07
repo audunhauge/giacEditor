@@ -14,12 +14,12 @@ import {
 import { lang, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist, gistit,
+const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist, 
      mathView, ed, examples, savedFiles, gitlist, sp }
     = thingsWithId();
 
 
-import { saveFileButton, readFileButton, gitFiles, gistify,
+import { saveFileButton, readFileButton, gitFiles,
         getGitFile, getGistFile, gistFiles } from './filehandling.js';
 
 import { startReplay } from './replay.js';
@@ -138,12 +138,13 @@ aside.onclick = async () => {
 
 
 newfile.onclick = () => {
-    const txt = `# Prøve
-Dobbeltklikk på ordet på neste linje for å få hjelp
+    const txt = `# Prøve @dato
 
-help
-    
-Deretter kan du dobbeltklikke på ord markert med blå skrift.`;
+@ignore help <-- dobbeltklikk
+  Viser en liste med kommandoer.
+  Dobbeltklikk på blå ord.
+
+`;
     setLocalJSON(sessionID, txt);
     setLocalJSON("filename", "newfile");
     goEdit();
@@ -151,6 +152,16 @@ Deretter kan du dobbeltklikke på ord markert med blå skrift.`;
 
 
 async function setup() {
+    // must do this before await or else
+    // localstorage will be overwritten by
+    // renderAll
+    const filename = getLocalJSON("filename");
+    if (filename) {
+        oldSession = getLocalJSON(sessionID).replace(/^#GO!/gm,'#GO !');  // previous contents
+        aktiv.classList.remove("hidden");
+        web.current = filename;
+        ed.value = oldSession || "";
+    }
     const url = "examples.json";
     const response = await fetch(url);
     const examples = await response.json();
@@ -223,11 +234,7 @@ gistlist.onclick = async (e) => {
     }
 }
 
-gistit.onclick = async () => {
-    const {name,id} = gist;
-    const content = ed.value;
-    gistify(id,name,content);
-}
+let globalFunk = {};  // look for funcs while typing
 
 
 
@@ -273,7 +280,7 @@ export const renderAll = () => {
     const splitter = lang[currentLanguage]?.splitter || '€€';
     const splitReg = new RegExp(`@${splitter}|@question`, "gm");
     const sections = textWithSingleNewLineAtEnd.split(splitReg).map(e => e.replace(/\s+$/, '\n'));
-    const mdLatex = txt => md.render(txt).replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" }));
+    const mdLatex = txt => md.render(txt.replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
     const prepped = (textWithSingleNewLineAtEnd, seg) => {
         const international = translateAtCommands(textWithSingleNewLineAtEnd);
         return international
@@ -287,6 +294,7 @@ export const renderAll = () => {
                 python.push({ pyt, id: `py${seg}_${ofs}`, klass, seg });
                 return `<div class="plots ${klass}" id="py${seg}_${ofs}"></div>\n`;
             })
+            .replace(/@ignore( .*)?$([^€]+?)^$^/gm, '')
             .replace(/@trig( .*)?$([^€]+?)^$^/gm, (_, klass, trig) => {
                 ofs++;
                 trigs.push({ trig, id: `trig${seg}_${ofs}`, klass, seg });
@@ -414,7 +422,7 @@ export const renderAll = () => {
 
     maths.forEach(({ math, id, size, seg }) => {
         if (rerend || dirtyList.includes(seg))
-            renderMath(id, math, size);
+            renderMath(id, math, funks, size);
         //scrollit(id);
     });
     let segnum = {};  // have we reset giac for this segment?
@@ -428,7 +436,7 @@ export const renderAll = () => {
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderAlgebra(id, math, funks, size);
             commentMe(id, perc);
-            //scrollit(id);
+            Object.assign(globalFunk,funks);
         }
     });
     eqs.forEach(({ math, id, size, seg }) => {
@@ -529,6 +537,7 @@ document.addEventListener('selectionchange', () => {
 let auton = 0;      // autocomplete
 let timestep = 0;
 let oldtext = "";
+
 ed.onkeypress = (e) => {
     if (replayActive) {
         replayActive = false;
@@ -556,6 +565,20 @@ ed.onkeypress = (e) => {
             }
         }
         auton--;
+    }
+    if (k === '£') {
+        // see if we have a named funk
+        const p = ed.selectionStart;
+        const sofar = ed.value.slice(0, p);
+        const at = sofar.lastIndexOf('\n');
+        const word = sofar.slice(at+1);
+        const hit = globalFunk[word];
+        if (hit) {
+            const adjusted = sofar.slice(0,at +1) + globalFunk[word];
+            ed.value = adjusted;
+            ed.selectionEnd = at + hit.length + 1;
+            e.preventDefault();
+        }
     }
     if (k === '@') {
         const p = ed.selectionStart;

@@ -415,7 +415,7 @@ export function renderEquation(id, txt, size = "") {
     return comments / (lines.length + 1);
 }
 
-export function renderMath(id, math, size = "") {
+export function renderMath(id, math, funks, size = "") {
     const newMath = [];
     const mode = size.includes("senter");
     const likning = size.includes("likning");
@@ -433,7 +433,7 @@ export function renderMath(id, math, size = "") {
 }
 
 const parsePy = py => {
-    const prelude = "from pylab import *\nreplot()\n";
+    const prelude = 'from pylab import *\nreplot()\n';
     try {
         // @ts-ignore
         return __BRYTHON__.python_to_js(prelude + py);
