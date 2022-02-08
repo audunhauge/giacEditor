@@ -19,7 +19,7 @@ export function cleanUpMathLex(code) {
     if (code === "") return "";
     return code
         .replace(/\*\*/gm, "^")
-        .replace(/x\(/gm, (m,a) => 'x*(')   //  x(x-2) => x*(x+2)
+        .replace(/x\(/gm, (m, a) => 'x*(')   //  x(x-2) => x*(x+2)
         // only for x so that sin(x) != sin*(x)
         .replace(/\)\(/gm, ")*(") // (x+a)(x-2) => (x+a)*(x-2)
         .replace(/([0-9])\(/gm, (m, a) => a + "*(")  // 3( => 3*(
@@ -510,12 +510,12 @@ export function renderPy(id, py, klass) {
 }
 
 
-function plotGraph(parent, fu, size,funks, colors) {
+function plotGraph(parent, fu, size, funks, colors) {
     const div = create('div');
     div.id = "plot" + Date.now();
     parent.append(div);
     try {
-        const def = fu.replace(/([^,;]+)/g,(a,f) => {
+        const def = fu.replace(/([^,;]+)/g, (a, f) => {
             if (funks[f]) return funks[f];
             return a;
         });
@@ -531,10 +531,10 @@ function plotGraph(parent, fu, size,funks, colors) {
 
 const alg2plot = fu => {
     const fu2 = cleanUpMathLex(fu);
-    return fu2.replace(/e\^([a-z])/, (_, a) => {
+    return fu2.replace(/e\^([a-z])/g, (_, a) => {  // e^x
         return `exp(${a})`;
     })
-        .replace(/e\^\(([^)]+)\)/, (_, a) => {
+        .replace(/e\^\(([^)]+)\)/g, (_, a) => {  // e^(-x^2)
             return `exp(${a})`;
         })
 }
@@ -587,8 +587,8 @@ export function plot(str, size = 500, colors) {
     // f plot({target: '#multiple',data: [ { fn: 'x', color: 'pink' }, { fn: '-x' }, { fn: 'x * x' }, { fn: 'x * x * x' }, { fn: 'x * x * x * x' } ] } )
     let xmin = -5,
         xmax = 5,
-        ymin,
-        ymax;
+        ymin = -5,
+        ymax = 5;
     let width = max(70, +size),
         height = max(70, +size);
     const colorList = colors ? colors.trim().split(",") : [];
@@ -633,11 +633,36 @@ export function plot(str, size = 500, colors) {
         }
     } else if (typeof o === "string") {
         // type a,b,c
-        optobj.data = obj.split(";").map((fu, i) => {
-            const obj = { fn: fu, graphType: "polyline" };
+        let parametric = false;
+        optobj.data = obj.split(";").map((fn, i) => {
+            let graphType = 'polyline';
+            let obj = {};
+            if (fn.includes("=")) {
+                // assume Ax+By=C
+                // try as y=f(x)
+                const fy = giaEval(`solve(${fn},y)`);
+                if (fy.startsWith("list[")) {
+                    // found solution for y=
+                    obj = fy.slice(5,-1).replace(/√/g,'sqrt').split(",").map(fn => ({fn,graphType}));
+                    parametric = true;  // need to move these up one level
+                    // @ts-ignore
+                    // obj = { fn, graphType };
+                } else {
+                    const fy = giaEval(`solve(${fn})`);
+                    if (fy.startsWith("list[")) {
+                        const x = fy.slice(5,-1);
+                        // @ts-ignore
+                        obj = { x,y:'t',fnType:'parametric',graphType, range:[ymin,ymax]}
+                    }
+                }
+            } else {
+                // @ts-ignore
+                obj = { fn, graphType };
+            }
             if (colorList[i]) obj.color = colorList[i];
             return obj;
         });
+        optobj.data = optobj.data.flat();
         // @ts-ignore
         return optobj;
     } else if (typeof obj === "object") {

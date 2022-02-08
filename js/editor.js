@@ -571,12 +571,16 @@ ed.onkeypress = (e) => {
         const p = ed.selectionStart;
         const sofar = ed.value.slice(0, p);
         const at = sofar.lastIndexOf('\n');
-        const word = sofar.slice(at+1);
+        const trailing = sofar.slice(at+1);
+        const parts = trailing.split(/[^a-z()]/g);
+        const word = parts.pop();
         const hit = globalFunk[word];
         if (hit) {
-            const adjusted = sofar.slice(0,at +1) + globalFunk[word];
+            const after = ed.value.slice(p);
+            const before = trailing.slice(0, -word.length);
+            const adjusted = sofar.slice(0,at +1) + before + hit + after;
             ed.value = adjusted;
-            ed.selectionEnd = at + hit.length + 1;
+            ed.selectionEnd = at + before.length + hit.length + 1;
             e.preventDefault();
         }
     }

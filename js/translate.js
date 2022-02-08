@@ -40,6 +40,7 @@ const norwegian = {
     },
     splitter: "oppgave",
     atcommands: {
+        hjelp:"help",
         fplot: "fplot",
         delt:"piecewise",
         fortegn: "sign",
@@ -57,6 +58,22 @@ const norwegian = {
         dato: "dato",
     },
     explain: {
+        hjelp:`TILGJENGELIGE KOMMANDOER
+@oppgave
+@cas
+@math
+@fplot
+@fortegn
+@likning
+@likninger
+@poldiv
+@delt
+@python
+@trig
+@format
+@svar
+@dato
+`,
         fortegn: `Tegner fortegsskjema
 x+2  => fortegnslinje
 '(x+2) => fortegnslinje til derivert
