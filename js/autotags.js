@@ -117,6 +117,22 @@ help`,
 format: "page for new page,br for newline",
 ans: "Draws two lines under following text",
 dato: "dato 1  show date for tomorrow",
+help:`AVAILABLE COMMANDS
+@question
+@cas
+@math
+@fplot
+@sign
+@eq
+@eqset
+@poldiv
+@piecewise
+@python
+@trig
+@format
+@ans
+@dato
+`,
 }
 
 const commands = {
@@ -190,22 +206,6 @@ grid:`python : grid(1)
 turns grid on in a plot.
 grid(0) turns the grid off
 Used together with plot() and show()`,
-help:`AVAILABLE COMMANDS
-@question
-@cas
-@math
-@fplot
-@sign
-@eq
-@eqset
-@poldiv
-@piecwise
-@python
-@trig
-@format
-@ans
-@dato
-`,
 }
 
 
@@ -245,9 +245,12 @@ export const prep = lang => {
 }
 
 const marked = (word) => {
-    const txt = help[word];
+    const txt = help[word] || explain[word];
     return txt.replace(/([a-zøæå]+)/gm,(_,w) => {
         if (help[w] && w !== word) {
+            return '<span class="marked">' + w + '</span>';
+        }
+        if (explain[w] && w !== word) {
             return '<span class="marked">' + w + '</span>';
         }
         return w;
@@ -258,6 +261,11 @@ const marked = (word) => {
 
 export const helptxt = (word, line, ofs, rect, scy, ems) => {
     if (help[word]) {
+        const top = line * ems * 16 + rect.top  + window.scrollY - scy;
+        const left = rect.left + 16 * (ofs + 2);
+        toast(marked(word),
+            { delay: 25, close: true, boxshadow: "blue", top, left });
+    } else if (explain[word]) {
         const top = line * ems * 16 + rect.top  + window.scrollY - scy;
         const left = rect.left + 16 * (ofs + 2);
         toast(marked(word),

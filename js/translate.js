@@ -10,6 +10,7 @@ const english = {
     },
     splitter: "question",
     atcommands: {
+        help:"help",
         fplot: "fplot",
         sign: "sign",
         piecewise: "piecewise",
@@ -61,7 +62,7 @@ const norwegian = {
         hjelp:`TILGJENGELIGE KOMMANDOER
 @oppgave
 @cas
-@math
+@matte
 @fplot
 @fortegn
 @likning
@@ -73,6 +74,10 @@ const norwegian = {
 @format
 @svar
 @dato
+Skriv "hjelp" og dobbeltklikk på ordet
+for å få fram denne infoboksen.
+Dobbeltklikk på blå ord i hjelpetekst
+for å slå opp info om en kommando.
 `,
         fortegn: `Tegner fortegsskjema
 x+2  => fortegnslinje

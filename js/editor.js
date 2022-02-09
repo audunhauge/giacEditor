@@ -139,15 +139,16 @@ aside.onclick = async () => {
 
 newfile.onclick = () => {
     const txt = `# Prøve @dato
+@oppgave
 
-@ignore help <-- dobbeltklikk
-  Viser en liste med kommandoer.
-  Dobbeltklikk på blå ord.
-
+Løs likninger
+@matte abc
+2x+4=5
 `;
     setLocalJSON(sessionID, txt);
     setLocalJSON("filename", "newfile");
     goEdit();
+    helptxt("hjelp", 5, 0,  ed.getBoundingClientRect(), 0, 1); 
 }
 
 
