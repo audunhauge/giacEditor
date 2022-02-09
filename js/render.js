@@ -509,6 +509,28 @@ export function renderPy(id, py, klass) {
     }
 }
 
+const plotDomain = (size, rest) => {
+    let xmin = -5,
+        xmax = 5,
+        ymin = -5,
+        ymax = 5;
+    let width = max(70, +size),
+        height = max(70, +size);
+    if (rest.length > 0) {
+        // type b,c
+        [xmin = -5, xmax = 5, ymin, ymax] = rest;
+    }
+    const optobj = {
+        width,
+        height,
+        xAxis: { domain: [+xmin, +xmax] },
+    };
+    if (ymin !== undefined && ymax !== undefined) {
+        optobj.yAxis = { domain: [+ymin, +ymax] };
+    }
+    return optobj;
+}
+
 
 function plotGraph(parent, fu, size, funks, colors) {
     const div = create('div');
@@ -539,15 +561,77 @@ const alg2plot = fu => {
         })
 }
 
+const polarPlot = (parent, lines, width, klass) => {
+    for (const line of lines) {
+        const div = create('div');
+        div.id = "plot" + Date.now();
+        parent.append(div);
+        const pickApart = line.match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
+        const [_, fu, size = 500, colors] = pickApart || [];
+        let [polar, ...rest] = fu.split(",");
+        const optObj = plotDomain(min(size, +width), rest);
+        optObj.data = [{ r: polar, fnType: "polar", graphType: "polyline" }];
+        optObj.target = "#" + div.id;
+        try {
+            // @ts-ignore
+            functionPlot(optObj);
+        } catch (e) {
+            console.log("Polar:", e);
+        }
+    }
+}
+
+const paramPlot = (parent, lines, width, klass) => {
+    const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
+    const [_, lo = -10, hi = 10] = givenRange ? givenRange : [];
+    const range = [lo, hi];
+    console.log(givenRange);
+    for (let i = 0; i < lines.length; i += 2) {
+        const fx = lines[i];
+        const y = lines[i + 1];
+        const div = create('div');
+        div.id = "plot" + Date.now();
+        parent.append(div);
+        const pickApart = fx.match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
+        const [_, fu, size = 500, colors] = pickApart || [];
+        let [x, ...rest] = fu.split(",");
+        const optObj = plotDomain(min(size, +width), rest);
+        optObj.data = [{ x, y, range, fnType: "parametric", graphType: "polyline" }];
+        optObj.target = "#" + div.id;
+        try {
+            // @ts-ignore
+            functionPlot(optObj);
+        } catch (e) {
+            console.log("Polar:", e);
+        }
+    }
+}
+
 export function renderPlot(id, plot, funks, klass = "") {
     const parent = $(id);
     const [_, width = 350] = (klass.match(/ (\d+)$/)) || [];
     parent.style.setProperty("--min", String(width) + "px");
     const lines = plot.split('\n').filter(e => e != "");
-    for (let i = 0; i < lines.length; i++) {
-        const pickApart = lines[i].match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
-        const [_, fu, size = 500, colors] = pickApart;
-        plotGraph(parent, alg2plot(fu), min(size, +width), funks, colors);
+    if (klass.includes("polar")) {
+        // plot polar, r=f(theta)
+        if (lines.length < 1) {
+            parent.innerHTML = "Must give f(theta)";
+            return;
+        }
+        polarPlot(parent, lines, width, klass);
+    } else if (klass.includes("parametric")) {
+        // plot parametric, x=f(t),y=f(t)
+        if (lines.length < 2 || lines.length % 2 != 0) {
+            parent.innerHTML = "Must give pairs of fx(t) and fy(t)";
+            return;
+        }
+        paramPlot(parent, lines, width, klass);
+    } else {
+        for (let i = 0; i < lines.length; i++) {
+            const pickApart = lines[i].match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
+            const [_, fu, size = 500, colors] = pickApart;
+            plotGraph(parent, alg2plot(fu), min(size, +width), funks, colors);
+        }
     }
 }
 
@@ -563,6 +647,8 @@ export function renderTrig(id, trig, klass = "") {
       </g>
     </svg>`;
 }
+
+
 
 
 export function plot(str, size = 500, colors) {
@@ -585,32 +671,16 @@ export function plot(str, size = 500, colors) {
     // e plot([[1,2,4,8,16,32]])
     // f plot( {yAxis: {domain: [-1.897959183, 1.897959183]},xAxis: {domain: [-3, 3]},data: [{r: '2 * sin(4 theta)',fnType: 'polar',graphType: 'polyline' }] } )
     // f plot({target: '#multiple',data: [ { fn: 'x', color: 'pink' }, { fn: '-x' }, { fn: 'x * x' }, { fn: 'x * x * x' }, { fn: 'x * x * x * x' } ] } )
-    let xmin = -5,
-        xmax = 5,
-        ymin = -5,
-        ymax = 5;
-    let width = max(70, +size),
-        height = max(70, +size);
+
+    const optobj = plotDomain(size, rest);
     const colorList = colors ? colors.trim().split(",") : [];
-    if (rest.length > 0) {
-        // type b,c
-        [xmin = -5, xmax = 5, ymin, ymax] = rest;
-    }
-    const optobj = {
-        width,
-        height,
-        xAxis: { domain: [+xmin, +xmax] },
-    };
-    if (ymin !== undefined && ymax !== undefined) {
-        optobj.yAxis = { domain: [+ymin, +ymax] };
-    }
     if (Array.isArray(obj)) {
         // type d,e
         if (Array.isArray(obj[0])) {
-            ymax = obj.reduce((s, v) => Math.max(v[1], s), obj[0][1]);
-            ymin = obj.reduce((s, v) => Math.min(v[1], s), obj[0][1]);
-            xmax = obj.reduce((s, v) => Math.max(v[0], s), obj[0][0]);
-            xmin = obj.reduce((s, v) => Math.min(v[0], s), obj[0][0]);
+            const ymax = obj.reduce((s, v) => Math.max(v[1], s), obj[0][1]);
+            const ymin = obj.reduce((s, v) => Math.min(v[1], s), obj[0][1]);
+            const xmax = obj.reduce((s, v) => Math.max(v[0], s), obj[0][0]);
+            const xmin = obj.reduce((s, v) => Math.min(v[0], s), obj[0][0]);
             optobj.yAxis = { domain: [ymin - 2, ymax + 2] };
             optobj.xAxis = { domain: [xmin, xmax] };
             // type d
@@ -620,10 +690,10 @@ export function plot(str, size = 500, colors) {
             return optobj;
         } else {
             // type e
-            ymax = Math.max(...obj);
-            ymin = Math.min(...obj);
-            xmin = 0;
-            xmax = obj.length;
+            const ymax = Math.max(...obj);
+            const ymin = Math.min(...obj);
+            const xmin = 0;
+            const xmax = obj.length;
             optobj.yAxis = { domain: [ymin - 2, ymax + 2] };
             optobj.xAxis = { domain: [xmin, xmax] };
             const points = obj.map((e, i) => [i, e]);
@@ -633,7 +703,6 @@ export function plot(str, size = 500, colors) {
         }
     } else if (typeof o === "string") {
         // type a,b,c
-        let parametric = false;
         optobj.data = obj.split(";").map((fn, i) => {
             let graphType = 'polyline';
             let obj = {};
@@ -643,16 +712,16 @@ export function plot(str, size = 500, colors) {
                 const fy = giaEval(`solve(${fn},y)`);
                 if (fy.startsWith("list[")) {
                     // found solution for y=
-                    obj = fy.slice(5,-1).replace(/√/g,'sqrt').split(",").map(fn => ({fn,graphType}));
+                    obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
                     parametric = true;  // need to move these up one level
                     // @ts-ignore
                     // obj = { fn, graphType };
                 } else {
                     const fy = giaEval(`solve(${fn})`);
                     if (fy.startsWith("list[")) {
-                        const x = fy.slice(5,-1);
+                        const x = fy.slice(5, -1);
                         // @ts-ignore
-                        obj = { x,y:'t',fnType:'parametric',graphType, range:[ymin,ymax]}
+                        obj = { x, y: 't', fnType: 'parametric', graphType, range: [ymin, ymax] }
                     }
                 }
             } else {
