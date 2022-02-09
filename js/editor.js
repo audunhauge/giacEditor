@@ -163,6 +163,7 @@ async function setup() {
         web.current = filename;
         ed.value = oldSession || "";
     }
+    /*
     const url = "examples.json";
     const response = await fetch(url);
     const examples = await response.json();
@@ -174,6 +175,7 @@ async function setup() {
     web.gitlist.push(...gitfiles);
     const gistfiles = await gistFiles();
     web.gistlist.push(...gistfiles);
+    */
 }
 
 setup();

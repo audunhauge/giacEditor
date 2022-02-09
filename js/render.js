@@ -584,7 +584,7 @@ const polarPlot = (parent, lines, width, klass) => {
 const paramPlot = (parent, lines, width, klass) => {
     const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
     const [_, lo = -10, hi = 10] = givenRange ? givenRange : [];
-    const range = [lo, hi];
+    const range = [Number(lo), Number(hi)];
     console.log(givenRange);
     for (let i = 0; i < lines.length; i += 2) {
         const fx = lines[i];
@@ -602,7 +602,7 @@ const paramPlot = (parent, lines, width, klass) => {
             // @ts-ignore
             functionPlot(optObj);
         } catch (e) {
-            console.log("Polar:", e);
+            console.log("parametric:", e);
         }
     }
 }
@@ -713,7 +713,6 @@ export function plot(str, size = 500, colors) {
                 if (fy.startsWith("list[")) {
                     // found solution for y=
                     obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
-                    parametric = true;  // need to move these up one level
                     // @ts-ignore
                     // obj = { fn, graphType };
                 } else {
