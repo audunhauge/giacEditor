@@ -20,7 +20,7 @@ const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist,
 
 
 import { saveFileButton, readFileButton, 
-        getGitFile, getGistFile, } from './filehandling.js';
+        getGitFile, getGistFile, gitFiles, gistFiles, } from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
@@ -163,7 +163,6 @@ async function setup() {
         web.current = filename;
         ed.value = oldSession || "";
     }
-    /*
     const url = "examples.json";
     const response = await fetch(url);
     const examples = await response.json();
@@ -175,7 +174,6 @@ async function setup() {
     web.gitlist.push(...gitfiles);
     const gistfiles = await gistFiles();
     web.gistlist.push(...gistfiles);
-    */
 }
 
 setup();
