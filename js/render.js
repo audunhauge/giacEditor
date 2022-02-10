@@ -442,7 +442,7 @@ export function renderDist(id, ls, params, type) {
         for (const line of lines) {
             const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
             if (or && compare) {
-                if (compare === "mer" || compare === "more") {
+                if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
                     const v = (1 - binomialC(n, num-1, p)).toFixed(6);
                     txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
                 } else {
@@ -461,7 +461,7 @@ export function renderDist(id, ls, params, type) {
         for (const line of lines) {
             const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
             if (or && compare) {
-                if (compare === "mer" || compare === "more") {
+                if (compare.startsWith("me") || compare.startsWith("mo") || compare.startsWith("pi")) {
                     const v = (1 - hyperC(+n, +m, +r,+num-1)).toFixed(6);
                     txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
                 } else {
