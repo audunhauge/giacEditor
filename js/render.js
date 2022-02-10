@@ -439,39 +439,62 @@ export function renderDist(id, ls, params, type) {
     if (type.endsWith("binom")) {
         const [_, n, p] = (params.match(/n=([0-9]+) +p=([0-9.]+)/) || []);
         txt += `<h3>Binomial distribution with n=${n} and p=${p}</h3>`
+        let sum = 0;
         for (const line of lines) {
+            if (line === "sum") {
+                txt += `<div><span>Sum </span> = <span> ${sum.toFixed(6)} </span></div>`;
+                sum = 0;
+                continue;
+            }
+            let pp = 0;
             const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
             if (or && compare) {
                 if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                    const v = (1 - binomialC(n, num-1, p)).toFixed(6);
+                    pp = (1 - binomialC(n, num-1, p));
+                    const v = pp.toFixed(6);
                     txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
                 } else {
-                    const v = binomialC(n, num, p).toFixed(6);
+                    pp = binomialC(n, num, p);
+                    const v = pp.toFixed(6);
                     txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
                 }
             } else {
-                const v = binomial(n,num,p).toFixed(6);
+                pp = binomial(n,num,p);
+                const v = pp.toFixed(6);
                 txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
             }
+            sum += pp;
         }
+       
     }
     if (type.endsWith("hyper")) {
         const [_, n, m, r] = (params.match(/n=([0-9]+) +m=([0-9]+) +r=([0-9]+)/) || []);
         txt += `<h3>Hypergeometric distribution with n=${n}, m=${m} and r=${r}</h3>`
+        let sum = 0;
         for (const line of lines) {
+            if (line === "sum") {
+                txt += `<div><span>Sum </span> = <span> ${sum.toFixed(6)} </span></div>`;
+                sum = 0;
+                continue;
+            }
+            let p = 0;
             const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
             if (or && compare) {
                 if (compare.startsWith("me") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                    const v = (1 - hyperC(+n, +m, +r,+num-1)).toFixed(6);
+                    p = (1 - hyperC(+n, +m, +r,+num-1));
+                    const v = p.toFixed(6);
                     txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
                 } else {
-                    const v = hyperC(+n,+m,+r,+num).toFixed(6);
+                    p = hyperC(+n,+m,+r,+num);
+                    const v = p.toFixed(6);
                     txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
                 }
             } else {
-                const v = hyper(+n,+m,+r,+num).toFixed(6);
+                p = hyper(+n,+m,+r,+num);
+                const v = p.toFixed(6);
                 txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
             }
+            sum += p;
         }
     }
 
