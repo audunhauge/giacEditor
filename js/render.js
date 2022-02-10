@@ -5,7 +5,7 @@ import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast } from './util.js';
-// import { autocom } from './autotags.js';
+import { hyperC, hyper, binomial, binomialC } from './probability.js';
 
 const { min, max } = Math;
 
@@ -432,6 +432,52 @@ export function renderMath(id, math, funks, size = "") {
     $(id).innerHTML = wrap(newMath, 'div');
 }
 
+
+export function renderDist(id, ls, params, type) {
+    let txt = "";
+    const lines = ls.split("\n").filter(l => l.length);
+    if (type.endsWith("binom")) {
+        const [_, n, p] = (params.match(/n=([0-9]+) +p=([0-9.]+)/) || []);
+        txt += `<h3>Binomial distribution with n=${n} and p=${p}</h3>`
+        for (const line of lines) {
+            const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
+            if (or && compare) {
+                if (compare === "mer" || compare === "more") {
+                    const v = (1 - binomialC(n, num-1, p)).toFixed(6);
+                    txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
+                } else {
+                    const v = binomialC(n, num, p).toFixed(6);
+                    txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
+                }
+            } else {
+                const v = binomial(n,num,p).toFixed(6);
+                txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
+            }
+        }
+    }
+    if (type.endsWith("hyper")) {
+        const [_, n, m, r] = (params.match(/n=([0-9]+) +m=([0-9]+) +r=([0-9]+)/) || []);
+        txt += `<h3>Hypergeometric distribution with n=${n}, m=${m} and r=${r}</h3>`
+        for (const line of lines) {
+            const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
+            if (or && compare) {
+                if (compare === "mer" || compare === "more") {
+                    const v = (1 - hyperC(+n, +m, +r,+num-1)).toFixed(6);
+                    txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
+                } else {
+                    const v = hyperC(+n,+m,+r,+num).toFixed(6);
+                    txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
+                }
+            } else {
+                const v = hyper(+n,+m,+r,+num).toFixed(6);
+                txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
+            }
+        }
+    }
+
+    $(id).innerHTML = txt;
+}
+
 const parsePy = py => {
     const prelude = 'from pylab import *\nreplot()\n';
     try {
@@ -562,6 +608,9 @@ const alg2plot = fu => {
 }
 
 const polarPlot = (parent, lines, width, klass) => {
+    const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
+    const [_, lo = 0, hi = 6.285] = givenRange ? givenRange : [];
+    const range = [Number(lo), Number(hi)];
     for (const line of lines) {
         const div = create('div');
         div.id = "plot" + Date.now();
@@ -570,7 +619,7 @@ const polarPlot = (parent, lines, width, klass) => {
         const [_, fu, size = 500, colors] = pickApart || [];
         let [polar, ...rest] = fu.split(",");
         const optObj = plotDomain(min(size, +width), rest);
-        optObj.data = [{ r: polar, fnType: "polar", graphType: "polyline" }];
+        optObj.data = [{ r: polar, fnType: "polar", range, graphType: "polyline" }];
         optObj.target = "#" + div.id;
         try {
             // @ts-ignore
@@ -585,7 +634,6 @@ const paramPlot = (parent, lines, width, klass) => {
     const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
     const [_, lo = -10, hi = 10] = givenRange ? givenRange : [];
     const range = [Number(lo), Number(hi)];
-    console.log(givenRange);
     for (let i = 0; i < lines.length; i += 2) {
         const fx = lines[i];
         const y = lines[i + 1];
@@ -673,6 +721,7 @@ export function plot(str, size = 500, colors) {
     // f plot({target: '#multiple',data: [ { fn: 'x', color: 'pink' }, { fn: '-x' }, { fn: 'x * x' }, { fn: 'x * x * x' }, { fn: 'x * x * x * x' } ] } )
 
     const optobj = plotDomain(size, rest);
+    const [ymin, ymax] = optobj.yAxis.domain;
     const colorList = colors ? colors.trim().split(",") : [];
     if (Array.isArray(obj)) {
         // type d,e

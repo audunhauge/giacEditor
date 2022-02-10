@@ -8,19 +8,19 @@ import { toast } from "./util.js";
 
 
 const explain = {
-sign: `Draws sign table for expressions
+    sign: `Draws sign table for expressions
 (x+2)(x-1)(x-4)    ------+++++----+++++
 '(x+2)(x-1)(x-4)   +++++++++----+++++++
 ''(x+2)(x-1)(x-4)  -----------+++++++++
 help`,
-question: `Creates a numbered question heading
+    question: `Creates a numbered question heading
 @question            =>  Question 1.
 @question (4p)       =>  Question 2. (4p)
 @question :My Own    =>  My own
 help`,
-poldiv: `Polynomial division with remainder
+    poldiv: `Polynomial division with remainder
 help`,
-fplot: `Plots graph for one or more functions
+    fplot: `Plots graph for one or more functions
 
 @fplot abc 200
 sin(x);cos(x)
@@ -31,7 +31,7 @@ sin and cos in same graph, x^2-4 in second graph
 abc names them a) and b)
 The last plot has x=[-2..5] and y=[-6..12]
 help`,
-cas: `Computer Algebra System, same as in GeoGebra
+    cas: `Computer Algebra System, same as in GeoGebra
 
 write "expression::comment"
 
@@ -46,13 +46,13 @@ int(f(x),x):: ∫f(x)dx
 ::space or CAS will simplify back again
 2*pi:: 2*𝜋
 help`,
-piecewise: `Function definition in parts
+    piecewise: `Function definition in parts
 
 f(x)                       /  x-2 for x<1
 x-2:x<1        f(x) {  
 x^2:x>=1             \\  x^2 for x>=1
-help`,      
-math: `Write flat math - get nice rendered math
+help`,
+    math: `Write flat math - get nice rendered math
 @math abc
 x/(x+2)=3
 2x-4=0
@@ -61,7 +61,7 @@ a) x/(x+2) = 3
 b)   2x -4 = 0
 Nicely printed with latex
 help`,
-python: `Starts a python script inline
+    python: `Starts a python script inline
 def f(x):
   return x*x-3*x
 xs = linspace(-5,5,100)
@@ -71,7 +71,7 @@ grid()
 show()
 #GO!
 help`,
-trig: `Create a trig drawing
+    trig: `Create a trig drawing
 triangle,square,circle etc
 (try the code below)
 ## Draw some figures:
@@ -90,9 +90,9 @@ text(r,q,"abba")
 triangle(p,q,r)
 circle(q,2)
 help`,
-eq: `Dispaly an equation, step by step solution
+    eq: `Dispaly an equation, step by step solution
 help`,
-eqset: `Step by step solution of equationsets
+    eqset: `Step by step solution of equationsets
 
 ## Solving an equationset
 Note by default commands work on eq1 or previous eq.
@@ -114,10 +114,10 @@ Note by default commands work on eq1 or previous eq.
 -12  
 /8
 help`,
-format: "page for new page,br for newline",
-ans: "Draws two lines under following text",
-dato: "dato 1  show date for tomorrow",
-help:`AVAILABLE COMMANDS
+    format: "page for new page,br for newline",
+    ans: "Draws two lines under following text",
+    dato: "dato 1  show date for tomorrow",
+    help: `AVAILABLE COMMANDS
 @question
 @cas
 @math
@@ -136,7 +136,7 @@ help:`AVAILABLE COMMANDS
 }
 
 const commands = {
-triangle: `trig : triangle() 
+    triangle: `trig : triangle() 
 triangle(p,3,4,5)
 Draws a triangle (p,a,b,c)
 p is point, a,b,c are side lengths.
@@ -145,7 +145,7 @@ triangle(p,q,r)
 Draws triangle given 3 points.
 
 Check bigtri for advanced triangle`,
-bigtri:`trig : triangle example
+    bigtri: `trig : triangle example
 ## The code below renders a tri with extras.
 * abc : tekst on sides, csv
 * ABC : tekst on vertices, csv
@@ -158,51 +158,51 @@ p=(1,1)
 q=(5,2)
 t = tri({p,q,a:3,b:4,c:5,abc:"a,b,$",vABC:"abc",ABC:"A,B,C",vert:"abc"})
 triangle(t)`,
-square:`trig : square(p,w,h)
+    square: `trig : square(p,w,h)
 Draws a square given point p
 and w,h. Use negative w,h to
 flip the square.`,
-circle:`trig : circle(p,r)
+    circle: `trig : circle(p,r)
 Draws circle given senter point and radius`,
-text:`trig : text(p,"tekst")
+    text: `trig : text(p,"tekst")
 Renders tekst at point p
 
 text(p,q,"tekst")
 
 Renders tekst along line
 from p to q.  p,q are points`,
-dot:`trig : dot(1,1)
+    dot: `trig : dot(1,1)
 plots a point at (x,y)
 dot(1,2) 
   or 
 p = (1,2)
 dot(p)`,
-dots:`trig : dots(p,q,..)
+    dots: `trig : dots(p,q,..)
 Draws multiple dots at given points
 The points must be defined as
 p = (1,2) 
 q = (x,y) x,y are numbers`,
-line:`trig : line(p,q)
+    line: `trig : line(p,q)
 Draws a line from point p
 to point q`,
-linspace: `python : linspace(start,stop,num)
+    linspace: `python : linspace(start,stop,num)
 creates array [start, ..., stop]
 with num elements evenly spaced.
 Typically used to create x-values
 for plotting with plot.`,
-show:`python : show() 
+    show: `python : show() 
 Puts the graph on the page.
 You can have many plot() commands,
 they are shown in the same graph by show().
 Use grid(1) to turn grid on, grid(0) turns it off`,
-plot:`python : plot(xs,ys)
+    plot: `python : plot(xs,ys)
 xs is array of x-values
 ys is array of y-values
 Typical use case:
 xs = linspace(-5,5,100)
 ys = f(xs)
 plot(xs,ys)`,
-grid:`python : grid(1) 
+    grid: `python : grid(1) 
 turns grid on in a plot.
 grid(0) turns the grid off
 Used together with plot() and show()`,
@@ -212,6 +212,7 @@ Used together with plot() and show()`,
 let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,trig,eq,eqset,format,ans,dato";
 let auwords = aulist.split(",");
 let help;
+let expand = {};
 
 export const autocom = (word, line, rect, scy, ems) => {
     if (aulist.includes(word)) {
@@ -224,7 +225,7 @@ export const autocom = (word, line, rect, scy, ems) => {
         }
         toast(hits.map(w => w + '<br>').join('') + exp,
             { delay: 1, left, top });
-        return hits.length === 1 ? hits[0] : null;
+        return hits.length === 1 ? { word: hits[0], expand: expand[hits[0]] } : null;
     }
     return null;
 }
@@ -242,11 +243,12 @@ export const prep = lang => {
         myexplain[tran] = lang.explain[tran] || explain[k];
     });
     help = Object.assign({}, myexplain, commands);
+    expand = Object.assign({}, lang.expand || {});
 }
 
 const marked = (word) => {
     const txt = help[word] || explain[word];
-    return txt.replace(/([a-zøæå]+)/gm,(_,w) => {
+    return txt.replace(/([a-zøæå]+)/gm, (_, w) => {
         if (help[w] && w !== word) {
             return '<span class="marked">' + w + '</span>';
         }
@@ -261,12 +263,12 @@ const marked = (word) => {
 
 export const helptxt = (word, line, ofs, rect, scy, ems) => {
     if (help[word]) {
-        const top = line * ems * 16 + rect.top  + window.scrollY - scy;
+        const top = line * ems * 16 + rect.top + window.scrollY - scy;
         const left = rect.left + 16 * (ofs + 2);
         toast(marked(word),
             { delay: 25, close: true, boxshadow: "blue", top, left });
     } else if (explain[word]) {
-        const top = line * ems * 16 + rect.top  + window.scrollY - scy;
+        const top = line * ems * 16 + rect.top + window.scrollY - scy;
         const left = rect.left + 16 * (ofs + 2);
         toast(marked(word),
             { delay: 25, close: true, boxshadow: "blue", top, left });

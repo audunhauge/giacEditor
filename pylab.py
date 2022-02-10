@@ -3,20 +3,23 @@ from browser import html,document,window, alert as message
 import array as _arr  ## someone might well use array as a name ...
 import functools  ## no such risk - eh?
 import random
+from math import sqrt,sin,cos,tan,log,asin,acos,atan
+
 
 def randint(a,b):
    return random.randint(a,b-1)
 
-def _subchoice(a,p):
+def _sub(a,p):
     q = random.random()
     s = p[0]
     i = 1
-    while s < q and i<len(a):
+    while s < q and i < len(a):
         s += p[i]
         i += 1
     return a[i-1]
 
-def choice(a,p=[],size=0):
+def choice(a,p=[],size=0,replace=True):
+  if replace or size < 2:
     if len(p)==0:
         if size == 0:
             return random.choice(a)
@@ -27,12 +30,22 @@ def choice(a,p=[],size=0):
             return ret
     else:
         if size == 0:
-            return _subchoice(a,p)
+            return _sub(a,p)
         else:
             ret = []
             for i in range(size):
-                ret.append(_subchoice(a,p))
+                ret.append(_sub(a,p))
             return ret
+  else:
+    ## size > 1 and replace == False
+    ## also ignore p as unlikely with replace
+    b = a[:]  # copy
+    ret = []
+    for i in range(size):
+      c = random.choice(b)
+      ret.append(c)
+      b.remove(c)
+    return ret   
 
 parameters = window.bryson;
 

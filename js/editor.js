@@ -8,7 +8,7 @@ import {
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
     makeLatex, renderSigram, renderPiece,
-    renderEquation, renderMath, renderPlot, renderTrig
+    renderEquation, renderMath, renderPlot, renderTrig, renderDist
 } from './render.js';
 
 import { lang, _translateAtCommands } from './translate.js';
@@ -19,8 +19,8 @@ const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist,
     = thingsWithId();
 
 
-import { saveFileButton, readFileButton, gitFiles,
-        getGitFile, getGistFile, gistFiles } from './filehandling.js';
+import { saveFileButton, readFileButton, 
+        getGitFile, getGistFile, } from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
@@ -276,9 +276,10 @@ export const renderAll = () => {
     const trigs = [];
     const piece = [];
     const python = [];
-    const sigrams = [];  // sign diagrams
+    const sigrams = [];         // sign diagrams
     const poldivs = [];
-    const eqs = [];         // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
+    const eqs = [];             // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
+    const distributions = [];   // hypergeometric binominal distributions
     let ofs = 1234; // uniq id for math,alg etc
     const splitter = lang[currentLanguage]?.splitter || '€€';
     const splitReg = new RegExp(`@${splitter}|@question`, "gm");
@@ -317,6 +318,12 @@ export const renderAll = () => {
                 ofs++;
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
                 return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/^@distribution( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_,hyper,binom, params, lines) => {
+                ofs++;
+                const type = hyper || binom || "unknown";
+                distributions.push({ lines, id: `dist${seg}_${ofs}`, params, seg, type });
+                return `<div class="fordeling ${type}" id="dist${seg}_${ofs}"></div>\n`;
             })
             .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
                 ofs++;
@@ -481,6 +488,11 @@ export const renderAll = () => {
             renderPiece(id, eq, size);
         }
     });
+    distributions.forEach(({ lines, id, params, seg, type }) => {
+        if (rerend || dirtyList.includes(seg)) {
+            renderDist(id, lines, params, type);
+        }
+    });
     sigrams.forEach(({ eq, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
@@ -558,10 +570,11 @@ ed.onkeypress = (e) => {
         if (word.length < 7) {
             const line = sofar.split('\n').length;
             const hit = autocom(word, line, ed.getBoundingClientRect(), ed.scrollTop, Number(web.efs) / 50);
-            if (hit && k === "Enter" && word.length < hit.length) {
+            if (hit && k === "Enter" && word.length < hit.word.length) {
                 // user pressed enter on single suggestion
                 // also user has not written the whole word
-                const adjusted = sofar.slice(0, at + 1) + hit + ed.value.slice(pos);
+                const nutext = hit.expand ? hit.expand : hit.word;
+                const adjusted = sofar.slice(0, at + 1) + nutext + ed.value.slice(pos);
                 ed.value = adjusted;
                 ed.selectionEnd = pos + hit.length - word.length;
                 auton = 0;

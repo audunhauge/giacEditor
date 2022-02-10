@@ -29,6 +29,7 @@ const filesToCache = [
   '/js/katex/katex.min.css',
   '/js/katex/fonts/KaTeX_AMS-Regular.woff2',
   '/js/util.js',
+  '/js/probability.js',
   '/js/brython_stdlib.js',
   '/js/brython.min.js',
   '/js/autotags.js',

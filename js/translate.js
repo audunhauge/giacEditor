@@ -10,6 +10,8 @@ const english = {
     },
     splitter: "question",
     atcommands: {
+        hyper:"hyper",
+        binom:"binom",
         help:"help",
         fplot: "fplot",
         sign: "sign",
@@ -39,8 +41,14 @@ const norwegian = {
         poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotulikhet: "plotinequation",
     },
+    expand : {
+        binom:"distribution binom n=20 p=0.5\n6 eller mer\n7 eller mindre\n8\n",
+        hyper:"distribution hyper n=60 m=10 r=20\n2 eller mer\n3 eller mindre\n4\n",
+    },
     splitter: "oppgave",
     atcommands: {
+        hyper:"hyper",
+        binom:"binom",
         hjelp:"help",
         fplot: "fplot",
         delt:"piecewise",
