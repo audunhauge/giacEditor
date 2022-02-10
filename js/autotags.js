@@ -92,6 +92,8 @@ circle(q,2)
 help`,
     eq: `Dispaly an equation, step by step solution
 help`,
+binom:`Binomial distribution`,
+hyper:`Hypergeometric distribution`,
     eqset: `Step by step solution of equationsets
 
 ## Solving an equationset

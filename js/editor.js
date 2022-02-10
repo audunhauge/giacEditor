@@ -576,7 +576,7 @@ ed.onkeypress = (e) => {
                 const nutext = hit.expand ? hit.expand : hit.word;
                 const adjusted = sofar.slice(0, at + 1) + nutext + ed.value.slice(pos);
                 ed.value = adjusted;
-                ed.selectionEnd = pos + hit.length - word.length;
+                ed.selectionEnd = pos + nutext.length - word.length;
                 auton = 0;
             }
         }
