@@ -8,6 +8,10 @@ const english = {
         poldiv: "propfrac",      // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotinequation:"plotinequation",
     },
+    expand : {
+        binom:"distribution binom n=20 p=0.5\n6 or less\n7 or more\nsum\n8\n",
+        hyper:"distribution hyper n=60 m=10 r=20\n3 or less\n4 or more\nsum\n5\n",
+    },
     splitter: "question",
     atcommands: {
         hyper:"hyper",
@@ -42,8 +46,8 @@ const norwegian = {
         plotulikhet: "plotinequation",
     },
     expand : {
-        binom:"distribution binom n=20 p=0.5\n6 eller mer\n7 eller mindre\n8\n",
-        hyper:"distribution hyper n=60 m=10 r=20\n2 eller mer\n3 eller mindre\n4\n",
+        binom:"distribution binom n=20 p=0.5\n6 eller mindre\n7 eller mer\nsum\n8\n",
+        hyper:"distribution hyper n=60 m=10 r=20\n3 eller mindre\n4 eller mer\nsum\n5\n",
     },
     splitter: "oppgave",
     atcommands: {
@@ -116,15 +120,22 @@ const italiano = {
         poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotdisuguaglianza: "plotinequation",
     },
+    expand : {
+        binom:"distribution binom n=20 p=0.5\n6 o meno\n7 o più\nsum\n8\n",
+        hyper:"distribution hyper n=60 m=10 r=20\n3 o meno\n4 o più\nsum\n5\n",
+    },
     splitter: "domanda",
     atcommands: {
+        hyper:"hyper",
+        binom:"binom",
+        hjelp:"aiuto",
         tracciare: "fplot",
         segno: "sign",
         poldiv: "poldiv",
         python: "python",
         tratti:"piecewise",
         trig: "trig",
-        qinsieme: "qset",
+        qinsieme: "eqset",
         matematica: "math",
         cas: "cas",
         eq: "eq",
