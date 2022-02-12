@@ -450,16 +450,16 @@ export function renderDist(id, ls, params, type) {
             const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
             if (or && compare) {
                 if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                    pp = (1 - binomialC(n, num-1, p));
+                    pp = (1 - binomialC(+n, +num-1, +p));
                     const v = pp.toFixed(6);
                     txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
                 } else {
-                    pp = binomialC(n, num, p);
+                    pp = binomialC(+n, +num, +p);
                     const v = pp.toFixed(6);
                     txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
                 }
             } else {
-                pp = binomial(n,num,p);
+                pp = binomial(+n,+num,+p);
                 const v = pp.toFixed(6);
                 txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
             }
