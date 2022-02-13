@@ -73,12 +73,12 @@ export const nChoosek = (n, k) => {
 
 export const combination = nChoosek;
 
-export const binomial = (n, k, p) => nChoosek(n, k) * p ** k * (1 - p) ** (n - k);
+export const binomial = (n, p, k) => nChoosek(n, k) * p ** k * (1 - p) ** (n - k);
 
-export const binomialC = (n, k, p) => {
+export const binomialC = (n, p, k) => {
     let total = 0;
     for (let i = 0; i <= k; i++) {
-        total += binomial(n, i, p)
+        total += binomial(n, p, i)
     }
     return total;
 }
