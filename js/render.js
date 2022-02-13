@@ -4,7 +4,7 @@ import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
-import { toast } from './util.js';
+import { toast, curry, compose } from './util.js';
 import { hyperC, hyper, binomial, binomialC } from './probability.js';
 
 const { min, max } = Math;
@@ -432,73 +432,91 @@ export function renderMath(id, math, funks, size = "") {
     $(id).innerHTML = wrap(newMath, 'div');
 }
 
+const distfu = {
+    binom: binomial,
+    hyper: hyper,
+    binomC: binomialC,
+    hyperC: hyperC,
+}
+
+const distPlot = (fu, range) => {
+    const values = range.map(fu);
+    const large = max(...values);
+    const scale = 50 / large;
+    const w = 5;
+    return [range.map((x, i) => `<div title="${x}:${values[i]}" style="left:${i * w}px;height:${Math.floor(values[i] * scale)}px"></div>`).join("")
+        , large.toFixed(3)];
+};
+const distRange = (fu, range) => {
+    const ys = range.map(fu);
+    let sum = ys.reduce((s, v) => s + v);
+    return [range.map((x, i) => `<div><span>P(X = ${x}) </span> = <span> ${ys[i].toFixed(4)} </span></div>`).join("")
+        , sum];
+}
 
 export function renderDist(id, ls, params, type) {
-    let txt = "";
+    let txt = ""; 
+    let header = "";
+    type = type.trimStart();
+    let plot = "";
     const lines = ls.split("\n").filter(l => l.length);
+    let fu = distfu[type];
+    let fuc = distfu[type + "C"];
+    if (!fu) return;
     if (type.endsWith("binom")) {
         const [_, n, p] = (params.match(/n=([0-9]+) +p=([0-9.]+)/) || []);
-        txt += `<h3>Binomial distribution with n=${n} and p=${p}</h3>`
-        let sum = 0;
-        for (const line of lines) {
-            if (line === "sum") {
-                txt += `<div><span>Sum </span> = <span> ${sum.toFixed(6)} </span></div>`;
-                sum = 0;
-                continue;
-            }
-            let pp = 0;
-            const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
-            if (or && compare) {
-                if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                    pp = (1 - binomialC(+n, +num-1, +p));
-                    const v = pp.toFixed(6);
-                    txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
-                } else {
-                    pp = binomialC(+n, +num, +p);
-                    const v = pp.toFixed(6);
-                    txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
-                }
-            } else {
-                pp = binomial(+n,+num,+p);
-                const v = pp.toFixed(6);
-                txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
-            }
-            sum += pp;
-        }
-       
+        header = `<h3>Binomial distribution with n=${n} and p=${p}</h3>`;
+        fu = curry(fu)(+n, +p);
+        fuc = curry(fuc)(+n, +p)
     }
     if (type.endsWith("hyper")) {
         const [_, n, m, r] = (params.match(/n=([0-9]+) +m=([0-9]+) +r=([0-9]+)/) || []);
-        txt += `<h3>Hypergeometric distribution with n=${n}, m=${m} and r=${r}</h3>`
-        let sum = 0;
-        for (const line of lines) {
-            if (line === "sum") {
-                txt += `<div><span>Sum </span> = <span> ${sum.toFixed(6)} </span></div>`;
-                sum = 0;
-                continue;
-            }
-            let p = 0;
-            const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
-            if (or && compare) {
-                if (compare.startsWith("me") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                    p = (1 - hyperC(+n, +m, +r,+num-1));
-                    const v = p.toFixed(6);
-                    txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
-                } else {
-                    p = hyperC(+n,+m,+r,+num);
-                    const v = p.toFixed(6);
-                    txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
-                }
-            } else {
-                p = hyper(+n,+m,+r,+num);
-                const v = p.toFixed(6);
-                txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
-            }
-            sum += p;
-        }
+        header = `<h3>Hypergeometric distribution with n=${n}, m=${m} and r=${r}</h3>`;
+        fu = curry(fu)(+n, +m, +r);
+        fuc = curry(fuc)(+n, +m, +r);
     }
-
-    $(id).innerHTML = txt;
+    let sum = 0;
+    for (const line of lines) {
+        if (line.startsWith("plot")) {
+            const [_, lo, hi] = line.match(/^plot +(\d+),(\d+)/);
+            const [graph, largest] = distPlot(fu, range(+lo, +hi));
+            plot += `<div title="${lo}:${hi} max=${largest}">` + graph + '</div>';
+            txt += `<div><span>Plot </span><span> ${lo},${hi} </span></div>`;
+            continue;
+        }
+        if (line.startsWith("range")) {
+            const [_, lo, hi] = line.match(/^range +(\d+),(\d+)/);
+            const [t, s] = distRange(fu, range(+lo, +hi));
+            txt += t;
+            sum = s;
+            continue;
+        }
+        if (line === "sum") {
+            txt += `<div><span>Sum </span> = <span> ${sum.toFixed(6)} </span></div>`;
+            sum = 0;
+            continue;
+        }
+        let partsum = 0;
+        const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
+        if (or && compare) {
+            if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
+                partsum = (1 - fuc(+num - 1));
+                const v = partsum.toFixed(6);
+                txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
+            } else {
+                partsum = fuc(+num);
+                const v = partsum.toFixed(6);
+                txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
+            }
+        } else {
+            partsum = fu(+num);
+            const v = partsum.toFixed(6);
+            txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
+        }
+        sum += partsum;
+    }
+    const plots = plot ? `<div class="distplot">${plot}</div>` : '';
+    $(id).innerHTML = header + '<div class="flexit"><div>' + txt + '</div>' + plots + '</div>';
 }
 
 const parsePy = py => {
