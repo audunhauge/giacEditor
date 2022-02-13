@@ -28,8 +28,10 @@ const hyp = (x, n, m, nn) => {
 }
 
 export const factorial = n => {
+    n = Number(n);
+    if (n>22) return Math.round(Math.exp(logFact(n)));
     let acc = 1;
-    for (let i = 2; i <= n; i++) {
+    for (let i = 2; i <= +n; i++) {
         acc = acc * i;
     }
     return acc;
