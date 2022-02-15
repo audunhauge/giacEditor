@@ -672,13 +672,14 @@ div.distplot  {
 
 div.distplot > div {
     position: relative;
-    width:100px;
+    min-width:100px;
     height: 4em;
     position: relative;
     border: solid gray 1px;
 }
 
 div.distplot > div:before {
+    white-space: nowrap;
     display: block;
     position: absolute;
     left: 0px;

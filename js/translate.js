@@ -11,11 +11,13 @@ const english = {
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 or less\n7 or more\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 or less\n4 or more\nsum\n5\n",
+        normal:"distribution normal my=10 sigma=5\n3 or less\n4 or more\nsum\nplot 0,20\n",
     },
     splitter: "question",
     atcommands: {
         hyper:"hyper",
         binom:"binom",
+        normal:"normal",
         help:"help",
         fplot: "fplot",
         sign: "sign",
@@ -48,11 +50,13 @@ const norwegian = {
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 eller mindre\n7 eller mer\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 eller mindre\n4 eller mer\nsum\n5\n",
+        normal:"distribution normal my=10 sigma=5\n3 eller mindre\n4 eller mer\nsum\nplot 0,21\n",
     },
     splitter: "oppgave",
     atcommands: {
         hyper:"hyper",
         binom:"binom",
+        normal:"normal",
         hjelp:"help",
         fplot: "fplot",
         delt:"piecewise",

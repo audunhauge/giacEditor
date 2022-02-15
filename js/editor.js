@@ -317,9 +317,9 @@ export const renderAll = () => {
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
                 return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@distribution( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_,hyper,binom, params, lines) => {
+            .replace(/^@distribution( normal)?( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_,normal,hyper,binom, params, lines) => {
                 ofs++;
-                const type = hyper || binom || "unknown";
+                const type = normal || hyper || binom || "unknown";
                 distributions.push({ lines, id: `dist${seg}_${ofs}`, params, seg, type });
                 return `<div class="fordeling ${type}" id="dist${seg}_${ofs}"></div>\n`;
             })

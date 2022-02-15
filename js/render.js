@@ -5,7 +5,7 @@ import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose } from './util.js';
-import { hyperC, hyper, binomial, binomialC } from './probability.js';
+import { hyperC, hyper, binomial, binomialC, normal, normalC } from './probability.js';
 
 const { min, max } = Math;
 
@@ -433,24 +433,33 @@ export function renderMath(id, math, funks, size = "") {
 }
 
 const distfu = {
+    normal:normal,
+    normalC:normalC,
     binom: binomial,
     hyper: hyper,
     binomC: binomialC,
     hyperC: hyperC,
 }
 
-const distPlot = (fu, range) => {
+const distPlot = (fu, range, type) => {
     const values = range.map(fu);
     const large = max(...values);
+    const largeX = range[values.indexOf(large)];
+    // find first value > 0.00001 and trim
+    const first = values.findIndex(e => e > 0.00001);
+    const leftValues = values.slice(first ? first-1:0);  // skipped leading zeroes
+    const leftRange = range.slice(first ? first-1:0);  
     const scale = 50 / large;
     const w = 5;
-    return [range.map((x, i) => `<div title="${x}:${values[i]}" style="left:${i * w}px;height:${Math.floor(values[i] * scale)}px"></div>`).join("")
-        , large.toFixed(3)];
+    return [leftRange.map((x, i) => `<div title="${x}:${leftValues[i]}" style="left:${i * w}px;height:${Math.floor(leftValues[i] * scale)}px"></div>`).join("")
+        , largeX + "," + large.toFixed(3), leftRange.length];
 };
-const distRange = (fu, range) => {
-    const ys = range.map(fu);
-    let sum = ys.reduce((s, v) => s + v);
-    return [range.map((x, i) => `<div><span>P(X = ${x}) </span> = <span> ${ys[i].toFixed(4)} </span></div>`).join("")
+const distRange = (fu, range, type, fuc) => {
+    const mufu = type === "normal" ? fuc : fu;
+    const eqles = type === "normal" ? "≤" : "=";
+    const ys = range.map(mufu);
+    let sum = ys.reduce((s, v) => s + v,0);
+    return [range.map((x, i) => `<div><span>P(X ${eqles} ${x}) </span> = <span> ${ys[i].toFixed(4)} </span></div>`).join("")
         , sum];
 }
 
@@ -463,30 +472,43 @@ export function renderDist(id, ls, params, type) {
     let fu = distfu[type];
     let fuc = distfu[type + "C"];
     if (!fu) return;
+    let maximum = 0;  // updated by distribution
+    if (type.endsWith("normal")) {
+        const [_, my, sigma] = (params.match(/my=([0-9]+) +sigma=([0-9.]+)/) || []);
+        header = `<h3>Normal distribution with μ=${my} and σ=${sigma}</h3>`;
+        // fu = () => 0;  // point prob is zero for normal
+        fuc = curry(fuc)(+my, +sigma);
+        fu = curry(fu)(+my, +sigma);
+        maximum = Number.MAX_SAFE_INTEGER; 
+    }
     if (type.endsWith("binom")) {
         const [_, n, p] = (params.match(/n=([0-9]+) +p=([0-9.]+)/) || []);
         header = `<h3>Binomial distribution with n=${n} and p=${p}</h3>`;
         fu = curry(fu)(+n, +p);
-        fuc = curry(fuc)(+n, +p)
+        fuc = curry(fuc)(+n, +p);
+        maximum = +n + 1;
     }
     if (type.endsWith("hyper")) {
         const [_, n, m, r] = (params.match(/n=([0-9]+) +m=([0-9]+) +r=([0-9]+)/) || []);
         header = `<h3>Hypergeometric distribution with n=${n}, m=${m} and r=${r}</h3>`;
         fu = curry(fu)(+n, +m, +r);
         fuc = curry(fuc)(+n, +m, +r);
+        maximum = +r + 1;
     }
     let sum = 0;
     for (const line of lines) {
         if (line.startsWith("plot")) {
-            const [_, lo, hi] = line.match(/^plot +(\d+),(\d+)/);
-            const [graph, largest] = distPlot(fu, range(+lo, +hi));
-            plot += `<div title="${lo}:${hi} max=${largest}">` + graph + '</div>';
+            let [_, lo, hi] = line.match(/^plot +([0-9.-]+),([0-9.-]+)/) || [];
+            hi = min(+hi,maximum);
+            const [graph, largest, width] = distPlot(fu, range(+lo, +hi), type);
+            plot += `<div style="width:${width*5}px" title="${lo}:${hi} max=(${largest})">` + graph + '</div>';
             txt += `<div><span>Plot </span><span> ${lo},${hi} </span></div>`;
             continue;
         }
         if (line.startsWith("range")) {
-            const [_, lo, hi] = line.match(/^range +(\d+),(\d+)/);
-            const [t, s] = distRange(fu, range(+lo, +hi));
+            let [_, lo, hi] = line.match(/^range +([0-9.-]+),([0-9.-]+)/) || [];
+            hi = min(+hi,maximum);
+            const [t, s] = distRange(fu, range(+lo, +hi),type,fuc);
             txt += t;
             sum = s;
             continue;
@@ -500,7 +522,8 @@ export function renderDist(id, ls, params, type) {
         const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
         if (or && compare) {
             if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                partsum = (1 - fuc(+num - 1));
+                const diff = type==="normal" ? 0 : 1;
+                partsum = (1 - fuc(+num - diff));
                 const v = partsum.toFixed(6);
                 txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
             } else {
@@ -509,7 +532,7 @@ export function renderDist(id, ls, params, type) {
                 txt += `<div><span>P(X ≤ ${num}) </span> = <span> ${v} </span></div>`;
             }
         } else {
-            partsum = fu(+num);
+            partsum = (type === "normal") ? 0 : fu(+num);
             const v = partsum.toFixed(6);
             txt += `<div><span>P(X = ${num}) </span> = <span> ${v} </span></div>`;
         }

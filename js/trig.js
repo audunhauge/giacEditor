@@ -62,12 +62,14 @@ const shuffle = (elements) => {
 export const range = (lo, hi, step = 1) => {
     // range(1,10,1) => [1,2,3,4,5,6,7,8,9]
     // range(1,4,0.1) => [1.0, 1.1, 1.2, 1.3 .. 3.9]
+    hi = Number(hi);
+    lo = Number(lo);
     step = step === 0 || isNaN(step) ? 1 : step;
     let list = [],
         i = lo;
     if (hi <= lo) return list;
     while (i < hi) {
-        list.push(i.toFixed(2));
+        list.push(Number(i.toFixed(2)));
         i += step;
     }
     return list;

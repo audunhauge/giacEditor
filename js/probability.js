@@ -137,3 +137,25 @@ const lf = [0.000000000000000, 0.000000000000000, 0.693147180559945, 1.791759469
     1111.983500893733000, 1117.492889230361000, 1123.006317976526100, 1128.523770872990800, 1134.045231790853000, 1139.570684729984800,
     1145.100113817496100, 1150.633503306223700, 1156.170837573242400,
 ];
+
+export const normalcdf = (X) => {   //HASTINGS.  MAX ERROR = .000001
+	var T=1/(1+.2316419*Math.abs(X));
+	var D=.3989423*Math.exp(-X*X/2);
+	var Prob=D*T*(.3193815+T*(-.3565638+T*(1.781478+T*(-1.821256+T*1.330274))));
+	if (X>0) {
+		Prob=1-Prob
+	}
+	return Prob
+}   
+
+export const normal = (my,sigma,x) => {
+    const z = (x-my)/sigma;
+    return Math.exp(-0.5*z*z)/(sigma*2*Math.PI);
+}
+
+export const normalC = (my,sigma,x) => {
+    if (sigma === 0) {
+        return x < my ? 0 : 1;
+    } 
+    return Number(normalcdf((x-my)/sigma).toPrecision(5));
+}
