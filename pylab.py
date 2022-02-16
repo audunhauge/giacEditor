@@ -96,6 +96,9 @@ def replot():
 def xdomain(a,b):
    options["xAxis"]["domain"] = [a,b]
 
+def ylim(a,b):
+   ydomain(a,b)
+
 def ydomain(a,b):
    options["yAxis"]["domain"] = [a,b] 
 

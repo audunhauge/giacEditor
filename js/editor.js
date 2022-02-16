@@ -8,7 +8,7 @@ import {
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
     makeLatex, renderSigram, renderPiece,
-    renderEquation, renderMath, renderPlot, renderTrig, renderDist
+    renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable
 } from './render.js';
 
 import { lang, _translateAtCommands } from './translate.js';
@@ -274,6 +274,7 @@ export const renderAll = () => {
     const trigs = [];
     const piece = [];
     const python = [];
+    const tables = [];           
     const sigrams = [];         // sign diagrams
     const poldivs = [];
     const eqs = [];             // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
@@ -322,6 +323,11 @@ export const renderAll = () => {
                 const type = normal || hyper || binom || "unknown";
                 distributions.push({ lines, id: `dist${seg}_${ofs}`, params, seg, type });
                 return `<div class="fordeling ${type}" id="dist${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_,type, lines) => {
+                ofs++;
+                tables.push({ seg, type, lines, id: `table${seg}_${ofs}`});
+                return `<div class="table ${type}" id="table${seg}_${ofs}"></div>\n`;
             })
             .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
                 ofs++;
@@ -489,6 +495,11 @@ export const renderAll = () => {
     distributions.forEach(({ lines, id, params, seg, type }) => {
         if (rerend || dirtyList.includes(seg)) {
             renderDist(id, lines, params, type);
+        }
+    });
+    tables.forEach(({ type='',lines, id, seg }) => {
+        if (rerend || dirtyList.includes(seg)) {
+            renderTable(id, lines, type.trim());
         }
     });
     sigrams.forEach(({ eq, id, size, seg }) => {

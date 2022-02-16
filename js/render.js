@@ -433,8 +433,8 @@ export function renderMath(id, math, funks, size = "") {
 }
 
 const distfu = {
-    normal:normal,
-    normalC:normalC,
+    normal: normal,
+    normalC: normalC,
     binom: binomial,
     hyper: hyper,
     binomC: binomialC,
@@ -447,8 +447,8 @@ const distPlot = (fu, range, type) => {
     const largeX = range[values.indexOf(large)];
     // find first value > 0.00001 and trim
     const first = values.findIndex(e => e > 0.00001);
-    const leftValues = values.slice(first ? first-1:0);  // skipped leading zeroes
-    const leftRange = range.slice(first ? first-1:0);  
+    const leftValues = values.slice(first ? first - 1 : 0);  // skipped leading zeroes
+    const leftRange = range.slice(first ? first - 1 : 0);
     const scale = 50 / large;
     const w = 5;
     return [leftRange.map((x, i) => `<div title="${x}:${leftValues[i]}" style="left:${i * w}px;height:${Math.floor(leftValues[i] * scale)}px"></div>`).join("")
@@ -458,13 +458,13 @@ const distRange = (fu, range, type, fuc) => {
     const mufu = type === "normal" ? fuc : fu;
     const eqles = type === "normal" ? "≤" : "=";
     const ys = range.map(mufu);
-    let sum = ys.reduce((s, v) => s + v,0);
+    let sum = ys.reduce((s, v) => s + v, 0);
     return [range.map((x, i) => `<div><span>P(X ${eqles} ${x}) </span> = <span> ${ys[i].toFixed(4)} </span></div>`).join("")
         , sum];
 }
 
 export function renderDist(id, ls, params, type) {
-    let txt = ""; 
+    let txt = "";
     let header = "";
     type = type.trimStart();
     let plot = "";
@@ -479,7 +479,7 @@ export function renderDist(id, ls, params, type) {
         // fu = () => 0;  // point prob is zero for normal
         fuc = curry(fuc)(+my, +sigma);
         fu = curry(fu)(+my, +sigma);
-        maximum = Number.MAX_SAFE_INTEGER; 
+        maximum = Number.MAX_SAFE_INTEGER;
     }
     if (type.endsWith("binom")) {
         const [_, n, p] = (params.match(/n=([0-9]+) +p=([0-9.]+)/) || []);
@@ -499,16 +499,16 @@ export function renderDist(id, ls, params, type) {
     for (const line of lines) {
         if (line.startsWith("plot")) {
             let [_, lo, hi] = line.match(/^plot +([0-9.-]+),([0-9.-]+)/) || [];
-            hi = min(+hi,maximum);
+            hi = min(+hi, maximum);
             const [graph, largest, width] = distPlot(fu, range(+lo, +hi), type);
-            plot += `<div style="width:${width*5}px" title="${lo}:${hi} max=(${largest})">` + graph + '</div>';
+            plot += `<div style="width:${width * 5}px" title="${lo}:${hi} max=(${largest})">` + graph + '</div>';
             txt += `<div><span>Plot </span><span> ${lo},${hi} </span></div>`;
             continue;
         }
         if (line.startsWith("range")) {
             let [_, lo, hi] = line.match(/^range +([0-9.-]+),([0-9.-]+)/) || [];
-            hi = min(+hi,maximum);
-            const [t, s] = distRange(fu, range(+lo, +hi),type,fuc);
+            hi = min(+hi, maximum);
+            const [t, s] = distRange(fu, range(+lo, +hi), type, fuc);
             txt += t;
             sum = s;
             continue;
@@ -522,7 +522,7 @@ export function renderDist(id, ls, params, type) {
         const [_, num, or, compare] = (line.match(/^([0-9]+) ?(\w+)? ?(\w+)?/) || []);
         if (or && compare) {
             if (compare.startsWith("meh") || compare.startsWith("mer") || compare.startsWith("mo") || compare.startsWith("pi")) {
-                const diff = type==="normal" ? 0 : 1;
+                const diff = type === "normal" ? 0 : 1;
                 partsum = (1 - fuc(+num - diff));
                 const v = partsum.toFixed(6);
                 txt += `<div><span>P(X ≥ ${num}) </span> = <span> ${v} </span></div>`;
@@ -540,6 +540,71 @@ export function renderDist(id, ls, params, type) {
     }
     const plots = plot ? `<div class="distplot">${plot}</div>` : '';
     $(id).innerHTML = header + '<div class="flexit"><div>' + txt + '</div>' + plots + '</div>';
+}
+
+
+const statsTable = data => {
+    // calc mean, median, stddev
+    if (data.length) {
+        const list = data[0];
+        const N = list.length;
+        const sum = list.reduce((s, v) => s + v, 0);
+        const mean = sum / N;
+        const varians = list.reduce((s, v) => (mean - v) ** 2 + s, 0) / N;
+        const stddev = Math.sqrt(varians);
+        const a = Math.floor(N / 2);
+        const b = Math.floor((N - 1) / 2);
+        const sorted = (list.slice().sort((x, y) => x - y));
+        const median = (sorted[a] + sorted[b]) / 2;
+        return `<div>Mean:${mean.toFixed(3)} Median:${median.toFixed(3)} 
+            Varians:${varians.toFixed(3)} STDDEV:${stddev.toFixed(3)}</div>`;
+    }
+    return '';
+}
+
+const anovaTable = data => {
+    // calc mean, median, stddev
+    if (data.length) {
+        return 'ANOVA ANALYSIS';
+    }
+    return '';
+}
+
+const tableRender = {
+    stats:statsTable,
+    anova:anovaTable,
+}
+
+
+export function renderTable(id, text, type) {
+    let txt = '';
+    const data = [];
+    if (type !== "") txt = `<h3>${type} table</h3>`;
+    const lines = text.split("\n").filter(l => l !== "");
+    if (lines.length < 1) {
+        txt += "Must have lines of data";
+    } else {
+        txt += '<table>';
+        const headers = lines[0].split(",");
+        if (!Number.isFinite(+headers[0])) {
+            // not number - assume header
+            txt += '<tr>' + wrap(headers, "th") + '</tr>';
+            lines.shift();
+        }
+        const w = headers.length;
+        for (let i = 0; i < lines.length; i++) {
+            const values = lines[i].split(",").slice(0, w);
+            const base = Array(w).fill("");
+            values.forEach((v, i) => base[i] = v);
+            txt += '<tr>' + wrap(base, "td") + '</tr>';
+            data.push(base.map(e => Number(e)));
+        }
+        txt += '</table>';
+    }
+    if (tableRender[type]) {
+        txt += tableRender[type](data);
+    }
+    $(id).innerHTML = txt;
 }
 
 const parsePy = py => {
