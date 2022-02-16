@@ -697,3 +697,11 @@ div.distplot > div > div {
     border:solid blue 1px;
     height: 10px;
 }
+
+div.anova > table {
+    text-align: right;
+}
+
+div.anova th {
+    min-width:2em;
+}
