@@ -449,10 +449,16 @@ const distPlot = (fu, range, type) => {
     const first = values.findIndex(e => e > 0.00001);
     const leftValues = values.slice(first ? first-1:0);  // skipped leading zeroes
     const leftRange = range.slice(first ? first-1:0);  
+    let right;  // from right end - find first sufficiently large value
+    for (right = leftValues.length-1; right>=0; right--) {
+        if (leftValues[right]> 0.00001) break;
+    }
+    const truValues = leftValues.slice(0,right+1);
+    const trueRange = leftRange.slice(0,right+1);
     const scale = 50 / large;
     const w = 5;
-    return [leftRange.map((x, i) => `<div title="${x}:${leftValues[i]}" style="left:${i * w}px;height:${Math.floor(leftValues[i] * scale)}px"></div>`).join("")
-        , largeX + "," + large.toFixed(3), leftRange.length];
+    return [trueRange.map((x, i) => `<div title="${x}:${truValues[i]}" style="left:${i * w}px;height:${Math.floor(truValues[i] * scale)}px"></div>`).join("")
+        , largeX + "," + large.toFixed(3), trueRange.length];
 };
 const distRange = (fu, range, type, fuc) => {
     const mufu = type === "normal" ? fuc : fu;

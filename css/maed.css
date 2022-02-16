@@ -693,7 +693,7 @@ div.distplot > div > div {
     position: absolute;
     bottom:0;
     left:0;
-    width: 3px;
-    background-color: blue;
+    width: 0.3px;
+    border:solid blue 1px;
     height: 10px;
 }
