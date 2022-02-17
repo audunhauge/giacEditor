@@ -149,8 +149,21 @@ def plot(xs,ys,color="",type="polyline"):
 def show():
     window.functionPlot(options)
 
-def read(filename):
-   return window.readPython(filename)
+def read(filename,delimiter=";",skiprows=0,usecols=()):
+   #text = "a;b;c€d,e,f€g,h,i".split("€")
+   text = window.readPython(filename).split("€")
+   text = text[min(skiprows,len(text)):]
+   end = len(text[0].split(delimiter))
+   if len(usecols) > 0:  ## only some columns
+      print(usecols)
+      index = list(usecols)
+      keep = []
+      for line in text:
+         keep.append([x for i,x in enumerate(line.split(delimiter)) if i in index])
+      return keep
+   return [l.split(delimiter) for l in text]
+
+
 
 def linspace(start,stop,amount):
    xs = []

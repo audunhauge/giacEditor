@@ -612,12 +612,12 @@ const tableRender = {
 export function renderTable(id, text, type, name) {
     let txt = '';
     const data = [];
-    if (type !== "") txt = `<h3>${type} table</h3>`;
     const lines = text.split("\n").filter(l => l !== "");
     if (lines.length < 1) {
         txt += "Must have lines of data";
     } else {
         txt += `<table id="${name}">`;
+        if (type !== "") txt += `<caption>${type} ${name}</caption>`;
         const headers = lines[0].split(",");
         if (!Number.isFinite(+headers[0])) {
             // not number - assume header

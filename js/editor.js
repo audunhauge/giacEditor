@@ -30,7 +30,8 @@ export const readTable = filename => {
     const [id] = filename.split(".");
     const table = $(id);
     if (table) {
-        return table.innerText.replaceAll("\t",",").replaceAll("\n",";");
+        // @ts-ignore
+        return table.innerText.replaceAll("\t",";").replaceAll("\n","€");
         //return table.innerText;
     }
     return 'NO DATA';

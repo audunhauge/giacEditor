@@ -50,13 +50,13 @@ div.oppgave:empty::before {
 }
 
 h1 {
-    display: grid;
-    grid-template-areas: "aa bb";
-    grid-template-columns: 1fr 200px;
+    position: relative;
 }
 
 h1 span.date {
-    grid-area: "bb";
+    position: absolute;
+    right: 10px;
+    top:-42px;
 }
 
 .red {
@@ -699,7 +699,24 @@ div.distplot > div > div {
 }
 
 div.anova > table {
-    text-align: right;
+    text-align: center;
+    height: fit-content;
+    border:solid gray 1px;
+}
+
+div.anova {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap:5em;
+    border:solid rgba(128, 128, 128, 0.151) 1px;
+    padding:5px;
+}
+
+div.anova > table > caption {
+    text-align: center;
+    white-space: nowrap;
+    color:blue;
+    font-size: 1.1em;
 }
 
 div.anova th {
