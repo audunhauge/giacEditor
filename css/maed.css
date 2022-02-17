@@ -705,3 +705,9 @@ div.anova > table {
 div.anova th {
     min-width:2em;
 }
+
+div.fisher {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width:12em;
+}

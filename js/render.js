@@ -5,7 +5,8 @@ import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose } from './util.js';
-import { hyperC, hyper, binomial, binomialC, normal, normalC, fisher } from './probability.js';
+import { hyperC, hyper, binomial, binomialC, 
+    normal, normalC, fisher, fisherCrit} from './probability.js';
 
 const { min, max } = Math;
 
@@ -592,8 +593,12 @@ const anovaTable = transposed => {
         const MSTR = SSTR/(k-1);
         const MSE = SSE/(n-k);
         const F = MSTR/MSE;
-        const p = fisher(.05,k-1,n-k)
-        return `n=${n} C=${C} T=${T} TOT=${SSTOT} TR=${SSTR} E=${SSE} F=${F} p=${p}`;
+        const p = 1-fisher(k-1,n-k,F);
+        const P = fisherCrit(.05,k-1,n-k)
+        const names = "n,C,T,SSTOT,SSTR,SSE,F,p,P".split(",");
+        const vals = [n,C,T,SSTOT,SSTR,SSE,F,p,P].map(v => v.toFixed(3));
+        const txt = names.map((e,i) => `<div>${e}</div><div>${vals[i]}</div>`).join("");
+        return `<div class="fisher">${txt}</div>`;
     }
     return '<p>No data yet ...';
 }

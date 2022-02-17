@@ -2,6 +2,8 @@
 
 const { log, sqrt, exp, round, floor, PI, abs } = Math;
 
+import {curry} from './util.js';
+
 const hyp = (x, n, m, nn) => {
     var nz, mz;
     if (m < n) {         //best to have n<m
@@ -216,8 +218,8 @@ export function Betacdf(Z, A, B) {
  * @param {number} f2 deg of freedom
  * @returns fisher probability
  */
-export function fisher(X,f1,f2) {
-    let Fcdf,Z;
+export function fisher(f1, f2, X) {
+    let Fcdf, Z;
     if (f1 <= 0) {
         console.log("Numerator degrees of freedom must be positive");
         return 0;
@@ -230,6 +232,37 @@ export function fisher(X,f1,f2) {
         Z = X / (X + f2 / f1);
         Fcdf = Betacdf(Z, f1 / 2, f2 / 2);
     }
-    return round(Fcdf * 100000) / 100000;
-    
+    return Fcdf;
+}
+
+/**
+ * Attempts to solve f(x)-v = 0
+ * @param {function} f 
+ * @param {number} v target value
+ * @param {number} a lower limit
+ * @param {number} b upper limit
+ * @returns {number}
+ */
+export const newton = (f, v, a, b,x = null) => {
+    if (x === null) x = (a+b)/2;
+    const e = 0.000001;
+    for (let i=0; i <30; i++) {
+        let z = f(x) - v;
+        if (abs(z) < 0.00001) return x;
+        let dz = (f(x+e)-f(x))/e
+        let xn = x - z/dz;
+        if (xn < a) {
+            // make a halfstep instead
+            xn = (a+x)/2
+        } else if (xn > b) {
+            xn = (b+x)/2
+        }
+        x = xn
+    }
+    return 0
+}
+
+export const fisherCrit = (p,f1,f2) => {
+    const f = curry(fisher)(+f1,+f2);
+    return newton(f,1-p,0,100,5);
 }
