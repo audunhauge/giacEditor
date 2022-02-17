@@ -582,7 +582,7 @@ const tableRender = {
 }
 
 
-export function renderTable(id, text, type) {
+export function renderTable(id, text, type, name) {
     let txt = '';
     const data = [];
     if (type !== "") txt = `<h3>${type} table</h3>`;
@@ -590,7 +590,7 @@ export function renderTable(id, text, type) {
     if (lines.length < 1) {
         txt += "Must have lines of data";
     } else {
-        txt += '<table>';
+        txt += `<table id="${name}">`;
         const headers = lines[0].split(",");
         if (!Number.isFinite(+headers[0])) {
             // not number - assume header
@@ -744,7 +744,7 @@ const alg2plot = fu => {
 
 const polarPlot = (parent, lines, width, klass) => {
     const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
-    const [_, lo = 0, hi = 6.285] = givenRange ? givenRange : [];
+    const [_, lo = 0, hi = 6.285] =  (givenRange || []);
     const range = [Number(lo), Number(hi)];
     for (const line of lines) {
         const div = create('div');

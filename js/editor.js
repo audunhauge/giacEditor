@@ -26,6 +26,17 @@ import { startReplay } from './replay.js';
 import { toast } from './util.js';
 
 
+export const readTable = filename => {
+    const [id] = filename.split(".");
+    const table = $(id);
+    if (table) {
+        return table.innerText.replaceAll("\t",",").replaceAll("\n",";");
+        //return table.innerText;
+    }
+    return 'NO DATA';
+}
+
+
 const langlist = Object.keys(lang);
 let currentLanguage = getLocalJSON("lang") || "english";
 let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
@@ -324,9 +335,10 @@ export const renderAll = () => {
                 distributions.push({ lines, id: `dist${seg}_${ofs}`, params, seg, type });
                 return `<div class="fordeling ${type}" id="dist${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_,type, lines) => {
+            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_,options, lines) => {
                 ofs++;
-                tables.push({ seg, type, lines, id: `table${seg}_${ofs}`});
+                const [__, type='',name=''] = (options.match(/ ([a-z]+) ([a-z]+)/)) || [];
+                tables.push({ name, seg, type, lines, id: `table${seg}_${ofs}`});
                 return `<div class="table ${type}" id="table${seg}_${ofs}"></div>\n`;
             })
             .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
@@ -497,9 +509,9 @@ export const renderAll = () => {
             renderDist(id, lines, params, type);
         }
     });
-    tables.forEach(({ type='',lines, id, seg }) => {
+    tables.forEach(({ name,type,lines, id, seg }) => {
         if (rerend || dirtyList.includes(seg)) {
-            renderTable(id, lines, type.trim());
+            renderTable(id, lines, type, name);
         }
     });
     sigrams.forEach(({ eq, id, size, seg }) => {

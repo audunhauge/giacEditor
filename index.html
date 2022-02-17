@@ -131,6 +131,7 @@
     <div class="toast">Starting ... </div>
     <div id="output"></div>
     <script>
+        var readPython;
         var render;
         var bryson = {};  // interface to BRYTHON
         // each @python will set params on this global
@@ -143,8 +144,9 @@
                     .register('./sw.js');
             }
         }
-        import { renderAll } from './js/editor.js';
+        import { renderAll, readTable } from './js/editor.js';
         render = renderAll;
+        readPython = readTable;
     </script>
 
 </body>

@@ -149,6 +149,9 @@ def plot(xs,ys,color="",type="polyline"):
 def show():
     window.functionPlot(options)
 
+def read(filename):
+   return window.readPython(filename)
+
 def linspace(start,stop,amount):
    xs = []
    v = start
