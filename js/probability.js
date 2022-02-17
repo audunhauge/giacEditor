@@ -1,5 +1,7 @@
 // @ts-check
 
+const { log, sqrt, exp, round, floor, PI, abs } = Math;
+
 const hyp = (x, n, m, nn) => {
     var nz, mz;
     if (m < n) {         //best to have n<m
@@ -29,7 +31,7 @@ const hyp = (x, n, m, nn) => {
 
 export const factorial = n => {
     n = Number(n);
-    if (n>22) return Math.round(Math.exp(logFact(n)));
+    if (n > 22) return round(exp(logFact(n)));
     let acc = 1;
     for (let i = 2; i <= +n; i++) {
         acc = acc * i;
@@ -68,9 +70,9 @@ export const hyperC = (nn, m, n, x) => {
     return Prob;
 }
 
-export const nChoosek = (n, k) => { 
-    if (n<150) return factorial(n) / (factorial(n - k) * factorial(k));
-    return Math.exp(logFact(n)-(logFact(n-k) + logFact(k)));
+export const nChoosek = (n, k) => {
+    if (n < 150) return factorial(n) / (factorial(n - k) * factorial(k));
+    return exp(logFact(n) - (logFact(n - k) + logFact(k)));
 }
 
 export const combination = nChoosek;
@@ -88,8 +90,8 @@ export const binomialC = (n, p, k) => {
 
 export const logFact = (n) => {
     const x = n + 1;
-    if (n < 0)   return 0;
-    if (n > 254) return (x - 0.5) * Math.log(x) - x + 0.5 * Math.log(2 * Math.PI) + 1.0 / (12.0 * x);
+    if (n < 0) return 0;
+    if (n > 254) return (x - 0.5) * log(x) - x + 0.5 * log(2 * PI) + 1.0 / (12.0 * x);
     return lf[n];
 }
 
@@ -139,23 +141,95 @@ const lf = [0.000000000000000, 0.000000000000000, 0.693147180559945, 1.791759469
 ];
 
 export const normalcdf = (X) => {   //HASTINGS.  MAX ERROR = .000001
-	var T=1/(1+.2316419*Math.abs(X));
-	var D=.3989423*Math.exp(-X*X/2);
-	var Prob=D*T*(.3193815+T*(-.3565638+T*(1.781478+T*(-1.821256+T*1.330274))));
-	if (X>0) {
-		Prob=1-Prob
-	}
-	return Prob
-}   
-
-export const normal = (my,sigma,x) => {
-    const z = (x-my)/sigma;
-    return Math.exp(-0.5*z*z)/(sigma*2*Math.PI);
+    var T = 1 / (1 + .2316419 * abs(X));
+    var D = .3989423 * exp(-X * X / 2);
+    var Prob = D * T * (.3193815 + T * (-.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
+    if (X > 0) {
+        Prob = 1 - Prob
+    }
+    return Prob
 }
 
-export const normalC = (my,sigma,x) => {
+export const normal = (my, sigma, x) => {
+    const z = (x - my) / sigma;
+    return exp(-0.5 * z * z) / (sigma * 2 * PI);
+}
+
+export const normalC = (my, sigma, x) => {
     if (sigma === 0) {
         return x < my ? 0 : 1;
-    } 
-    return Number(normalcdf((x-my)/sigma).toPrecision(5));
+    }
+    return Number(normalcdf((x - my) / sigma).toPrecision(5));
+}
+
+
+export function LogGamma(Z) {
+    var S = 1 + 76.18009173 / Z - 86.50532033 / (Z + 1) + 24.01409822 / (Z + 2) - 1.231739516 / (Z + 3) + .00120858003 / (Z + 4) - .00000536382 / (Z + 5);
+    var LG = (Z - .5) * log(Z + 4.5) - (Z + 4.5) + log(S * 2.50662827465);
+    return LG
+}
+
+export function Betinc(X, A, B) {
+    var A0 = 0;
+    var B0 = 1;
+    var A1 = 1;
+    var B1 = 1;
+    var M9 = 0;
+    var A2 = 0;
+    var C9;
+    while (abs((A1 - A2) / A1) > .00001) {
+        A2 = A1;
+        C9 = -(A + M9) * (A + B + M9) * X / (A + 2 * M9) / (A + 2 * M9 + 1);
+        A0 = A1 + C9 * A0;
+        B0 = B1 + C9 * B0;
+        M9 = M9 + 1;
+        C9 = M9 * (B - M9) * X / (A + 2 * M9 - 1) / (A + 2 * M9);
+        A1 = A0 + C9 * A1;
+        B1 = B0 + C9 * B1;
+        A0 = A0 / B1;
+        B0 = B0 / B1;
+        A1 = A1 / B1;
+        B1 = 1;
+    }
+    return A1 / A
+}
+
+export function Betacdf(Z, A, B) {
+    var S;
+    var BT;
+    var Bcdf;
+    S = A + B;
+    BT = exp(LogGamma(S) - LogGamma(B) - LogGamma(A) + A * log(Z) + B * log(1 - Z));
+    if (Z < (A + 1) / (S + 2)) {
+        Bcdf = BT * Betinc(Z, A, B)
+    } else {
+        Bcdf = 1 - BT * Betinc(1 - Z, B, A)
+    }
+
+    return Bcdf
+}
+
+/**
+ * Fisher distribution
+ * @param {Number} X 
+ * @param {number} f1 deg of freedom
+ * @param {number} f2 deg of freedom
+ * @returns fisher probability
+ */
+export function fisher(X,f1,f2) {
+    let Fcdf,Z;
+    if (f1 <= 0) {
+        console.log("Numerator degrees of freedom must be positive");
+        return 0;
+    } else if (f2 <= 0) {
+        console.log("Denominator degrees of freedom must be positive")
+        return 0;
+    } else if (X <= 0) {
+        Fcdf = 0
+    } else {
+        Z = X / (X + f2 / f1);
+        Fcdf = Betacdf(Z, f1 / 2, f2 / 2);
+    }
+    return round(Fcdf * 100000) / 100000;
+    
 }

@@ -5,7 +5,7 @@ import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose } from './util.js';
-import { hyperC, hyper, binomial, binomialC, normal, normalC } from './probability.js';
+import { hyperC, hyper, binomial, binomialC, normal, normalC, fisher } from './probability.js';
 
 const { min, max } = Math;
 
@@ -447,14 +447,14 @@ const distPlot = (fu, range, type) => {
     const largeX = range[values.indexOf(large)];
     // find first value > 0.00001 and trim
     const first = values.findIndex(e => e > 0.00001);
-    const leftValues = values.slice(first ? first-1:0);  // skipped leading zeroes
-    const leftRange = range.slice(first ? first-1:0);  
+    const leftValues = values.slice(first ? first - 1 : 0);  // skipped leading zeroes
+    const leftRange = range.slice(first ? first - 1 : 0);
     let right;  // from right end - find first sufficiently large value
-    for (right = leftValues.length-1; right>=0; right--) {
-        if (leftValues[right]> 0.00001) break;
+    for (right = leftValues.length - 1; right >= 0; right--) {
+        if (leftValues[right] > 0.00001) break;
     }
-    const truValues = leftValues.slice(0,right+1);
-    const trueRange = leftRange.slice(0,right+1);
+    const truValues = leftValues.slice(0, right + 1);
+    const trueRange = leftRange.slice(0, right + 1);
     const scale = 50 / large;
     const w = 5;
     return [trueRange.map((x, i) => `<div title="${x}:${truValues[i]}" style="left:${i * w}px;height:${Math.floor(truValues[i] * scale)}px"></div>`).join("")
@@ -568,17 +568,39 @@ const statsTable = data => {
     return '';
 }
 
-const anovaTable = data => {
+const anovaTable = transposed => {
     // calc mean, median, stddev
-    if (data.length) {
-        return 'ANOVA ANALYSIS';
+    if (transposed.length) {
+        // 'ANOVA ANALYSIS';
+        const data = Array(transposed[0].length).fill(0).map(e => []);
+        transposed.map((v,i) => {
+            v.map((u,j) => {
+                data[j][i] = u 
+            })
+        })
+        const YY = data;
+        const nn = YY.map(v => v.length);
+        const n = YY.reduce((s, v) => s + v.length, 0);
+        const TT = YY.map((v => v.reduce((s, v) => s + v, 0)));
+        const T = TT.reduce((s, v) => s + v, 0);
+        const C = T * T / n
+        const _TOT = YY.reduce((s, v) => s + v.reduce((s, v) => s + v * v, 0), 0);
+        const SSTOT = _TOT - C;
+        const SSTR = TT.reduce((s, v, i) => s + v * v / nn[i], 0) - C;
+        const SSE = SSTOT - SSTR;
+        const k = data.length;
+        const MSTR = SSTR/(k-1);
+        const MSE = SSE/(n-k);
+        const F = MSTR/MSE;
+        const p = fisher(.05,k-1,n-k)
+        return `n=${n} C=${C} T=${T} TOT=${SSTOT} TR=${SSTR} E=${SSE} F=${F} p=${p}`;
     }
-    return '';
+    return '<p>No data yet ...';
 }
 
 const tableRender = {
-    stats:statsTable,
-    anova:anovaTable,
+    stats: statsTable,
+    anova: anovaTable,
 }
 
 
@@ -744,7 +766,7 @@ const alg2plot = fu => {
 
 const polarPlot = (parent, lines, width, klass) => {
     const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
-    const [_, lo = 0, hi = 6.285] =  (givenRange || []);
+    const [_, lo = 0, hi = 6.285] = (givenRange || []);
     const range = [Number(lo), Number(hi)];
     for (const line of lines) {
         const div = create('div');
