@@ -336,9 +336,9 @@ export const renderAll = () => {
                 distributions.push({ lines, id: `dist${seg}_${ofs}`, params, seg, type });
                 return `<div class="fordeling ${type}" id="dist${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_,options, lines) => {
+            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_,options="", lines) => {
                 ofs++;
-                const [__, type='',name=''] = (options.match(/ ([a-z]+) ([a-z]+)/)) || [];
+                const [__, type='',name=''] = (options.match(/ ([a-z]+)? ?([a-zA-ZæøåÆØÅ]+)?/)) || [];
                 tables.push({ name, seg, type, lines, id: `table${seg}_${ofs}`});
                 return `<div class="table ${type}" id="table${seg}_${ofs}"></div>\n`;
             })

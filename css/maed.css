@@ -56,7 +56,7 @@ h1 {
 h1 span.date {
     position: absolute;
     right: 10px;
-    top:-42px;
+    top:-12px;
 }
 
 .red {
@@ -112,7 +112,11 @@ div.section.fasit {
         border-right: none;
     }
 
-
+    h1 span.date {
+        position: absolute;
+        right: -150px;
+        top:-52px;
+    }
 
     div.section.fasit.skjult~* {
         display: none;
@@ -698,10 +702,10 @@ div.distplot > div > div {
     height: 10px;
 }
 
-div.anova > table {
+div.table > table {
     text-align: center;
     height: fit-content;
-    border:solid gray 1px;
+    border:solid rgba(128, 128, 128, 0.507) 1px;
 }
 
 div.anova {
@@ -727,4 +731,27 @@ div.fisher {
     display: grid;
     grid-template-columns: 1fr 1fr;
     width:12em;
+}
+
+div.table svg {
+    width: 250px;
+    font-size: 0.18px;
+    fill:blue;
+}
+
+div.stats {
+    display:grid;
+    grid-template-columns: 1fr 2fr;
+    gap:3em;
+}
+
+div.stats > div {
+    display:grid;
+    grid-template-columns: 1fr 2fr;
+    gap:3em;
+}
+
+div.stats > div > div > div {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
 }

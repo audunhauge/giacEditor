@@ -1,5 +1,5 @@
 const cacheName = 'mathEditorCas';
-const version = 3.2;
+const version = 3.3;
 const filesToCache = [
   '/',
   '/index.html',

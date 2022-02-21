@@ -4,11 +4,15 @@ import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
 import { web } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
-import { toast, curry, compose } from './util.js';
-import { hyperC, hyper, binomial, binomialC, 
-    normal, normalC, fisher, fisherCrit} from './probability.js';
+import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice } from './util.js';
+import {
+    hyperC, hyper, binomial, binomialC,
+    normal, normalC, fisher, fisherCrit
+} from './probability.js';
 
-const { min, max } = Math;
+const { abs, min, max, sin, cos, PI, floor } = Math;
+
+const bigScale = colorscale1.concat(colorscale2, colorscale3);
 
 // @ts-ignore
 export const katx = (s, mode) => katex.renderToString(String(s), {
@@ -458,7 +462,7 @@ const distPlot = (fu, range, type) => {
     const trueRange = leftRange.slice(0, right + 1);
     const scale = 50 / large;
     const w = 5;
-    return [trueRange.map((x, i) => `<div title="${x}:${truValues[i]}" style="left:${i * w}px;height:${Math.floor(truValues[i] * scale)}px"></div>`).join("")
+    return [trueRange.map((x, i) => `<div title="${x}:${truValues[i]}" style="left:${i * w}px;height:${floor(truValues[i] * scale)}px"></div>`).join("")
         , largeX + "," + large.toFixed(3), trueRange.length];
 };
 const distRange = (fu, range, type, fuc) => {
@@ -550,35 +554,99 @@ export function renderDist(id, ls, params, type) {
 }
 
 
-const statsTable = data => {
+
+const pieChart = (data, sum) => {
+    const numbers = data[0];
+    const labels = data[1] || [];
+    const percents = numbers.map(v => v / +sum);
+    const p2xy = (p, x = 2 * PI * p) => [cos(x).toFixed(3), sin(x).toFixed(3)];
+    let tot = 0;
+    const txt = [];
+    const n = String(Math.random()).slice(2, 10);
+    let innerSVG = percents.map((p, i) => {
+        const [sx, sy] = p2xy(tot);
+        tot += p;
+        if (abs(p) < 0.001) return '';  // slice too thin to draw
+        const fill = bigScale[i % bigScale.length];
+        const id = "tt" + n + String(i);
+        if (labels[i]) {
+            const len = floor(64 * p);
+            txt.push({ text: String(labels[i]).slice(0, len), id });
+        }
+        const [ex, ey] = p2xy(tot);
+        const largeArcFlag = p > .5 ? 1 : 0;
+        return `<path id="${id}" d="M ${sx} ${sy} A 1 1 0 ${largeArcFlag} 1 ${ex} ${ey} L 0 0" fill="${fill}"></path>`
+    }).join("");
+    if (txt.length) {
+        innerSVG += txt.map(({ x, y, text, id }) => `<text dy="-1.3%"><textPath startOffset="5%" href="#${id}">${text}</textPath></text>`).join("");
+    }
+    return '<svg viewBox="-1.15 -1.15 2.3 2.3" style="transform: rotate(-90deg)">' + innerSVG + '</svg>';
+
+}
+
+
+const statsTable = (data, commands, id) => {
     // calc mean, median, stddev
+    const ret = create("div");
     if (data.length) {
         const list = data[0];
         const N = list.length;
-        const sum = list.reduce((s, v) => s + v, 0);
-        const mean = sum / N;
-        const varians = list.reduce((s, v) => (mean - v) ** 2 + s, 0) / N;
-        const stddev = Math.sqrt(varians);
-        const a = Math.floor(N / 2);
-        const b = Math.floor((N - 1) / 2);
+        const _sum = list.reduce((s, v) => s + v, 0);
+        const _mean = _sum / N;
+        const _varians = list.reduce((s, v) => (_mean - v) ** 2 + s, 0) / (N - 1);
+        const _stddev = Math.sqrt(_varians);
+        const a = floor(N / 2);
+        const b = floor((N - 1) / 2);
         const sorted = (list.slice().sort((x, y) => x - y));
-        const median = (sorted[a] + sorted[b]) / 2;
-        return `<div>Mean:${mean.toFixed(3)} Median:${median.toFixed(3)} 
-            Varians:${varians.toFixed(3)} STDDEV:${stddev.toFixed(3)}</div>`;
+        const _median = (sorted[a] + sorted[b]) / 2;
+        const [sum, mean, median, varians, stddev, s] = [_sum, _mean, _median, _varians, _stddev, _stddev]
+            .map(v => Number.isFinite(+v) ? Number(v).toFixed(3) : v);
+        if (commands.length == 0) {
+            ret.innerHTML = '<div>' + wrap(Object.entries({ sum, mean, median, varians, s }).map(v => wrap(v, "span")), "div") + '</div>';
+            return ret;
+        } else {
+            const response = { N, sum, mean, median, varians, stddev, s };
+            const r = [];  // computed values
+            const f = [];  // figures
+            for (const line of commands) {
+                const command = (line.split(/[^a-zA-Z]/)[0]).trim();
+                if (response[command]) {
+                    r.push('<span>' + command + '</span><span>' + response[command] + '</span>');
+                } else {
+                    if (command === "plot") {
+                        if (line.includes("pie")) {
+                            f.push(pieChart(data, sum));
+                        }
+                    }
+                    if (command === "prosent") {
+                        const percent = create("tr");
+                        percent.innerHTML = wrap(list.map(v => (100 * (+v) / (+_sum)).toFixed(1) + "%"), "td");
+                        $(id).querySelector("table").append(percent);
+                    }
+                }
+            }
+            ret.innerHTML = '<div>' + wrap(r, "div") + '</div>' + wrap(f, "div");
+            return ret;
+        }
     }
-    return '';
+    return ret;
 }
 
-const anovaTable = transposed => {
-    // calc mean, median, stddev
-    if (transposed.length) {
-        // 'ANOVA ANALYSIS';
-        const data = Array(transposed[0].length).fill(0).map(e => []);
-        transposed.map((v,i) => {
-            v.map((u,j) => {
-                data[j][i] = u 
-            })
+const transpose = arr => {
+    const data = Array(arr[0].length).fill(0).map(e => []);
+    arr.map((v, i) => {
+        v.map((u, j) => {
+            data[j][i] = u
         })
+    });
+    return data;
+}
+
+const anovaTable = (_data, commands, id) => {
+    const ret = create("div");
+    if (_data.length) {
+        // 'ANOVA ANALYSIS';
+        const data = transpose(_data);
         const YY = data;
         const nn = YY.map(v => v.length);
         const n = YY.reduce((s, v) => s + v.length, 0);
@@ -590,54 +658,91 @@ const anovaTable = transposed => {
         const SSTR = TT.reduce((s, v, i) => s + v * v / nn[i], 0) - C;
         const SSE = SSTOT - SSTR;
         const k = data.length;
-        const MSTR = SSTR/(k-1);
-        const MSE = SSE/(n-k);
-        const F = MSTR/MSE;
-        const p = 1-fisher(k-1,n-k,F);
-        const P = fisherCrit(.05,k-1,n-k)
+        const MSTR = SSTR / (k - 1);
+        const MSE = SSE / (n - k);
+        const F = MSTR / MSE;
+        const p = 1 - fisher(k - 1, n - k, F);
+        const P = fisherCrit(.05, k - 1, n - k)
         const names = "n,C,T,SSTOT,SSTR,SSE,F,p,P".split(",");
-        const vals = [n,C,T,SSTOT,SSTR,SSE,F,p,P].map(v => v.toFixed(3));
-        const txt = names.map((e,i) => `<div>${e}</div><div>${vals[i]}</div>`).join("");
-        return `<div class="fisher">${txt}</div>`;
+        const vals = [n, C, T, SSTOT, SSTR, SSE, F, p, P].map(v => v.toFixed(3));
+        const txt = names.map((e, i) => `<div>${e}</div><div>${vals[i]}</div>`).join("");
+        ret.className = "fisher";
+        ret.innerHTML = txt;
+        return ret;
     }
-    return '<p>No data yet ...';
+    ret.innerHTML = '<p>No data yet ...';
+    return ret;
+}
+
+const frekTable = (_data, commands, id) => {
+    const ret = create("div");
+    if (_data.length) {
+        const data = transpose(_data);
+        const [xs, fs] = data.slice(0, 2);
+        const sumf = fs.reduce((s, v) => s + v, 0);
+        const rs = fs.map(f => f / sumf);
+        const crs = [];
+        rs.reduce((s, v, i) => crs[i] = s + v, 0);
+        const median = xs[crs.findIndex(r => r > 0.5)];
+        const tbl = $(id).querySelector("tbody");
+        const sumxf = fs.reduce((s, v, i) => s + v * xs[i], 0);
+        const mean = sumxf / sumf;
+        const newtable = transpose([xs, fs, rs, crs].map(r => r.map(v => nice(v,2))));
+        const trans = newtable.map(row =>
+            '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
+        ).join("");
+        tbl.innerHTML = trans;
+        ret.innerHTML = `Mean=${mean} Median=${median}`;
+        return ret;
+    }
+    ret.innerHTML = '<p>No data yet ...';
+    return ret;
 }
 
 const tableRender = {
     stats: statsTable,
     anova: anovaTable,
+    frekvens: frekTable,
 }
 
 
 export function renderTable(id, text, type, name) {
     let txt = '';
     const data = [];
+    const commands = [];
     const lines = text.split("\n").filter(l => l !== "");
     if (lines.length < 1) {
         txt += "Must have lines of data";
     } else {
         txt += `<table id="${name}">`;
-        if (type !== "") txt += `<caption>${type} ${name}</caption>`;
+        if (type !== "") txt += `<caption>${name || type}</caption>`;
         const headers = lines[0].split(",");
         if (!Number.isFinite(+headers[0])) {
             // not number - assume header
-            txt += '<tr>' + wrap(headers, "th") + '</tr>';
+            txt += '<thead><tr>' + wrap(headers, "th") + '</tr></thead>';
             lines.shift();
         }
+        txt += '<tbody>';
         const w = headers.length;
         for (let i = 0; i < lines.length; i++) {
             const values = lines[i].split(",").slice(0, w);
-            const base = Array(w).fill("");
-            values.forEach((v, i) => base[i] = v);
-            txt += '<tr>' + wrap(base, "td") + '</tr>';
-            data.push(base.map(e => Number(e)));
+            if (values.length > 1) {
+                const base = Array(w).fill("");
+                values.forEach((v, i) => base[i] = v);
+                txt += '<tr>' + wrap(base, "td") + '</tr>';
+                data.push(base.map(e => Number.isFinite(+e) ? Number(e) : String(e)));
+            } else {  // assume a command
+                commands.push(lines[i]);
+            }
         }
+        txt += '</tbody>';
         txt += '</table>';
     }
-    if (tableRender[type]) {
-        txt += tableRender[type](data);
-    }
     $(id).innerHTML = txt;
+    if (tableRender[type]) {
+        $(id).append(tableRender[type](data, commands, id));
+    }
+
 }
 
 const parsePy = py => {
