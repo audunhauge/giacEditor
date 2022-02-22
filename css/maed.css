@@ -727,11 +727,21 @@ div.anova th {
     min-width:2em;
 }
 
-div.fisher {
+div.anova  {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    width:12em;
+    width:22em;
 }
+
+div.anova div.subtype div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+div.anova div.subtype span {
+    display: inline-block
+}
+
 
 div.table svg {
     width: 250px;
@@ -739,19 +749,34 @@ div.table svg {
     fill:blue;
 }
 
-div.stats {
-    display:grid;
-    grid-template-columns: 1fr 2fr;
-    gap:3em;
+div.table svg.bar {
+    background-color:rgba(128, 128, 128, 0.062);
 }
 
-div.stats > div {
-    display:grid;
-    grid-template-columns: 1fr 2fr;
-    gap:3em;
+div.stats {
+    display:flex;
+    flex-wrap: wrap;
+    gap:1em;
 }
+
+svg.bar text {
+    fill:gray;
+}
+svg.bar text.inside {
+    stroke: black;
+    stroke-width: 0.002px;
+    fill:rgb(221, 212, 212);
+}
+
+svg.bar line {
+    stroke: rgb(61, 146, 199);
+    stroke-width: 0.002px;
+}
+
+
 
 div.stats > div > div > div {
     display:grid;
     grid-template-columns: 1fr 1fr;
+    gap:0.2em;
 }

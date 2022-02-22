@@ -35,6 +35,7 @@ const filesToCache = [
   '/js/autotags.js',
   '/js/aside.js',
   '/js/replay.js',
+  '/js/tables.js',
   '/js/translate.js',
   '/js/d3.min.js',
   '/js/giacsimple.js',
