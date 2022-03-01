@@ -132,26 +132,26 @@ export const statsTable = (data, commands, id) => {
             ys = list.slice();
         }
         const N = ys.length;
-        let sx = 0,sxx = 0;
+        let sx = 0, sxx = 0;
         for (let v of ys) {
             sx += v;
-            sxx +=v*v;
+            sxx += v * v;
         }
         const _mean = sx / N;
-        const _varians = (sxx-sx*sx/N)/(N-1);  // sufficiently presice with integer data
+        const _varians = (sxx - sx * sx / N) / (N - 1);  // sufficiently presice with integer data
         // loss of precision when sxx and sx*sx/N are similar
         const _stddev = Math.sqrt(_varians);
         const a = floor(N / 2);
         const b = floor((N - 1) / 2);
         const sorted = (ys.slice().sort((x, y) => x - y));
-        const maximum = sorted[N-1];
+        const maximum = sorted[N - 1];
         const minimum = sorted[0];
         const counts = {};
         sorted.forEach(v => {
             const k = counts[v];
-            counts[v] = k ? k+1: 1;
+            counts[v] = k ? k + 1 : 1;
         });
-        const most = Object.keys(counts).sort((x,y) => counts[y] - counts[x]);
+        const most = Object.keys(counts).sort((x, y) => counts[y] - counts[x]);
         const type = most[0];
         const _median = (sorted[a] + sorted[b]) / 2;
         const [sum, mean, median, varians, stddev, s] = [sx, _mean, _median, _varians, _stddev, _stddev]
@@ -208,17 +208,51 @@ export const anovaTable = (_data, commands, id) => {
     return ret;
 }
 
-export const frekTable = (_data, commands, id) => {
+export const frekTable = (_data, commands, id, haveHead) => {
     const ret = [];
     if (_data.length) {
+        const tbl = $(id).querySelector("tbody");
         const data = transpose(_data);
         const [xs, fs] = data.slice(0, 2);
+        const L = xs.length - 1;
+        if (String(xs[0]).includes(':')) {
+            // assume binned data
+            if (!String(xs[L]).includes(":")) {
+                ret.push('<p>First and last bin must be start:stop');
+                return ret;
+            }
+            const grouped = [];
+            let [start, stop] = xs[0].split(":");
+            let mp = (+start + +stop) / 2;
+            grouped.push([+start, +stop, fs[0], mp, fs[0] * mp]);
+            for (let i = 1; i < L; i++) {
+                [start, stop] = [stop, xs[i]];
+                mp = (Number(start) + Number(stop))/2;
+                grouped.push([+start, +stop, fs[i], mp, (fs[i] * mp)]);
+            }
+            const [a, b] = xs[L].split(":");
+            if (+a !== +stop) {
+                ret.push(`<p>Inconsistent start/end last two groups: ${a} ${stop}`);
+                return ret;
+            }
+            [start, stop] = [stop, b];
+            mp = (Number(start) + Number(stop))/2;
+            grouped.push([+start, +stop, fs[L], mp, (fs[L] * mp)]);
+            const sumf = fs.reduce((s,v) => s+v,0);
+            const mean = grouped.reduce((s,v) => s+v[4],0) / sumf;
+            const trans = grouped.map(row =>
+                '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
+            ).join("");
+            tbl.innerHTML = trans;
+            ret.push(`Mean=${mean}`);
+            return ret;
+        }
         const sumf = fs.reduce((s, v) => s + v, 0);
         const rs = fs.map(f => f / sumf);
         const crs = [];
         rs.reduce((s, v, i) => crs[i] = s + v, 0);
         const median = xs[crs.findIndex(r => r > 0.5)];
-        const tbl = $(id).querySelector("tbody");
+
         const sumxf = fs.reduce((s, v, i) => s + v * xs[i], 0);
         const mean = sumxf / sumf;
         const newtable = transpose([xs, fs, rs, crs].map(r => r.map(v => nice(v, 2))));
@@ -226,7 +260,12 @@ export const frekTable = (_data, commands, id) => {
             '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
         ).join("");
         tbl.innerHTML = trans;
-        ret.push(`Mean=${mean} Median=${median}`);
+        if (!haveHead) {
+            const head = create("thead");
+            head.innerHTML = '<tr>' + wrap("Xverdier,Frekvens,RelativF,RelKumulativF".split(","),"th") + '</tr>';
+            $(id).querySelector("table").append(head);
+        }
+        ret.push(`Mean=${mean.toFixed(2)} Median=${median.toFixed(2)}`);
         return ret;
     }
     ret.push('<p>No data yet ...');

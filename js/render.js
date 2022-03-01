@@ -568,6 +568,7 @@ const tableRender = {
 export function renderTable(id, text, type, name) {
     const parent = $(id)
     let txt = '';
+    let haveHead = false;
     const data = [];
     const commands = [];
     const lines = text.split("\n").filter(l => l !== "");
@@ -577,10 +578,11 @@ export function renderTable(id, text, type, name) {
         txt += `<table id="${name}">`;
         if (type !== "") txt += `<caption>${name || type}</caption>`;
         const headers = lines[0].split(",");
-        if (!Number.isFinite(+headers[0])) {
-            // not number - assume header
+        if (!Number.isFinite(+headers[0]) && !headers[0].includes(":")) {
+            // not number and not start:stop - assume header
             txt += '<thead><tr>' + wrap(headers, "th") + '</tr></thead>';
             lines.shift();
+            haveHead = true;
         }
         txt += '<tbody>';
         const w = headers.length;
@@ -600,7 +602,7 @@ export function renderTable(id, text, type, name) {
     }
     parent.innerHTML = txt;
     if (tableRender[type]) {
-        tableRender[type](data.slice(), commands, id).map(t => {
+        tableRender[type](data.slice(), commands, id, haveHead).map(t => {
             const d = create("div");
             d.className = "subtype";
             d.innerHTML = t;
