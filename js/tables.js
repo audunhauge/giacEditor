@@ -55,10 +55,23 @@ const barChart = (data, sum) => {
 
 const histChart = (data, sum) => {
     // data[0] is lo , data[1] is hi, data[2] is freq
-    let lo = data[0].map(Number);
-    let hi = (data[1] || []).map(Number);
-    let fs = (data[2] || []).map(Number);
-    
+    const lo = data[0].map(Number);
+    const hi = (data[1] || []).map(Number);
+    const N = lo.length;
+    const start = lo[0];
+    const stop = hi[N - 1];
+    const span = stop - start;
+    const br = lo.map((v, i) => 2*(hi[i] - v)/span);    // klassebredde
+    const fs = (data[2] || []).map(Number);
+    const large = max(...fs);
+    const s0 = (start * 2) / span - 1.4;
+    const yss = fs.map(v => 2*v / large)
+    const xss = lo.map(v => 2*v/span);
+    let innerSVG = yss.map((v, i) => {
+        const bar = `<rect width="${br[i]}" x="${s0 + xss[i]}" y="${1 - v}" height="${v}"></rect>`;
+        return bar;
+    }).join("");
+    return `<svg class="hist" viewBox="-1.15 -1.15 2.3 2.3" >${innerSVG}</svg>`;
 }
 
 const pieChart = (data, sum) => {
@@ -270,7 +283,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
 
             const sumxf = fs.reduce((s, v, i) => s + v * xs[i], 0);
             mean = sumxf / sumf;
-            plotData = [xs.slice(),fs.slice()];
+            plotData = [xs.slice(), fs.slice()];
             const newtable = transpose([xs, fs, rs, crs].map(r => r.map(v => nice(v, 2))));
             const trans = newtable.map(row =>
                 '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'

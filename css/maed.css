@@ -780,3 +780,8 @@ div.stats > div > div > div {
     grid-template-columns: 1fr 1fr;
     gap:0.2em;
 }
+
+svg.hist rect {
+    stroke:lightgoldenrodyellow;
+    stroke-width: 0.003px;
+}
