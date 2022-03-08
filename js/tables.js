@@ -52,6 +52,15 @@ const barChart = (data, sum) => {
     return '<svg class="bar" viewBox="-1.15 -1.15 2.3 2.3" >' + innerSVG + '</svg>';
 }
 
+
+const histChart = (data, sum) => {
+    // data[0] is lo , data[1] is hi, data[2] is freq
+    let lo = data[0].map(Number);
+    let hi = (data[1] || []).map(Number);
+    let fs = (data[2] || []).map(Number);
+    
+}
+
 const pieChart = (data, sum) => {
     const numbers = data[0];
     let ys = (data[1] || []).map(Number);
@@ -105,6 +114,9 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
             if (command === "plot") {
                 if (line.includes("pie")) {
                     f.push(pieChart(data.slice(), sum));
+                }
+                if (line.includes("hist")) {
+                    f.push(histChart(data.slice(), sum));
                 }
                 if (line.includes("bar")) {
                     f.push(barChart(data.slice(), sum));
@@ -215,6 +227,8 @@ export const frekTable = (_data, commands, id, haveHead) => {
         const data = transpose(_data);
         const [xs, fs] = data.slice(0, 2);
         const L = xs.length - 1;
+        let mean;
+        let plotData;
         if (String(xs[0]).includes(':')) {
             // assume binned data
             if (!String(xs[L]).includes(":")) {
@@ -227,7 +241,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
             grouped.push([+start, +stop, fs[0], mp, fs[0] * mp]);
             for (let i = 1; i < L; i++) {
                 [start, stop] = [stop, xs[i]];
-                mp = (Number(start) + Number(stop))/2;
+                mp = (Number(start) + Number(stop)) / 2;
                 grouped.push([+start, +stop, fs[i], mp, (fs[i] * mp)]);
             }
             const [a, b] = xs[L].split(":");
@@ -236,37 +250,45 @@ export const frekTable = (_data, commands, id, haveHead) => {
                 return ret;
             }
             [start, stop] = [stop, b];
-            mp = (Number(start) + Number(stop))/2;
+            mp = (Number(start) + Number(stop)) / 2;
             grouped.push([+start, +stop, fs[L], mp, (fs[L] * mp)]);
-            const sumf = fs.reduce((s,v) => s+v,0);
-            const mean = grouped.reduce((s,v) => s+v[4],0) / sumf;
+            // grouped contains data for binned freq table
+            plotData = transpose(grouped);
+            const sumf = fs.reduce((s, v) => s + v, 0);
+            mean = grouped.reduce((s, v) => s + v[4], 0) / sumf;
             const trans = grouped.map(row =>
                 '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
             ).join("");
             tbl.innerHTML = trans;
-            ret.push(`Mean=${mean}`);
-            return ret;
-        }
-        const sumf = fs.reduce((s, v) => s + v, 0);
-        const rs = fs.map(f => f / sumf);
-        const crs = [];
-        rs.reduce((s, v, i) => crs[i] = s + v, 0);
-        const median = xs[crs.findIndex(r => r > 0.5)];
+            ret.push(`Mean=${mean.toFixed(2)}`);
+        } else {
+            const sumf = fs.reduce((s, v) => s + v, 0);
+            const rs = fs.map(f => f / sumf);
+            const crs = [];  // cum rel
+            rs.reduce((s, v, i) => crs[i] = s + v, 0);
+            const median = xs[crs.findIndex(r => r > 0.5)];
 
-        const sumxf = fs.reduce((s, v, i) => s + v * xs[i], 0);
-        const mean = sumxf / sumf;
-        const newtable = transpose([xs, fs, rs, crs].map(r => r.map(v => nice(v, 2))));
-        const trans = newtable.map(row =>
-            '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
-        ).join("");
-        tbl.innerHTML = trans;
-        if (!haveHead) {
-            const head = create("thead");
-            head.innerHTML = '<tr>' + wrap("Xverdier,Frekvens,RelativF,RelKumulativF".split(","),"th") + '</tr>';
-            $(id).querySelector("table").append(head);
+            const sumxf = fs.reduce((s, v, i) => s + v * xs[i], 0);
+            mean = sumxf / sumf;
+            plotData = [xs.slice(),fs.slice()];
+            const newtable = transpose([xs, fs, rs, crs].map(r => r.map(v => nice(v, 2))));
+            const trans = newtable.map(row =>
+                '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
+            ).join("");
+            tbl.innerHTML = trans;
+            if (!haveHead) {
+                const head = create("thead");
+                head.innerHTML = '<tr>' + wrap("Xverdier,Frekvens,RelativF,RelKumulativF".split(","), "th") + '</tr>';
+                $(id).querySelector("table").append(head);
+            }
+            ret.push(`Mean=${mean.toFixed(2)} Median=${median.toFixed(2)}`);
         }
-        ret.push(`Mean=${mean.toFixed(2)} Median=${median.toFixed(2)}`);
-        return ret;
+        if (commands.length == 0) {
+            return ret;
+        } else {
+            const response = { mean };
+            return commandWrangler(commands, "stats", response, plotData, id);
+        }
     }
     ret.push('<p>No data yet ...');
     return ret;

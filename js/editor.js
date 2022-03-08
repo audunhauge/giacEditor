@@ -11,7 +11,7 @@ import {
     renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable
 } from './render.js';
 
-import { lang, _translateAtCommands } from './translate.js';
+import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist, 
@@ -41,6 +41,8 @@ export const readTable = filename => {
 const langlist = Object.keys(lang);
 let currentLanguage = getLocalJSON("lang") || "english";
 let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
+
+export let tg = curry(trangui)(lang[currentLanguage]);  // translate words used by gui
 
 
 export const web = updateMyProperties({ langlist });

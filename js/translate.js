@@ -37,6 +37,9 @@ const english = {
     explain: {  // override explanation in autotags
 
     },
+    gui : {
+        distribution:"distribution"
+    }
 }
 
 const norwegian = {
@@ -113,6 +116,11 @@ f(x)                       /  x-2 for x<1
 x-2:x<1        f()  {  
 x^2:x>=1             \\  x^2 for x>=1`,
     },
+    gui : {
+        distribution:"fordeling",
+        with:"med",
+        hypergeometric:"hypergeometrisk",
+    }
 
 }
 
@@ -152,6 +160,10 @@ const italiano = {
     explain: {  // override explanation in autotags
 
     },
+    gui : {
+        distribution:"distribuzione",
+        with:"con",
+    }
 
 }
 
@@ -172,5 +184,12 @@ const s = (lang, word) => lang?.atcommands[word] || word;
 export const _translateAtCommands = (lang, text) => {
     return text.replace(/@([^ \n]+)/g, (_, command) => {
         return '@' + s(lang, command);
+    });
+}
+
+
+export const trangui = (lang, text) => {
+    return text.replace(/([^,.-:?+*/ -]+)/g, (_, word) => {
+        return (lang.gui && lang.gui[word]) || word;
     });
 }

@@ -2,7 +2,7 @@
 
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
-import { web } from './editor.js';
+import { web, tg } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice } from './util.js';
 import {
@@ -486,9 +486,10 @@ export function renderDist(id, ls, params, type) {
     let fuc = distfu[type + "C"];
     if (!fu) return;
     let maximum = 0;  // updated by distribution
+    const dis = tg("distribution with");
     if (type.endsWith("normal")) {
         const [_, my, sigma] = (params.match(/my=([0-9]+) +sigma=([0-9.]+)/) || []);
-        header = `<h3>Normal distribution with μ=${my} and σ=${sigma}</h3>`;
+        header = `<h3>Normal ${dis} μ=${my} σ=${sigma}</h3>`;
         // fu = () => 0;  // point prob is zero for normal
         fuc = curry(fuc)(+my, +sigma);
         fu = curry(fu)(+my, +sigma);
@@ -496,14 +497,14 @@ export function renderDist(id, ls, params, type) {
     }
     if (type.endsWith("binom")) {
         const [_, n, p] = (params.match(/n=([0-9]+) +p=([0-9.]+)/) || []);
-        header = `<h3>Binomial distribution with n=${n} and p=${p}</h3>`;
+        header = `<h3>Binomial ${dis} n=${n} p=${p}</h3>`;
         fu = curry(fu)(+n, +p);
         fuc = curry(fuc)(+n, +p);
         maximum = +n + 1;
     }
     if (type.endsWith("hyper")) {
         const [_, n, m, r] = (params.match(/n=([0-9]+) +m=([0-9]+) +r=([0-9]+)/) || []);
-        header = `<h3>Hypergeometric distribution with n=${n}, m=${m} and r=${r}</h3>`;
+        header = `<h3>Hypergeometric ${dis} n=${n} m=${m} r=${r}</h3>`;
         fu = curry(fu)(+n, +m, +r);
         fuc = curry(fuc)(+n, +m, +r);
         maximum = +r + 1;
