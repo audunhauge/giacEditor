@@ -744,7 +744,7 @@ div.anova div.subtype span {
 
 
 div.table svg {
-    width: 250px;
+    width: 12rem;
     font-size: 0.18px;
     fill:blue;
 }
@@ -753,6 +753,7 @@ div.table svg.bar {
     background-color:rgba(128, 128, 128, 0.062);
 }
 
+div.frekvens,
 div.stats {
     display:flex;
     flex-wrap: wrap;
@@ -774,7 +775,7 @@ svg.bar line {
 }
 
 
-
+div.frekvens > div > div > div ,
 div.stats > div > div > div {
     display:grid;
     grid-template-columns: 1fr 1fr;
@@ -782,6 +783,13 @@ div.stats > div > div > div {
 }
 
 svg.hist rect {
-    stroke:lightgoldenrodyellow;
+    fill:rgba(221, 176, 118, 0.548);
+    stroke:darkcyan;
     stroke-width: 0.003px;
+}
+
+
+svg.hist text {
+    fill:darkslategrey;
+    font-size: 0.12px;
 }

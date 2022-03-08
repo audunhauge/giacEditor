@@ -61,17 +61,20 @@ const histChart = (data, sum) => {
     const start = lo[0];
     const stop = hi[N - 1];
     const span = stop - start;
-    const br = lo.map((v, i) => 2*(hi[i] - v)/span);    // klassebredde
+    const br = lo.map((v, i) => (hi[i] - v));    // klassebredde
+    const brs = br.map(v => 1.8*v/span);
     const fs = (data[2] || []).map(Number);
-    const large = max(...fs);
-    const s0 = (start * 2) / span - 1.4;
-    const yss = fs.map(v => 2*v / large)
-    const xss = lo.map(v => 2*v/span);
+    const fss = fs.map((v,i) => v/br[i]);
+    const large = max(...fss);
+    const s0 = (start * 2) / span - 1.1;
+    const yss = fss.map(v => 2*v /large);
+    const xss = [...lo,stop].map(v => 1.8*v/span);
+    const text = [...lo,stop].map((t,i) => `<text x=${min(0.9,s0+xss[i])} y=${1.1}>${t}</text>`).join("");
     let innerSVG = yss.map((v, i) => {
-        const bar = `<rect width="${br[i]}" x="${s0 + xss[i]}" y="${1 - v}" height="${v}"></rect>`;
+        const bar = `<rect width="${brs[i]}" x="${s0 + xss[i]}" y="${1 - v}" height="${v}"></rect>`;
         return bar;
     }).join("");
-    return `<svg class="hist" viewBox="-1.15 -1.15 2.3 2.3" >${innerSVG}</svg>`;
+    return `<svg class="hist" viewBox="-1.15 -1.15 2.3 2.3" >${innerSVG}${text}</svg>`;
 }
 
 const pieChart = (data, sum) => {
@@ -122,7 +125,7 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
     for (const line of commands) {
         const command = (line.split(/[^a-zA-Z]/)[0]).trim();
         if (response[command] !== undefined) {
-            r.push('<span>' + command + '</span><span>' + response[command] + '</span>');
+            r.push('<span>' + command + '</span><span>' + Number(response[command]).toFixed(2) + '</span>');
         } else {
             if (command === "plot") {
                 if (line.includes("pie")) {
