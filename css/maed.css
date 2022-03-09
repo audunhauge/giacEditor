@@ -1,5 +1,6 @@
 :root {
     --spacing: 0.5rem;
+    --svg: 250px;
 }
 
 #output {
@@ -677,7 +678,7 @@ div.distplot  {
 div.distplot > div {
     position: relative;
     min-width:100px;
-    height: 4em;
+    height: 60px;
     position: relative;
     border: solid gray 1px;
 }
@@ -744,7 +745,7 @@ div.anova div.subtype span {
 
 
 div.table svg {
-    width: 12rem;
+    width: var(--svg);
     font-size: 0.18px;
     fill:blue;
 }
@@ -791,5 +792,5 @@ svg.hist rect {
 
 svg.hist text {
     fill:darkslategrey;
-    font-size: 0.12px;
+    font-size: 0.06px;
 }

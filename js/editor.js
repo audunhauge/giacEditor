@@ -15,7 +15,7 @@ import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist, 
-     mathView, ed, examples, savedFiles, gitlist, sp }
+     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
 
@@ -112,9 +112,13 @@ const goEdit = () => {
     }
 }
 
+const root = document.documentElement;
 sp.oninput = () => {
-    const root = document.documentElement;
     root.style.setProperty("--spacing", `${web.sp / 50}rem`);
+}
+
+fs.oninput = () => {
+    root.style.setProperty("--svg", `${(250 * web.fs / 50) | 0}px`);
 }
 
 help.onclick = () => {
