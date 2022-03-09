@@ -132,6 +132,7 @@
     <div id="output"></div>
     <script>
         var readPython;
+        var lowess;
         var render;
         var bryson = {};  // interface to BRYTHON
         // each @python will set params on this global
@@ -145,8 +146,10 @@
             }
         }
         import { renderAll, readTable } from './js/editor.js';
+        import { lowess as _low} from './js/probability.js';
         render = renderAll;
         readPython = readTable;
+        lowess = _low;
     </script>
 
 </body>

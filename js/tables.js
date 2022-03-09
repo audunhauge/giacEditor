@@ -2,7 +2,7 @@
 
 import { wrap, $, create } from './Minos.js';
 import { colorscale1, colorscale2, colorscale3, nice } from './util.js';
-import { fisher, fisherCrit } from './probability.js';
+import { fisher, fisherCrit, lowess } from './probability.js';
 
 const bigScale = colorscale1.concat(colorscale2, colorscale3);
 
@@ -62,22 +62,35 @@ const histChart = (data, sum) => {
     const stop = hi[N - 1];
     const span = stop - start;
     const br = lo.map((v, i) => (hi[i] - v));    // klassebredde
-    const brs = br.map(v => 1.8*v/span);
+    const brs = br.map(v => 1.8 * v / span);
     const fs = (data[2] || []).map(Number);
-    const fss = fs.map((v,i) => v/br[i]);
+    const fss = fs.map((v, i) => v / br[i]);
     const large = max(...fss);
     const s0 = (start * 2) / span - 1.1;
-    const yss = fss.map(v => 2*v /large);
-    const xss = [...lo,stop].map(v => 1.8*v/span);
-    const text = [...lo,stop].map((t,i) => `<text x=${min(0.9,s0+xss[i])} y=${1.1}>${t}</text>`).join("");
+    const yss = fss.map(v => 2 * v / large);
+    const xss = [...lo, stop].map(v => 1.8 * v / span);
+    const text = [...lo, stop].map((t, i) => `<text x=${min(0.9, s0 + xss[i])} y=${1.1}>${t}</text>`).join("");
     let innerSVG = yss.map((v, i) => {
-        const bar = `<rect width="${brs[i]}" x="${s0 + xss[i]}" y="${1 - v}" height="${v}"></rect>`;
+        const bar = `<rect width="${brs[i]}" x="${s0 + xss[i]}" y="${1 - v}" height="${v}"></rect>
+        <text x=${min(s0 + (xss[i] + xss[i + 1]) / 2)} y=${0.9}>${fs[i]}</text>`;
         return bar;
     }).join("");
     return `<svg class="hist" viewBox="-1.15 -1.15 2.3 2.3" >${innerSVG}${text}</svg>`;
 }
 
 const pieChart = (data, sum) => {
+    var x = [
+        4, 4, 7, 7, 8, 9, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14,
+        14, 14, 14, 15, 15, 15, 16, 16, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 20,
+        20, 20, 20, 20, 22, 23, 24, 24, 24, 24, 25
+     ];
+     var y = [
+        2, 10, 4, 22, 16, 10, 18, 26, 34, 17, 28, 14, 20, 24, 28, 26, 34, 34, 46,
+        26, 36, 60, 80, 20, 26, 54, 32, 40, 32, 40, 50, 42, 56, 76, 84, 36, 46, 68,
+        32, 48, 52, 56, 64, 66, 54, 70, 92, 93, 120, 85
+    ];
+    var out = lowess( x, y );
+    console.log(out);
     const numbers = data[0];
     let ys = (data[1] || []).map(Number);
     if (ys.length && ys.every(Number.isFinite)) {

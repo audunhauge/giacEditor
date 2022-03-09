@@ -163,6 +163,8 @@ def read(filename,delimiter=";",skiprows=0,usecols=()):
       return keep
    return [l.split(delimiter) for l in text]
 
+def lowess(y,x,frac=0.4,return_sorted=False):
+   return window.lowess(x,y)
 
 
 def linspace(start,stop,amount):

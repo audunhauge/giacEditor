@@ -1,6 +1,6 @@
 // @ts-check
 
-const { log, sqrt, exp, round, floor, PI, abs } = Math;
+const { log, sqrt, exp, round, floor, PI, abs, min,max,pow } = Math;
 
 import {curry} from './util.js';
 
@@ -265,4 +265,312 @@ export const newton = (f, v, a, b,x = null) => {
 export const fisherCrit = (p,f1,f2) => {
     const f = curry(fisher)(+f1,+f2);
     return newton(f,1-p,0,100,5);
+}
+
+/**
+* @param {Array} x - ordered x-axis values (abscissa values)
+* @param {Array} y - corresponding y-axis values (ordinate values)
+* @param {Number} n - number of observations
+* @param {Number} f - smoother span (proportion of points which influence smoothing at each value)
+* @param {Number} nsteps - number of iterations in the robust fit
+* @param {Number} delta - nonnegative parameter which may be used to reduce the number of computations
+* @returns {Object} sorted x-values and fitted values
+*/
+function _lowess( x, y, n, f, nsteps, delta ) {
+	var nright;
+	var denom;
+	var nleft;
+	var alpha;
+	var cmad;
+	var iter;
+	var last;
+	var cut;
+	var res;
+	var m1;
+	var m2;
+	var ns;
+	var c1;
+	var c9;
+	var d1;
+	var d2;
+	var rw;
+	var ys;
+	var i;
+	var j;
+	var r;
+
+	if ( n < 2 ) {
+		return y;
+	}
+	ys = new Array( n );
+	res = new Array( n );
+	rw = new Array( n );
+
+	// Use at least two and at most n points:
+	ns = max( min( floor( f * n ), n ), 2 );
+
+	// Robustness iterations:
+	for ( iter = 1; iter <= nsteps + 1; iter++ ) {
+		nleft = 0;
+		nright = ns - 1;
+		last = -1; // index of previously estimated point
+		i = 0; // index of current point
+		do {
+			while ( nright < n - 1 ) {
+				// Move nleft, nright to the right if radius decreases:
+				d1 = x[ i ] - x[ nleft ];
+				d2 = x[ nright + 1 ] - x[ i ];
+
+				// If d1 <= d2 with x[nright+1] == x[nright], lowest fixes:
+				if ( d1 <= d2 ) {
+					break;
+				}
+				// Radius will not decrease by a move to the right...
+				nleft += 1;
+				nright += 1;
+			}
+			// Fitted value at x[ i ]:
+			ys[ i ] = lowest( x, y, n, i, nleft, nright, res, (iter > 1), rw );
+
+			if ( last < i - 1 ) {
+				denom = x[ i ] - x[ last ];
+				for ( j = last + 1; j < i; j++ ) {
+					alpha = ( x[ j ] - x[ last ] ) / denom;
+					ys[ j ] = ( alpha*ys[ i ] ) + ( (1.0-alpha) * ys[ last ] );
+				}
+			}
+			last = i;
+			cut = x[ last ] + delta;
+			for ( i = last + 1; i < n; i++ ) {
+				if ( x[ i ] > cut ) {
+					break;
+				}
+				if ( x[ i ] === x[ last ] ) {
+					ys[ i ] = ys[ last ];
+					last = i;
+				}
+			}
+			i = max( last + 1, i - 1 );
+		} while ( last < n - 1 );
+
+		// Calculate Residuals:
+		for ( i = 0; i < n; i++ ) {
+			res[ i ] = y[ i ] - ys[ i ];
+		}
+		if ( iter > nsteps ) {
+			break; // Compute robustness weights except last time...
+		}
+		for ( i = 0; i < n; i++ ) {
+			rw[i] = abs( res[i] );
+		}
+		rw.sort((a,b) => a-b );
+		m1 = floor( n / 2.0 );
+		m2 = n - m1 - 1.0;
+		cmad = 3.0 * ( rw[m1] + rw[m2] );
+		c9 = 0.999 * cmad;
+		c1 = 0.001 * cmad;
+		for ( i = 0; i < n; i++ ) {
+			r = abs( res[i] );
+			if ( r <= c1 ) {
+				rw[ i ] = 1.0; // near 0, avoid underflow
+			}
+			else if ( r > c9 ) {
+				rw[ i ] = 0.0;  // near 1, avoid underflow
+			}
+			else {
+				rw[ i ] = pow( 1.0 - pow( r / cmad, 2.0 ), 2.0 );
+			}
+		}
+	}
+	return [x,ys]
+}
+
+function srange( N, x, stride ) {
+	var max;
+	var min;
+	var ix;
+	var v;
+	var i;
+
+	if ( N <= 0 ) {
+		return NaN;
+	}
+	if ( N === 1 || stride === 0 ) {
+		if ( Number.isNaN( x[ 0 ] ) ) {
+			return NaN;
+		}
+		return 0.0;
+	}
+	if ( stride < 0 ) {
+		ix = (1-N) * stride;
+	} else {
+		ix = 0;
+	}
+	min = x[ ix ];
+	max = min;
+	for ( i = 1; i < N; i++ ) {
+		ix += stride;
+		v = x[ ix ];
+		if ( Number.isNaN( v ) ) {
+			return v;
+		}
+		if ( v < min ) {
+			min = v;
+		} else if ( v > max ) {
+			max = v;
+		}
+	}
+	return ( max - min );
+}
+
+
+
+/**
+* Calculates the fitted value `ys` for a value `xs` on the horizontal axis.
+*
+* ## Method
+*
+* -   The smoothed value for the x-axis value at the current index is computed using a (robust) locally weighted regression of degree one.  The tricube weight function is used with `h` equal to the maximum of `xs - x[ nleft ]` and `x[ nright ] - xs`.
+*
+* ## References
+*
+* -   Cleveland, William S. 1979. "Robust Locally and Smoothing Weighted Regression Scatterplots." _Journal of the American Statistical Association_ 74 (368): 829–36. doi:[10.1080/01621459.1979.10481038](https://doi.org/10.1080/01621459.1979.10481038).
+* -   Cleveland, William S. 1981. "Lowess: A program for smoothing scatterplots by robust locally weighted regression." _American Statistician_ 35 (1): 54–55. doi:[10.2307/2683591](https://doi.org/10.2307/2683591).
+*
+* @param {Array} x - ordered x-axis values (abscissa values)
+* @param {Array} y - corresponding y-axis values (ordinate values)
+* @param {Number} n - number of observations
+* @param {Number} i - current index
+* @param {Number} nleft - index of the first point used in computing the fitted value
+* @param {Number} nright - index of the last point used in computing the fitted value
+* @param {Array} w - weights at indices from `nleft` to `nright` to be used in the calculation of the fitted value
+* @param {boolean} userw - boolean indicating whether a robust fit is carried out using the weights in `rw`
+* @param {Array} rw - robustness weights
+* @returns {number} fitted value
+*/
+function lowest( x, y, n, i, nleft, nright, w, userw, rw ) {
+	var range;
+	var nrt;
+	var h1;
+	var h9;
+	var xs;
+	var ys;
+	var h;
+	var a;
+	var b;
+	var c;
+	var r;
+	var j;
+
+	xs = x[ i ];
+	range = x[ n - 1 ] - x[ 0 ];
+	h = max( xs - x[ nleft ], x[ nright ] - xs );
+	h9 = 0.999 * h;
+	h1 = 0.001 * h;
+
+	// Compute weights (pick up all ties on right):
+	a = 0.0; // sum of weights
+	for ( j = nleft; j < n; j++ ) {
+		w[ j ] = 0.0;
+		r = abs( x[ j ] - xs );
+		if ( r <= h9 ) { // small enough for non-zero weight
+			if ( r > h1 ) {
+				w[ j ] = pow( 1.0-pow( r/h, 3.0 ), 3.0 );
+			} else {
+				w[ j ] = 1.0;
+			}
+			if ( userw ) {
+				w[ j ] *= rw[ j ];
+			}
+			a += w[ j ];
+		}
+		else if ( x[ j ] > xs ) {
+			break; // get out at first zero weight on right
+		}
+	}
+	nrt = j - 1; // rightmost point (may be greater than `nright` because of ties)
+	if ( a <= 0.0 ) {
+		return y[ i ];
+	}
+
+	// Make sum of weights equal to one:
+	for ( j = nleft; j <= nrt; j++ ) {
+		w[ j ] /= a;
+	}
+
+	if ( h > 0.0 ) { // use linear fit
+		// Find weighted center of x values:
+		a = 0.0;
+		for ( j = nleft; j <= nrt; j++ ) {
+			a += w[ j ] * x[ j ];
+		}
+		b = xs - a;
+		c = 0.0;
+		for ( j = nleft; j <= nrt; j++ ) {
+			c += w[ j ] * pow( x[ j ] - a, 2.0 );
+		}
+		if ( sqrt( c ) > 0.001 * range ) {
+			// Points are spread out enough to compute slope:
+			b /= c;
+			for ( j = nleft; j <= nrt; j++ ) {
+				w[ j ] *= ( 1.0 + ( b*(x[j]-a) ) );
+			}
+		}
+	}
+	ys = 0.0;
+	for ( j = nleft; j <= nrt; j++ ) {
+		ys += w[ j ] * y[ j ];
+	}
+	return ys;
+}
+
+
+export function lowess( x, y, options={} ) {
+	var nsteps;
+	var delta;
+	var opts;
+	var err;
+	var xy;
+	var f;
+	var i;
+	var n;
+	var r;
+
+	n = x.length;
+	if ( y.length !== n ) {
+		throw new Error( 'invalid arguments. Arguments `x` and `y` must have the same length.' );
+	}
+	opts = options;
+	// Input data has to be sorted:
+	if ( opts.sorted !== true ) {
+		// Copy to prevent mutation and sort by x:
+		xy = new Array( n );
+		for ( i = 0; i < n; i++ ) {
+			xy[ i ] = [ x[ i ], y[ i ] ];
+		}
+		xy.sort( (a,b) => a[0]-b[0] ); // TODO: Revisit once we have function for sorting multiple arrays by the elements of one of the arrays
+		x = new Array( n );
+		y = new Array( n );
+		for ( i = 0; i < n; i++ ) {
+			x[ i ] = xy[ i ][ 0 ];
+			y[ i ] = xy[ i ][ 1 ];
+		}
+	}
+	if ( opts.nsteps === void 0 ) {
+		nsteps = 3;
+	} else {
+		nsteps = opts.nsteps;
+	}
+	if ( opts.f === void 0 ) {
+		f = 2.0/3.0;
+	} else {
+		f = opts.f;
+	}
+	if ( opts.delta === void 0 ) {
+		r = srange( n, x, 1 );
+		delta = 0.01 * r;
+	} else {
+		delta = opts.delta;
+	}
+	return _lowess( x, y, n, f, nsteps, delta );
 }
