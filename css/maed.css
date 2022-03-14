@@ -794,3 +794,7 @@ svg.hist text {
     fill:darkslategrey;
     font-size: 0.06px;
 }
+
+table.hidden {
+    display: none;
+}

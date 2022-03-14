@@ -4,11 +4,13 @@ import { wrap, $, create } from './Minos.js';
 import { colorscale1, colorscale2, colorscale3, nice } from './util.js';
 import { fisher, fisherCrit, lowess } from './probability.js';
 
+import { tableList,svgList } from './render.js';
+
 const bigScale = colorscale1.concat(colorscale2, colorscale3);
 
 const { abs, min, max, sin, cos, PI, floor } = Math;
 
-const barChart = (data, sum) => {
+const barChart = (data, sum, size) => {
     let numbers = data[0].map(Number);
     let ys = (data[1] || []).map(Number);
     let haveXS = false;
@@ -49,11 +51,12 @@ const barChart = (data, sum) => {
         + [0, 1, 2, 3, 4, 5].map(v => v * step)
             .map(s => `<line x1="-1.1" y1="${1 - s}" x2="1.1" y2="${1 - s}" stroke-width: 0.001px; />`)
             .join("");
-    return '<svg class="bar" viewBox="-1.15 -1.15 2.3 2.3" >' + innerSVG + '</svg>';
+    const ww = size ? `width:${size}px;` : '';
+    return `<svg style="${ww} class="bar" viewBox="-1.15 -1.15 2.3 2.3" >` + innerSVG + '</svg>';
 }
 
 
-const histChart = (data, sum) => {
+const histChart = (data, sum, size) => {
     // data[0] is lo , data[1] is hi, data[2] is freq
     const lo = data[0].map(Number);
     const hi = (data[1] || []).map(Number);
@@ -75,21 +78,22 @@ const histChart = (data, sum) => {
         <text x=${min(s0 + (xss[i] + xss[i + 1]) / 2)} y=${0.9}>${fs[i]}</text>`;
         return bar;
     }).join("");
-    return `<svg class="hist" viewBox="-1.15 -1.15 2.3 2.3" >${innerSVG}${text}</svg>`;
+    const w = size ? `width:${size}px;` : '';
+    return `<svg style="${w}" class="hist" viewBox="-1.15 -1.15 2.3 2.3" >${innerSVG}${text}</svg>`;
 }
 
-const pieChart = (data, sum) => {
+const pieChart = (data, sum, size) => {
     var x = [
         4, 4, 7, 7, 8, 9, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14,
         14, 14, 14, 15, 15, 15, 16, 16, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 20,
         20, 20, 20, 20, 22, 23, 24, 24, 24, 24, 25
-     ];
-     var y = [
+    ];
+    var y = [
         2, 10, 4, 22, 16, 10, 18, 26, 34, 17, 28, 14, 20, 24, 28, 26, 34, 34, 46,
         26, 36, 60, 80, 20, 26, 54, 32, 40, 32, 40, 50, 42, 56, 76, 84, 36, 46, 68,
         32, 48, 52, 56, 64, 66, 54, 70, 92, 93, 120, 85
     ];
-    var out = lowess( x, y );
+    var out = lowess(x, y);
     console.log(out);
     const numbers = data[0];
     let ys = (data[1] || []).map(Number);
@@ -122,7 +126,8 @@ const pieChart = (data, sum) => {
     if (txt.length) {
         innerSVG += txt.map(({ x, y, text, id }) => `<text dy="-1.3%"><textPath startOffset="5%" href="#${id}">${text}</textPath></text>`).join("");
     }
-    return '<svg viewBox="-1.15 -1.15 2.3 2.3" style="transform: rotate(-90deg)">' + innerSVG + '</svg>';
+    const w = size ? `width:${size}px;` : '';
+    return `<svg viewBox="-1.15 -1.15 2.3 2.3" style="${w}transform: rotate(-90deg)">` + innerSVG + '</svg>';
 }
 
 
@@ -141,20 +146,29 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
             r.push('<span>' + command + '</span><span>' + Number(response[command]).toFixed(2) + '</span>');
         } else {
             if (command === "plot") {
-                if (line.includes("pie")) {
-                    f.push(pieChart(data.slice(), sum));
+                let chart;
+                const options = line.match(/plot ?([a-z]+)? ?([0-9.]+)?/);
+                const [_, type = "bar", size] = (options || []);
+                if (type === "pie") {
+                    chart = (pieChart(data.slice(), sum, size));
                 }
-                if (line.includes("hist")) {
-                    f.push(histChart(data.slice(), sum));
+                if (type === "hist") {
+                    chart = (histChart(data.slice(), sum, size));
                 }
-                if (line.includes("bar")) {
-                    f.push(barChart(data.slice(), sum));
+                if (type === "bar") {
+                    chart = (barChart(data.slice(), sum, size));
                 }
+                f.push(chart);
+                svgList[id] = chart;
             }
             if (command === "prosent") {
                 const percent = create("tr");
                 percent.innerHTML = wrap(list.map(v => (100 * (+v) / (+sum)).toFixed(1) + "%"), "td");
                 $(id).querySelector("table").append(percent);
+            }
+
+            if (command === "hide") {
+                $(id).querySelector("table").classList.add("hidden");
             }
         }
     }
@@ -289,6 +303,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
                 '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
             ).join("");
             tbl.innerHTML = trans;
+            tableList[id] = trans;
             ret.push(`Mean=${mean.toFixed(2)}`);
         } else {
             const sumf = fs.reduce((s, v) => s + v, 0);
@@ -305,6 +320,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
                 '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
             ).join("");
             tbl.innerHTML = trans;
+            tableList[id] = trans;
             if (!haveHead) {
                 const head = create("thead");
                 head.innerHTML = '<tr>' + wrap("Xverdier,Frekvens,RelativF,RelKumulativF".split(","), "th") + '</tr>';
@@ -316,7 +332,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
             return ret;
         } else {
             const response = { mean };
-            return commandWrangler(commands, "stats", response, plotData, id);
+            return commandWrangler(commands, "stats", response, plotData, 0, id);
         }
     }
     ret.push('<p>No data yet ...');

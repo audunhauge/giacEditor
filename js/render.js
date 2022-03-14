@@ -15,6 +15,9 @@ import { frekTable, statsTable, anovaTable } from './tables.js';
 const { abs, min, max, sin, cos, PI, floor } = Math;
 
 
+export var tableList = {};
+export var svgList = {};
+
 
 // @ts-ignore
 export const katx = (s, mode) => katex.renderToString(String(s), {
@@ -601,6 +604,7 @@ export function renderTable(id, text, type, name) {
         txt += '</tbody>';
         txt += '</table>';
     }
+    tableList[id] = txt;
     parent.innerHTML = txt;
     if (tableRender[type]) {
         tableRender[type](data.slice(), commands, id, haveHead).map(t => {
