@@ -285,6 +285,7 @@ export const renderAll = () => {
         }
     }
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
+    let regpoints = {};   // regression points stored here
     const plots = [];
     const maths = [];
     const algebra = [];
@@ -466,14 +467,14 @@ export const renderAll = () => {
     });
     let segnum = {};  // have we reset giac for this segment?
     // regression before cas so that we can use function f(x) in cas
-    regress.forEach(({ eq, id, klass, seg }) => {
+    regress.forEach(({ eq, id, klass, seg },i) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
             // @ts-ignore  First alg in this seg, reset giac
             UI.eval("restart");
         }
         if (rerend || dirtyList.includes(seg)) {
-            renderReg(id, eq, funks, klass);
+            renderReg(id, eq, funks, regpoints ,i,klass);
             //scrollit(id);
         }
     });
@@ -551,7 +552,7 @@ export const renderAll = () => {
     });
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
-            renderPlot(id, plot, funks, klass);
+            renderPlot(id, plot, funks, regpoints, klass);
         //scrollit(id);
     });
     python.forEach(({ pyt, id, klass, seg }) => {

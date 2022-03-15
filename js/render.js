@@ -179,7 +179,18 @@ export const renderPoldiv = (id, txt, size = "") => {
     $(id).innerHTML = heading + howto;
 }
 
-export const renderReg = (id, txt, funks, klass = "") => {
+
+/**
+ * Renders a regression
+ * The points are stashed in regpoints
+ * @param {string} id 
+ * @param {string} txt 
+ * @param {any} funks 
+ * @param {string} klass 
+ * @param {number} i
+ * @returns void
+ */
+export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
     const lines = txt.split('\n').filter(e => e != "");
     if (lines.length !== 2) {
         $(id).innerHTML = "Must have xs:1,2,3 and ys:2,3,8 (example values)"
@@ -196,24 +207,31 @@ export const renderReg = (id, txt, funks, klass = "") => {
     const goodShape = data.xs.length === data.ys.length;
     if (goodNumbers && goodShape) {
         // good numbers and xs,ys same size
-        const {xs,ys} = data;
-        const type = klass.trim().split(" ")[0];
+        const { xs, ys } = data;
+        regpoints['r' + i] = [xs, ys];
+        const [type, param = 2] = klass.trim().split(" ");
         let res = "doing stuff";
         switch (type) {
             case "linear": {
-               const yfunk = giaEval(`linear_regression([${xs}],[${ys}]))`);
-               const [a,b] = yfunk.split(",");
-               res = litex(`f(x)=${a}x+${b}`);
-               funks["f(x)"] = `${a}x+${b}`;
-               giaEval(`f(x):=${a}*x+${b}`);
+                const yfunk = giaEval(`linear_regression([${xs}],[${ys}]))`);
+                const [a, b] = yfunk.split(",");
+                res = litex(`f(x)=${a}x+${b}`);
+                funks["f(x)"] = `${a}x+${b}`;
+                giaEval(`f(x):=${a}*x+${b}`);
             }
-            break;
-            case "polynomial": {}
-            break;
-            case "exponential": {}
-            break;
-            case "power": {}
-            break;
+                break;
+            case "polynomial": {
+                const coeff = giaEval(`polynomial_regression([${xs}],[${ys}],${param}))`);
+                const poly = giaEval(`poly2symb(${coeff},x)`);
+                res = litex(poly);
+                funks["f(x)"] = poly;
+                giaEval(`f(x):=${poly}`);
+            }
+                break;
+            case "exponential": { }
+                break;
+            case "power": { }
+                break;
         }
         $(id).innerHTML = res;
     } else {
@@ -760,13 +778,18 @@ const plotDomain = (size, rest) => {
 }
 
 
-function plotGraph(parent, fu, size, funks, colors) {
+function plotGraph(parent, fu, size, funks, regpoints, colors) {
     const div = create('div');
     div.id = "plot" + Date.now();
     parent.append(div);
     try {
         const def = fu.replace(/([^,;]+)/g, (a, f) => {
             if (funks[f]) return funks[f];
+            if (regpoints[f]) {
+                const [x, y] = regpoints[f];
+                const xy = x.map((v, i) => [v, y[i]]);
+                return JSON.stringify(xy);
+            }
             return a;
         });
         const optdObj = plot(def, size, colors);
@@ -837,7 +860,7 @@ const paramPlot = (parent, lines, width, klass) => {
     }
 }
 
-export function renderPlot(id, plot, funks, klass = "") {
+export function renderPlot(id, plot, funks, regpoints, klass = "") {
     const parent = $(id);
     const [_, width = 350] = (klass.match(/ (\d+)$/)) || [];
     parent.style.setProperty("--min", String(width) + "px");
@@ -860,7 +883,7 @@ export function renderPlot(id, plot, funks, klass = "") {
         for (let i = 0; i < lines.length; i++) {
             const pickApart = lines[i].match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
             const [_, fu, size = 500, colors] = pickApart;
-            plotGraph(parent, alg2plot(fu), min(size, +width), funks, colors);
+            plotGraph(parent, alg2plot(fu), min(size, +width), funks, regpoints, colors);
         }
     }
 }
@@ -879,52 +902,54 @@ export function renderTrig(id, trig, klass = "") {
 }
 
 
-
-
+// Exaples:
+// a plot(x)
+// b plot(x,-5,5) 200
+// c plot(x^2;x,-5,5,-25,25) 300 red,green,blue
+// d plot([[1,2],[3,4],[5,6]])
+// e plot([[1,2,4,8,16,32]])
+// f plot( {yAxis: {domain: [-1.897959183, 1.897959183]},xAxis: {domain: [-3, 3]},data: [{r: '2 * sin(4 theta)',fnType: 'polar',graphType: 'polyline' }] } )
+// f plot({target: '#multiple',data: [ { fn: 'x', color: 'pink' }, { fn: '-x' }, { fn: 'x * x' }, { fn: 'x * x * x' }, { fn: 'x * x * x * x' } ] } )
 export function plot(str, size = 500, colors) {
-    if (str.includes(";")) {
-        // like x;x+2;f(x);[1,2,3],0,5,-2,5
-        const [last,...xs] = str.split(";").reverse()  // pick out last="[1,2,3],0,5,-2,5"
-        const [_,fu, x0,x1,y0,y1] = last.match(/(.*)?,([0-9-]+),([0-9-]+),([0-9-]+),([0-9-]+)$/) || [];
-        if (fu) {
-            // valid last function
-            xs.push(fu)
-        } else {
-            // ignore invalid last func
-        }
-    }
-    let [o, ...rest] = str.split(",");
-    if (str.startsWith("{") || str.startsWith("[")) {
-        o = str;
-        rest = [];
-    }
+    // first try to pick out any xy range
+    // assume ---,1,2,3,4  or ---,1,2  or ---,-5,5
+    const parts = str.split(",");
+    const lastNum = parts.findLastIndex(v => !Number.isFinite(+v));
+    const xyRange = parts.slice(lastNum + 1).slice(-4)
+    // now we have [1,2,3,4] or [1,2] or [-5,5]
+    const optobj = plotDomain(size, xyRange);
+    optobj.data = [];
+    // join together the body parts and split on ;
+    const funks = parts.slice(0, lastNum + 1).join(",").split(";");
+    // funks can be "[1,2,3];x;[[1,2],[3,4]];f;x+3;g(x)".split(";")
+    const colorList = colors ? colors.trim().split(",") : [];
+    funks.forEach((f, i) => {
+        _plot(f, optobj, colorList[i]);
+    });
+    return optobj;
+}
+
+
+
+
+function _plot(f, optobj, color, i) {
     let obj;
     try {
-        obj = JSON.parse(o);
+        obj = JSON.parse(f);
     } catch (er) {
-        obj = o;
+        obj = f;
     }
-    // Exaples:
-    // a plot(x)
-    // b plot(x,-5,5) 200
-    // c plot(x^2;x,-5,5,-25,25) 300 red,green,blue
-    // d plot([[1,2],[3,4],[5,6]])
-    // e plot([[1,2,4,8,16,32]])
-    // f plot( {yAxis: {domain: [-1.897959183, 1.897959183]},xAxis: {domain: [-3, 3]},data: [{r: '2 * sin(4 theta)',fnType: 'polar',graphType: 'polyline' }] } )
-    // f plot({target: '#multiple',data: [ { fn: 'x', color: 'pink' }, { fn: '-x' }, { fn: 'x * x' }, { fn: 'x * x * x' }, { fn: 'x * x * x * x' } ] } )
-
-    const optobj = plotDomain(size, rest);
-    const [ymin, ymax] = optobj.yAxis.domain;
-    const colorList = colors ? colors.trim().split(",") : [];
+    const [ymin = -5, ymax = 5] = optobj.yAxis ? optobj.yAxis.domain : [];
+    const [xmin = -5, xmax = 5] = optobj.xAxis ? optobj.xAxis.domain : [];
     if (Array.isArray(obj)) {
         // type d,e
         if (Array.isArray(obj[0])) {
-            const ymax = obj.reduce((s, v) => Math.max(v[1], s), obj[0][1]);
-            const ymin = obj.reduce((s, v) => Math.min(v[1], s), obj[0][1]);
-            const xmax = obj.reduce((s, v) => Math.max(v[0], s), obj[0][0]);
-            const xmin = obj.reduce((s, v) => Math.min(v[0], s), obj[0][0]);
-            optobj.yAxis = { domain: [ymin - 2, ymax + 2] };
-            optobj.xAxis = { domain: [xmin, xmax] };
+            const mymax = obj.reduce((s, v) => max(v[1], s), obj[0][1]);
+            const mymin = obj.reduce((s, v) => min(v[1], s), obj[0][1]);
+            const mxmax = obj.reduce((s, v) => max(v[0], s), obj[0][0]);
+            const mxmin = obj.reduce((s, v) => min(v[0], s), obj[0][0]);
+            optobj.yAxis = { domain: [min(ymin, mymin - 2), max(ymax, mymax + 2)] };
+            optobj.xAxis = { domain: [min(xmin, mxmin), max(xmax, mxmax)] };
             // type d
             // data: [{ points: [  [1, 1],  [2, 1], [2, 2],  [1, 2],  [1, 1]  ],  fnType: 'points',  graphType: 'scatter'  }]
             optobj.data = [{ points: obj, fnType: "points", graphType: "scatter" }];
@@ -932,47 +957,46 @@ export function plot(str, size = 500, colors) {
             return optobj;
         } else {
             // type e
-            const ymax = Math.max(...obj);
-            const ymin = Math.min(...obj);
-            const xmin = 0;
-            const xmax = obj.length;
-            optobj.yAxis = { domain: [ymin - 2, ymax + 2] };
-            optobj.xAxis = { domain: [xmin, xmax] };
+            const mymax = Math.max(...obj);
+            const mymin = Math.min(...obj);
+            const mxmin = 0;
+            const mxmax = obj.length;
+            optobj.yAxis = { domain: [min(ymin, mymin - 2), max(ymax, mymax + 2)] };
+            optobj.xAxis = { domain: [min(xmin, mxmin), max(xmax, mxmax)] };
             const points = obj.map((e, i) => [i, e]);
-            optobj.data = [{ points, fnType: "points", graphType: "scatter" }];
+            optobj.data.push({ points, fnType: "points", graphType: "scatter" });
             // @ts-ignore
             return optobj;
         }
-    } else if (typeof o === "string") {
+    } else if (typeof f === "string") {
         // type a,b,c
-        optobj.data = obj.split(";").map((fn, i) => {
-            let graphType = 'polyline';
-            let obj = {};
-            if (fn.includes("=")) {
-                // assume Ax+By=C
-                // try as y=f(x)
-                const fy = giaEval(`solve(${fn},y)`);
-                if (fy.startsWith("list[")) {
-                    // found solution for y=
-                    obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
-                    // @ts-ignore
-                    // obj = { fn, graphType };
-                } else {
-                    const fy = giaEval(`solve(${fn})`);
-                    if (fy.startsWith("list[")) {
-                        const x = fy.slice(5, -1);
-                        // @ts-ignore
-                        obj = { x, y: 't', fnType: 'parametric', graphType, range: [ymin, ymax] }
-                    }
-                }
-            } else {
+        let graphType = 'polyline';
+        let obj = {};
+        const fn = f;
+        if (f.includes("=")) {
+            // assume Ax+By=C
+            // try as y=f(x)
+            const fy = giaEval(`solve(${f},y)`);
+            if (fy.startsWith("list[")) {
+                // found solution for y=
+                obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
                 // @ts-ignore
-                obj = { fn, graphType };
+                // obj = { fn, graphType };
+            } else {
+                const fy = giaEval(`solve(${f})`);
+                if (fy.startsWith("list[")) {
+                    const x = fy.slice(5, -1);
+                    // @ts-ignore
+                    obj = { x, y: 't', fnType: 'parametric', graphType, range: [ymin, ymax] }
+                }
             }
-            if (colorList[i]) obj.color = colorList[i];
-            return obj;
-        });
-        optobj.data = optobj.data.flat();
+        } else {
+            // @ts-ignore
+            obj = { fn, graphType };
+        }
+        if (color) obj.color = color;
+
+        optobj.data.push(obj);
         // @ts-ignore
         return optobj;
     } else if (typeof obj === "object") {
