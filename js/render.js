@@ -179,6 +179,49 @@ export const renderPoldiv = (id, txt, size = "") => {
     $(id).innerHTML = heading + howto;
 }
 
+export const renderReg = (id, txt, funks, klass = "") => {
+    const lines = txt.split('\n').filter(e => e != "");
+    if (lines.length !== 2) {
+        $(id).innerHTML = "Must have xs:1,2,3 and ys:2,3,8 (example values)"
+        return;
+    }
+    const data = { xs: [], ys: [] };
+    for (const line of lines) {
+        const [name = "", values = ""] = line.split(":") || [];
+        if (data[name]) {
+            data[name] = values.split(",").map(Number);
+        }
+    }
+    const goodNumbers = (data.xs.every(Number.isFinite) && data.ys.every(Number.isFinite));
+    const goodShape = data.xs.length === data.ys.length;
+    if (goodNumbers && goodShape) {
+        // good numbers and xs,ys same size
+        const {xs,ys} = data;
+        const type = klass.trim().split(" ")[0];
+        let res = "doing stuff";
+        switch (type) {
+            case "linear": {
+               const yfunk = giaEval(`linear_regression([${xs}],[${ys}]))`);
+               const [a,b] = yfunk.split(",");
+               res = litex(`f(x)=${a}x+${b}`);
+               funks["f(x)"] = `${a}x+${b}`;
+               giaEval(`f(x):=${a}*x+${b}`);
+            }
+            break;
+            case "polynomial": {}
+            break;
+            case "exponential": {}
+            break;
+            case "power": {}
+            break;
+        }
+        $(id).innerHTML = res;
+    } else {
+        $(id).innerHTML = (goodNumbers ? "" : "Bad numbers. ") + (goodShape ? "" : " Must have equal size xs,ys");
+    }
+
+}
+
 const diff = arr => {
     if (arr.length < 2) return arr;
     const d = arr.map((v, i) => arr[i + 1] - v);
@@ -839,6 +882,17 @@ export function renderTrig(id, trig, klass = "") {
 
 
 export function plot(str, size = 500, colors) {
+    if (str.includes(";")) {
+        // like x;x+2;f(x);[1,2,3],0,5,-2,5
+        const [last,...xs] = str.split(";").reverse()  // pick out last="[1,2,3],0,5,-2,5"
+        const [_,fu, x0,x1,y0,y1] = last.match(/(.*)?,([0-9-]+),([0-9-]+),([0-9-]+),([0-9-]+)$/) || [];
+        if (fu) {
+            // valid last function
+            xs.push(fu)
+        } else {
+            // ignore invalid last func
+        }
+    }
     let [o, ...rest] = str.split(",");
     if (str.startsWith("{") || str.startsWith("[")) {
         o = str;

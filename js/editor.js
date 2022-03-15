@@ -8,7 +8,7 @@ import {
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
     makeLatex, renderSigram, renderPiece,
-    renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable
+    renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable, renderReg
 } from './render.js';
 
 import { lang, trangui, _translateAtCommands } from './translate.js';
@@ -295,6 +295,7 @@ export const renderAll = () => {
     const tables = [];           
     const sigrams = [];         // sign diagrams
     const poldivs = [];
+    const regress = [];
     const eqs = [];             // equations like 5x+5=2x-6 => transformed by |-5  |-2x |/3
     const distributions = [];   // hypergeometric binominal distributions
     let ofs = 1234; // uniq id for math,alg etc
@@ -335,6 +336,11 @@ export const renderAll = () => {
                 ofs++;
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
                 return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@reg( .*)?$([^€]+?)^$^/gm, (_, klass="linear", eq) => {
+                ofs++;
+                regress.push({ eq, id: `reg${seg}_${ofs}`, klass, seg });
+                return `<div class="regression ${klass}" id="reg${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@distribution( normal)?( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_,normal,hyper,binom, params, lines) => {
                 ofs++;
@@ -459,6 +465,18 @@ export const renderAll = () => {
         //scrollit(id);
     });
     let segnum = {};  // have we reset giac for this segment?
+    // regression before cas so that we can use function f(x) in cas
+    regress.forEach(({ eq, id, klass, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            // @ts-ignore  First alg in this seg, reset giac
+            UI.eval("restart");
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            renderReg(id, eq, funks, klass);
+            //scrollit(id);
+        }
+    });
     algebra.forEach(({ math, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
