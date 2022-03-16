@@ -192,7 +192,7 @@ export const renderPoldiv = (id, txt, size = "") => {
  */
 export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
     const lines = txt.split('\n').filter(e => e != "");
-    if (lines.length !== 2) {
+    if (lines.length < 2) {
         $(id).innerHTML = "Must have xs:1,2,3 and ys:2,3,8 (example values)"
         return;
     }
@@ -208,29 +208,35 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
     if (goodNumbers && goodShape) {
         // good numbers and xs,ys same size
         const { xs, ys } = data;
+        const base = "a".charCodeAt(0);
         regpoints['r' + i] = [xs, ys];
-        const [type, param = 2] = klass.trim().split(" ");
+        let [type, param = 2] = klass.trim().split(" ");
         let res = "doing stuff";
-        switch (type) {
-            case "linear": {
-                const yfunk = giaEval(`linear_regression([${xs}],[${ys}]))`);
-                const [a, b] = yfunk.split(",");
-                res = litex(`f(x)=${a}x+${b}`);
-                funks["f(x)"] = `${a}x+${b}`;
-                giaEval(`f(x):=${a}*x+${b}`);
+        const rnames = {pol:"polynomial",lin:"linear",pow:"power",exp:"exponential"};
+        const typ = type.slice(0,3);
+        const rtyp = rnames[typ];
+        param = "," + param;
+        switch (typ) {
+            case "lin":
+                param = ''
+            case "pol": {
+                const coeff = giaEval(`${rtyp}_regression([${xs}],[${ys}]${param}))`);
+                const arr = '['+coeff.replace('[','').replace(']','')+']';
+                const a2 = '['+(JSON.parse(arr).map(e => Number(e).toPrecision(5))).join(",")+']';
+                const poly1 = giaEval(`expand(poly2symb(${arr},x))`);
+                const poly2 = giaEval(`expand(poly2symb(${a2},x))`);
+                res = litex(poly2);
+                const funame = `p${String.fromCharCode(base+i)}(x)`;
+                funks[funame] = poly1;
+                giaEval(`${funame}:=${poly1}`);
             }
                 break;
-            case "polynomial": {
-                const coeff = giaEval(`polynomial_regression([${xs}],[${ys}],${param}))`);
-                const poly = giaEval(`poly2symb(${coeff},x)`);
-                res = litex(poly);
-                funks["f(x)"] = poly;
-                giaEval(`f(x):=${poly}`);
+            case "exp": { 
+                const coeff = giaEval(`${rtyp}_regression([${xs}],[${ys}]))`);
+                res = coeff;
             }
                 break;
-            case "exponential": { }
-                break;
-            case "power": { }
+            case "pow": { }
                 break;
         }
         $(id).innerHTML = res;
@@ -952,7 +958,7 @@ function _plot(f, optobj, color, i) {
             optobj.xAxis = { domain: [min(xmin, mxmin), max(xmax, mxmax)] };
             // type d
             // data: [{ points: [  [1, 1],  [2, 1], [2, 2],  [1, 2],  [1, 1]  ],  fnType: 'points',  graphType: 'scatter'  }]
-            optobj.data = [{ points: obj, fnType: "points", graphType: "scatter" }];
+            optobj.data.push({ points: obj, fnType: "points", graphType: "scatter" });
             // @ts-ignore
             return optobj;
         } else {
