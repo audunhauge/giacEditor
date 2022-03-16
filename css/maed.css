@@ -798,3 +798,12 @@ svg.hist text {
 table.hidden {
     display: none;
 }
+
+div.table.dataset td {
+  border: solid rgba(128, 128, 128, 0.226) 0.5px;
+  padding:0.2em;
+}
+
+div.table table {
+    border-collapse: collapse;
+}
