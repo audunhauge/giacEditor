@@ -12,7 +12,7 @@ import {
 
 import { frekTable, statsTable, anovaTable } from './tables.js';
 
-const { abs, min, max, sin, cos, PI, floor } = Math;
+const { abs, min, max, sin, cos, PI, floor, log, exp, E } = Math;
 
 
 export var tableList = {};
@@ -212,8 +212,8 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
         regpoints['r' + i] = [xs, ys];
         let [type, param = 2] = klass.trim().split(" ");
         let res = "doing stuff";
-        const rnames = {pol:"polynomial",lin:"linear",pow:"power",exp:"exponential"};
-        const typ = type.slice(0,3);
+        const rnames = { pol: "polynomial", lin: "linear", pow: "power", exp: "exponential" };
+        const typ = type.slice(0, 3);
         const rtyp = rnames[typ];
         param = "," + param;
         switch (typ) {
@@ -221,27 +221,36 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
                 param = ''
             case "pol": {
                 const coeff = giaEval(`${rtyp}_regression([${xs}],[${ys}]${param}))`);
-                const arr = '['+coeff.replace('[','').replace(']','')+']';
-                const a2 = '['+(JSON.parse(arr).map(e => Number(e).toPrecision(5))).join(",")+']';
-                const poly1 = giaEval(`expand(poly2symb(${arr},x))`);
-                const poly2 = giaEval(`expand(poly2symb(${a2},x))`);
+                const arr = (coeff.replace('[', '').replace(']', '')).split(",");
+                const a2 = arr.map(e => Number(eval(e)).toPrecision(5)).join(",");
+                const poly1 = giaEval(`expand(poly2symb([${arr}],x))`);
+                const poly2 = giaEval(`expand(poly2symb([${a2}],x))`);
                 res = litex(poly2);
-                const funame = `p${String.fromCharCode(base+i)}(x)`;
+                const funame = `p${String.fromCharCode(base + i)}(x)`;
                 funks[funame] = poly1;
                 giaEval(`${funame}:=${poly1}`);
             }
                 break;
-            case "exp": { 
+            case "exp": {
                 const coeff = giaEval(`evalf(${rtyp}_regression([${xs}],[${ys}])))`).split(",");
-                const [a,b] = coeff || [];
-                const funame = `p${String.fromCharCode(base+i)}(x)`;
+                const [a, b] = coeff || [];
+                const [A, B] = [a, b].map(v => (+v).toPrecision(5));
+                const funame = `p${String.fromCharCode(base + i)}(x)`;
                 funks[funame] = `${b}*${a}^x`;
                 giaEval(`${funame}:=${b}*${a}^x`);
-                const ef = giaEval(`simplify(${funame})`);
-                res = litex(`f(x)=${b}*${a}^x`) + " eller " + ef;
+                const ef = litex(`${B}*e^(${(log(a)).toPrecision(5)}x)`);
+                res = litex(`f(x)=${B}*${A}^x`) + " eller " + ef;
             }
                 break;
-            case "pow": { }
+            case "pow": {
+                const coeff = giaEval(`evalf(${rtyp}_regression([${xs}],[${ys}])))`).split(",");
+                const [a, b] = coeff || [];
+                const [A, B] = [a, b].map(v => (+v).toPrecision(5));
+                const funame = `p${String.fromCharCode(base + i)}(x)`;
+                funks[funame] = `${b}*x^(${a})`;
+                giaEval(`${funame}:=${b}*x^(${a})`);
+                res = litex(`f(x)=${B}*x^(${A})`);
+            }
                 break;
         }
         $(id).innerHTML = res;
