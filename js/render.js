@@ -197,14 +197,16 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
         return;
     }
     const data = { xs: [], ys: [] };
+    let named = false;
     for (const line of lines) {
         const [name = "", values = ""] = line.split(":") || [];
         if (data[name]) {
+            named = true;
             data[name] = values.split(",").map(Number);
         }
     }
-    const goodNumbers = (data.xs.every(Number.isFinite) && data.ys.every(Number.isFinite));
-    const goodShape = data.xs.length === data.ys.length;
+    const goodNumbers = named && (data.xs.every(Number.isFinite) && data.ys.every(Number.isFinite));
+    const goodShape = data.xs.length != 0 && data.xs.length === data.ys.length;
     if (goodNumbers && goodShape) {
         // good numbers and xs,ys same size
         const { xs, ys } = data;
@@ -255,7 +257,7 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
         }
         $(id).innerHTML = res;
     } else {
-        $(id).innerHTML = (goodNumbers ? "" : "Bad numbers. ") + (goodShape ? "" : " Must have equal size xs,ys");
+        $(id).innerHTML = (goodNumbers ? "" : "Bad numbers, expecting like xs:1,3 ys:2,8 ") + (goodShape ? "" : " Must have equal size xs,ys");
     }
 
 }
