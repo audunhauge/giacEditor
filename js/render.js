@@ -232,8 +232,13 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
             }
                 break;
             case "exp": { 
-                const coeff = giaEval(`${rtyp}_regression([${xs}],[${ys}]))`);
-                res = coeff;
+                const coeff = giaEval(`evalf(${rtyp}_regression([${xs}],[${ys}])))`).split(",");
+                const [a,b] = coeff || [];
+                const funame = `p${String.fromCharCode(base+i)}(x)`;
+                funks[funame] = `${b}*${a}^x`;
+                giaEval(`${funame}:=${b}*${a}^x`);
+                const ef = giaEval(`simplify(${funame})`);
+                res = litex(`f(x)=${b}*${a}^x`) + " eller " + ef;
             }
                 break;
             case "pow": { }
