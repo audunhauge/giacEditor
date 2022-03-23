@@ -398,6 +398,13 @@ export const renderAll = () => {
             })
     }
 
+    const resetCAS = () => {
+        // @ts-ignore
+        UI.eval("restart");
+        funks = {};
+        regpoints = {};
+    }
+
 
     const dirtyList = [];
     let rerend = false;
@@ -463,27 +470,22 @@ export const renderAll = () => {
     maths.forEach(({ math, id, size, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderMath(id, math, funks, size);
-        //scrollit(id);
     });
     let segnum = {};  // have we reset giac for this segment?
-    // regression before cas so that we can use function f(x) in cas
+    // regression before cas so that we can use function p[a-z](x) in cas
     regress.forEach(({ eq, id, klass, seg },i) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
+            resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
             renderReg(id, eq, funks, regpoints ,i,klass);
-            //scrollit(id);
         }
     });
     algebra.forEach(({ math, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
-            funks = {};  // named funks cannot leave segment
+            resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderAlgebra(id, math, funks, size);
@@ -494,8 +496,7 @@ export const renderAll = () => {
     eqs.forEach(({ math, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
+            resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderEquation(id, math, size);
@@ -506,8 +507,7 @@ export const renderAll = () => {
     eqsets.forEach(({ eq, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
+            resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
             renderEqnSet(id, eq, size);
@@ -517,8 +517,7 @@ export const renderAll = () => {
     poldivs.forEach(({ eq, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
+            resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
             renderPoldiv(id, eq, size);
@@ -543,8 +542,7 @@ export const renderAll = () => {
     sigrams.forEach(({ eq, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            // @ts-ignore  First alg in this seg, reset giac
-            UI.eval("restart");
+            resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
             renderSigram(id, eq, funks, size);
