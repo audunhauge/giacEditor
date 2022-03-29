@@ -142,8 +142,17 @@ def plot(xs,ys,color="",type="polyline"):
       ma = max(ys)
       mi = min(ys)
       options["yAxis"]["domain"]=[mi,ma]
+   if "o" in color:
+      type = "scatter"
    v = list(map(lambda x,y:[x,y],xs,ys))
-   options["data"].append( {"points":v,"fnType":"points","graphType":type})
+   datum = {"points":v,"fnType":"points","graphType":type}
+   if "b" in color:
+      datum["color"] = "blue"
+   if "r" in color:
+      datum["color"] = "red"
+   if "g" in color:
+      datum["color"] = "green"
+   options["data"].append(datum)
   
 
 def show():
