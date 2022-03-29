@@ -12,6 +12,7 @@ const english = {
         binom:"distribution binom n=20 p=0.5\n6 or less\n7 or more\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 or less\n4 or more\nsum\n5\n",
         normal:"distribution normal my=10 sigma=5\n3 or less\n4 or more\nsum\nplot 0,20\n",
+        reg:"reg pol 2\nxs:1,2,3\nys:2,4,8\n\nAlso reg exp/pow/lin",
     },
     splitter: "question",
     atcommands: {
@@ -24,6 +25,7 @@ const english = {
         piecewise: "piecewise",
         poldiv: "poldiv",
         python: "python",
+        reg: "reg",
         eqset: "eqset",
         trig: "trig",
         math: "math",
@@ -54,6 +56,7 @@ const norwegian = {
         binom:"distribution binom n=20 p=0.5\n6 eller mindre\n7 eller mer\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 eller mindre\n4 eller mer\nsum\n5\n",
         normal:"distribution normal my=10 sigma=5\n3 eller mindre\n4 eller mer\nsum\nplot 0,21\n",
+        reg:"reg pol 2\nxs:1,2,3\nys:2,4,8\n\nPrøv også reg exp/pow/lin",
     },
     splitter: "oppgave",
     atcommands: {
@@ -66,6 +69,7 @@ const norwegian = {
         fortegn: "sign",
         poldiv: "poldiv",
         python: "python",
+        reg: "reg",
         trig: "trig",
         likninger: "eqset",
         matte: "math",
@@ -88,6 +92,7 @@ const norwegian = {
 @likninger
 @poldiv
 @delt
+@reg
 @python
 @trig
 @format
@@ -135,6 +140,8 @@ const italiano = {
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 o meno\n7 o più\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 o meno\n4 o più\nsum\n5\n",
+        normal:"distribution normal my=10 sigma=5\n3 o meno\n4 o più\nsum\nplot 0,21\n",
+        reg:"reg pol 2\nxs:1,2,3\nys:2,4,8\n\nAdesso exp/pow/lin",
     },
     splitter: "domanda",
     atcommands: {
@@ -145,6 +152,7 @@ const italiano = {
         segno: "sign",
         poldiv: "poldiv",
         python: "python",
+        reg: "reg",
         tratti:"piecewise",
         trig: "trig",
         qinsieme: "eqset",

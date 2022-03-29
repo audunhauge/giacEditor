@@ -13,6 +13,7 @@ const explain = {
 '(x+2)(x-1)(x-4)   +++++++++----+++++++
 ''(x+2)(x-1)(x-4)  -----------+++++++++
 help`,
+    reg: `Regression fit, reg pol 2, reg lin`,
     question: `Creates a numbered question heading
 @question            =>  Question 1.
 @question (4p)       =>  Question 2. (4p)

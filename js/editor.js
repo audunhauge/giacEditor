@@ -14,13 +14,15 @@ import {
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist, 
-     mathView, ed, examples, savedFiles, gitlist, sp, fs }
+const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist,
+    mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
 
-import { saveFileButton, readFileButton, 
-        getGitFile, getGistFile, gitFiles, gistFiles, } from './filehandling.js';
+import {
+    saveFileButton, readFileButton,
+    getGitFile, getGistFile, gitFiles, gistFiles,
+} from './filehandling.js';
 
 import { startReplay } from './replay.js';
 import { toast } from './util.js';
@@ -31,7 +33,7 @@ export const readTable = filename => {
     const table = $(id);
     if (table) {
         // @ts-ignore
-        return table.innerText.replaceAll("\t",";").replaceAll("\n","€");
+        return table.innerText.replaceAll("\t", ";").replaceAll("\n", "€");
         //return table.innerText;
     }
     return 'NO DATA';
@@ -92,6 +94,7 @@ const goHome = () => {
     app.classList.add("hidden");
     home.classList.remove("hidden");
     aktiv.classList.remove("hidden");
+    renderAll();
 }
 
 let oldSession;
@@ -166,7 +169,7 @@ Løs likninger
     setLocalJSON(sessionID, txt);
     setLocalJSON("filename", "newfile");
     goEdit();
-    helptxt("hjelp", 5, 0,  ed.getBoundingClientRect(), 0, 1); 
+    helptxt("hjelp", 5, 0, ed.getBoundingClientRect(), 0, 1);
 }
 
 
@@ -176,7 +179,7 @@ async function setup() {
     // renderAll
     const filename = getLocalJSON("filename");
     if (filename) {
-        oldSession = getLocalJSON(sessionID).replace(/^#GO!/gm,'#GO !');  // previous contents
+        oldSession = getLocalJSON(sessionID).replace(/^#GO!/gm, '#GO !');  // previous contents
         aktiv.classList.remove("hidden");
         web.current = filename;
         ed.value = oldSession || "";
@@ -293,7 +296,7 @@ export const renderAll = () => {
     const trigs = [];
     const piece = [];
     const python = [];
-    const tables = [];           
+    const tables = [];
     const sigrams = [];         // sign diagrams
     const poldivs = [];
     const regress = [];
@@ -338,21 +341,21 @@ export const renderAll = () => {
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
                 return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
             })
-            .replace(/@reg( .*)?$([^€]+?)^$^/gm, (_, klass="linear", eq) => {
+            .replace(/@reg( .*)?$([^€]+?)^$^/gm, (_, klass = "linear", eq) => {
                 ofs++;
                 regress.push({ eq, id: `reg${seg}_${ofs}`, klass, seg });
                 return `<div class="regression ${klass}" id="reg${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@distribution( normal)?( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_,normal,hyper,binom, params, lines) => {
+            .replace(/^@distribution( normal)?( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_, normal, hyper, binom, params, lines) => {
                 ofs++;
                 const type = normal || hyper || binom || "unknown";
                 distributions.push({ lines, id: `dist${seg}_${ofs}`, params, seg, type });
                 return `<div class="fordeling ${type}" id="dist${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_,options="", lines) => {
+            .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_, options = "", lines) => {
                 ofs++;
-                const [__, type='',name=''] = (options.match(/ ([a-z]+)? ?([a-zA-ZæøåÆØÅ]+)?/)) || [];
-                tables.push({ name, seg, type, lines, id: `table${seg}_${ofs}`});
+                const [__, type = '', name = ''] = (options.match(/ ([a-z]+)? ?([a-zA-ZæøåÆØÅ]+)?/)) || [];
+                tables.push({ name, seg, type, lines, id: `table${seg}_${ofs}` });
                 return `<div class="table ${type}" id="table${seg}_${ofs}"></div>\n`;
             })
             .replace(/@sign( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
@@ -384,7 +387,7 @@ export const renderAll = () => {
                 return `<div ${points} class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${instead}${hr}</div>\n${txt}\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
-                const [type,start] = (format || "").trimStart().trimEnd().split(" ") ;
+                const [type, start] = (format || "").trimStart().trimEnd().split(" ");
                 const reset = Number.isInteger(+start) ? Number(start) : 0;
                 return `<div data-start="${reset}" class="format ${format}"></div>\n`;
             })
@@ -461,6 +464,21 @@ export const renderAll = () => {
     const kolonner = qsa(".section > .kolonner");
     kolonner.forEach(k => k.parentNode.classList.add("kolonner"));
 
+    function interpolate(seg) {
+        const div = $("seg"+seg);
+        if (div) {
+            const old = div.innerHTML;
+            const txt = old.replace(/\$\{([a-z()0-9]+)\}/gm,(_,a)=> {
+               if (funks[a]) return funks[a];
+               return _;
+            });
+            if (old !== txt) {
+                div.innerHTML = txt;
+            }
+        }
+
+    }
+
 
     // now figure out which views have changed
 
@@ -473,13 +491,13 @@ export const renderAll = () => {
     });
     let segnum = {};  // have we reset giac for this segment?
     // regression before cas so that we can use function p[a-z](x) in cas
-    regress.forEach(({ eq, id, klass, seg },i) => {
+    regress.forEach(({ eq, id, klass, seg }, i) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
             resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
-            renderReg(id, eq, funks, regpoints ,i,klass);
+            renderReg(id, eq, funks, regpoints, i, klass);
         }
     });
     algebra.forEach(({ math, id, size, seg }) => {
@@ -490,7 +508,8 @@ export const renderAll = () => {
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderAlgebra(id, math, funks, size);
             commentMe(id, perc);
-            Object.assign(globalFunk,funks);
+            Object.assign(globalFunk, funks);
+            interpolate(seg);
         }
     });
     eqs.forEach(({ math, id, size, seg }) => {
@@ -534,7 +553,7 @@ export const renderAll = () => {
             renderDist(id, lines, params, type);
         }
     });
-    tables.forEach(({ name,type,lines, id, seg }) => {
+    tables.forEach(({ name, type, lines, id, seg }) => {
         if (rerend || dirtyList.includes(seg)) {
             renderTable(id, lines, type, name);
         }
@@ -632,14 +651,14 @@ ed.onkeypress = (e) => {
         const p = ed.selectionStart;
         const sofar = ed.value.slice(0, p);
         const at = sofar.lastIndexOf('\n');
-        const trailing = sofar.slice(at+1);
+        const trailing = sofar.slice(at + 1);
         const parts = trailing.split(/[^a-z()]/g);
         const word = parts.pop();
         const hit = globalFunk[word];
         if (hit) {
             const after = ed.value.slice(p);
             const before = trailing.slice(0, -word.length);
-            const adjusted = sofar.slice(0,at +1) + before + hit + after;
+            const adjusted = sofar.slice(0, at + 1) + before + hit + after;
             ed.value = adjusted;
             ed.selectionEnd = at + before.length + hit.length + 1;
             e.preventDefault();
