@@ -8,8 +8,10 @@ import {
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
     makeLatex, renderSigram, renderPiece,
-    renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable, renderReg
+    renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable
 } from './render.js';
+
+import { renderReg } from './regression.js';
 
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
@@ -278,8 +280,9 @@ const commentMe = (id, perc) => {
 
 export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
-        .replace(/\n*$/, '\n').replace(/^@fasit/gm, '@question fasit')
-        .replace(/@lang ([a-z]+)/gm, '');
+        .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
+        .replace(/@lang ([a-z]+)/gm, '')
+        .replace(/^\.$/gm,'<div class="nl"></div>');
     const [_, mylang] = (ed.value.match(/@lang ([a-z]+)/)) || [];
     if (langlist.includes(mylang)) {
         if (web.chosen !== mylang) {

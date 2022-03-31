@@ -808,3 +808,7 @@ div.table.dataset td {
 div.table table {
     border-collapse: collapse;
 }
+
+div.nl {
+    min-height: 1em;
+}
