@@ -7,6 +7,12 @@ const english = {
         factor: "factor",        // factor(x^2-3x-2) => (x-2)(x+1)
         poldiv: "propfrac",      // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotinequation:"plotinequation",
+        deg:"angle_radian:=0",
+        rad:"angle_radian:=1",
+        digits:"Digits",
+        exact:"approx_mode:=0",
+        approx:"approx_mode:=1",
+
     },
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 or less\n7 or more\nsum\n8\n",
@@ -51,6 +57,11 @@ const norwegian = {
         faktor: "factor",                // factor(x^2-3x-2) => (x-2)(x+1)
         poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotulikhet: "plotinequation",
+        grader:"angle_radian:=0",
+        radianer:"angle_radian:=1",
+        siffer:"Digits",
+        presis:"approx_mode:=0",
+        tilnærmet:"approx_mode:=1",
     },
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 eller mindre\n7 eller mer\nsum\n8\n",
@@ -136,6 +147,9 @@ const italiano = {
         fattore: "factor",                // factor(x^2-3x-2) => (x-2)(x+1)
         poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotdisuguaglianza: "plotinequation",
+        deg:"angle_radian:=0",
+        rad:"angle_radian:=1",
+        digits:"Digits",
     },
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 o meno\n7 o più\nsum\n8\n",
@@ -181,7 +195,7 @@ export const lang = { english, norwegian, italiano }
 
 // translates for cas
 export const trans = (lang, text) => {
-    return text.replace(/([^-+*/() [\]{}.0-9|"'#%&?<>!]+)/g, (_, w) => {
+    return text.replace(/([^-:=+*/() [\]{}.0-9|"'#%&?<>!]+)/g, (_, w) => {
         if (w.length < 2) return w;
         return lang.cas[w] || w;
     })
