@@ -404,9 +404,13 @@ export const renderAll = () => {
             })
     }
 
+    // @ts-ignore
+    const uieval = txt => UI.eval(txt);
+
     const resetCAS = () => {
         // @ts-ignore
-        UI.eval("restart");
+        uieval("restart");
+        uieval("lg(x):=ln(x)/ln(10)");
         funks = {};
         regpoints = {};
     }
