@@ -150,6 +150,8 @@ const italiano = {
         deg:"angle_radian:=0",
         rad:"angle_radian:=1",
         digits:"Digits",
+        essato:"approx_mode:=0",
+        impreciso:"approx_mode:=1",
     },
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 o meno\n7 o più\nsum\n8\n",

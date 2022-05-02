@@ -164,13 +164,16 @@ def read(filename,delimiter=";",skiprows=0,usecols=()):
    text = text[min(skiprows,len(text)):]
    end = len(text[0].split(delimiter))
    if len(usecols) > 0:  ## only some columns
-      print(usecols)
       index = list(usecols)
       keep = []
       for line in text:
-         keep.append([x for i,x in enumerate(line.split(delimiter)) if i in index])
+         noticks = line.replace('"','')
+         keep.append([x for i,x in enumerate(noticks.split(delimiter)) if i in index])
       return keep
    return [l.split(delimiter) for l in text]
+
+def loadtxt(filename,delimiter=";",skiprows=0,usecols=()):
+   read(filename,delimiter,skiprows,usecols)
 
 def lowess(y,x,frac=0.4,return_sorted=False):
    return window.lowess(x,y)

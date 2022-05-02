@@ -43,7 +43,7 @@ export const readTable = filename => {
 
 
 const langlist = Object.keys(lang);
-let currentLanguage = getLocalJSON("lang") || "english";
+let currentLanguage = getLocalJSON("lang") || "norwegian";
 let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
 
 export let tg = curry(trangui)(lang[currentLanguage]);  // translate words used by gui

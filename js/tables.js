@@ -175,6 +175,21 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
     return ['<div>' + wrap(r, "div") + '</div>', ...f];
 }
 
+
+export const dataTable = (data, commands, id) => {
+    // calc mean, median, stddev
+    let ret = [];
+    if (data.length) {
+        if (commands.length == 0) {
+            return ret;
+        } else {
+            return commandWrangler(commands, "stats", {}, data, 0, id);
+        }
+    }
+    return ret;
+}
+
+
 export const statsTable = (data, commands, id) => {
     // calc mean, median, stddev
     let ret = [];

@@ -10,7 +10,7 @@ import {
     normal, normalC, fisher, fisherCrit
 } from './probability.js';
 
-import { frekTable, statsTable, anovaTable } from './tables.js';
+import { frekTable, statsTable, anovaTable, dataTable } from './tables.js';
 
 const { abs, min, max, sin, cos, PI, floor, log, exp, E } = Math;
 
@@ -567,6 +567,7 @@ const tableRender = {
     stats: statsTable,
     anova: anovaTable,
     frekvens: frekTable,
+    dataset: dataTable,
 }
 
 
@@ -582,7 +583,7 @@ export function renderTable(id, text, type, name) {
     } else {
         txt += `<table id="${name}">`;
         if (type !== "") txt += `<caption>${name || type}</caption>`;
-        const headers = lines[0].split(",");
+        const headers = lines[0].replaceAll('"', '').split(/[,;\t]/);
         if (!Number.isFinite(+headers[0]) && !headers[0].includes(":")) {
             // not number and not start:stop - assume header
             txt += '<thead><tr>' + wrap(headers, "th") + '</tr></thead>';
@@ -592,7 +593,8 @@ export function renderTable(id, text, type, name) {
         txt += '<tbody>';
         const w = headers.length;
         for (let i = 0; i < lines.length; i++) {
-            const values = lines[i].split(",").slice(0, w);
+            const line = lines[i].replaceAll('"', '');
+            const values = line.split(/[,;\t]/).slice(0, w);
             if (values.length > 1) {
                 const base = Array(w).fill("");
                 values.forEach((v, i) => base[i] = v);
