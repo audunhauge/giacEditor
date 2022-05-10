@@ -1,5 +1,5 @@
 # Simulate pylab in brython
-from browser import html,document,window, alert as message
+from browser import html,document,window,aio, alert as message
 import array as _arr  ## someone might well use array as a name ...
 import functools  ## no such risk - eh?
 import random
@@ -158,6 +158,10 @@ def plot(xs,ys,color="",type="polyline"):
 def show():
     window.functionPlot(options)
 
+async def getURL(url,jsn):
+   text = await window.geturl(url,jsn);
+   return text;    
+
 def read(filename,delimiter=";",skiprows=0,usecols=()):
    #text = "a;b;c€d,e,f€g,h,i".split("€")
    text = window.readPython(filename).split("€")
@@ -172,8 +176,7 @@ def read(filename,delimiter=";",skiprows=0,usecols=()):
       return keep
    return [l.split(delimiter) for l in text]
 
-def loadtxt(filename,delimiter=";",skiprows=0,usecols=()):
-   read(filename,delimiter,skiprows,usecols)
+loadtxt = read
 
 def lowess(y,x,frac=0.4,return_sorted=False):
    return window.lowess(x,y)

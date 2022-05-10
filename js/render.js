@@ -679,9 +679,11 @@ export function renderPy(id, py, klass) {
             try {
                 eval(ajscode);
             } catch (e) {
+                const info = e.args ? e.args[0] : "";
                 if (e.name) {
+                    const inf = info || `${e.name} is perhaps undefined?`;
                     const msg = `Error at line ${Number(e.$line_info.split(',')[0]) - 3}<br>`
-                        + `${e.name} is perhaps undefined?`;
+                        + inf;
                     toast(msg);
                 }
                 console.log(e);

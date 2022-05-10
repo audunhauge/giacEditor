@@ -132,6 +132,7 @@
     <div class="toast">Starting ... </div>
     <div id="output"></div>
     <script>
+        var geturl;
         var readPython;
         var lowess;
         var render;
@@ -148,9 +149,11 @@
         }
         import { renderAll, readTable } from './js/editor.js';
         import { lowess as _low} from './js/probability.js';
+        import { getJSONurl } from './js/filehandling.js';
         render = renderAll;
         readPython = readTable;
         lowess = _low;
+        geturl = getJSONurl;   // so that python can read data
     </script>
 
 </body>

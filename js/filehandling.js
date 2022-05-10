@@ -92,6 +92,26 @@ const _gitFiles = async (user, repo) => {
     }
 }
 
+
+// used by python to fetch json api
+export const getJSONurl = async (url,jsn) => {
+    const init = {
+        method: "POST",
+        body:jsn,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+    try {
+        const resp = await fetch(url,init)
+        const json = await resp.json()
+        return json;
+    } catch (err) {
+        console.log(err);
+        return ({ items: [] });  // empty array
+    }
+}
+
 const userRepo = () => {
     const { user = "audunhauge" } = (getLocalJSON("user") || {});
     const { repo = "s1Oppgaver" } = (getLocalJSON("repo") || {});
