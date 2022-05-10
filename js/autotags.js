@@ -13,7 +13,31 @@ const explain = {
 '(x+2)(x-1)(x-4)   +++++++++----+++++++
 ''(x+2)(x-1)(x-4)  -----------+++++++++
 help`,
-    reg: `Regression fit, reg pol 2, reg lin`,
+    reg: `Regression fit, reg pol 2, reg lin
+@reg exp
+xs:1,2,3,4
+ys:2,4,8,16
+name:f
+table:vekst
+.
+show
+
+Funksjonen heter f, tabellen heter vekst.  
+Linja med punktum lager vertikal avstand
+name: setter navn på funksjonen
+table: setter navn og viser tabellen
+show viser funksjonen
+Denne kan være skjult dersom du lager en prøve ...
+
+@cas
+f::regresjonsfunksjonen
+
+
+@fplot
+vekst;f
+
+Navngitte funksjoner/tabeller kan brukes i fplot
+`,
     question: `Creates a numbered question heading
 @question            =>  Question 1.
 @question (4p)       =>  Question 2. (4p)
@@ -213,7 +237,7 @@ Used together with plot() and show()`,
 }
 
 
-let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,trig,eq,eqset,format,ans,dato";
+let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,reg,trig,eq,eqset,format,ans,dato";
 let auwords = aulist.split(",");
 let help;
 let expand = {};

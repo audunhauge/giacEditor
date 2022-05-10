@@ -100,6 +100,9 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
                 break;
         }
         for (const line of commands) {
+            if (line.startsWith("<")) {
+                res += line;
+            }
             if (line.startsWith("show")) {
                 res += '<div>' + funk + '</div>';
             }
