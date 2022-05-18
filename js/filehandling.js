@@ -84,7 +84,7 @@ export const saveFileButton = (id, filename, cb) => {
 const _gitFiles = async (user, repo) => {
     try {
         const resp = await fetch(`https://api.github.com/search/code?q=extension:mxy+repo:${user}/${repo}`)
-        const json = await resp.json()
+        const json = await resp.json();
         return json;
     } catch (err) {
         console.log(err);
@@ -100,12 +100,15 @@ export const getJSONurl = async (url,jsn) => {
         body:jsn,
         headers: {
           "Content-Type": "application/json",
+          "Accept-Charset": "UTF-8"
         },
       };
     try {
-        const resp = await fetch(url,init)
-        const json = await resp.json()
+        const resp = await fetch(url,init);
+        //const txt = await resp.text();
+        const json = await resp.json();
         return json;
+        //return txt;
     } catch (err) {
         console.log(err);
         return ({ items: [] });  // empty array
