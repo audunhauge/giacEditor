@@ -3,6 +3,7 @@ const version = 3.5;
 const filesToCache = [
   '/',
   '/index.html',
+  '/favicon.ico',
   '/aside.html',
   '/pylab.py',
   '/examples.json',
@@ -39,6 +40,7 @@ const filesToCache = [
   `/js/mathlex.min.js`,
   `/js/Minos.js`,
   `/js/probability.js`,
+  `/js/regression.js`,
   `/js/remarkable.min.js`,
   `/js/render.js`,
   `/js/replay.js`,
