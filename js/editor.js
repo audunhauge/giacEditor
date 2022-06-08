@@ -292,6 +292,7 @@ export const renderAll = () => {
     }
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
     let regpoints = {};   // regression points stored here
+    let source = "";
     const plots = [];
     const maths = [];
     const algebra = [];
@@ -401,6 +402,10 @@ export const renderAll = () => {
                 const theDay = new Date();
                 theDay.setDate(theDay.getDate() + Number(ofs || 0));
                 return `<span class="date">${theDay.toLocaleDateString('en-GB')}</span>`;
+            })
+            .replace(/^@source/gm, ( ) => {
+                source = ed.value;
+                return `<div  class="source" id="source"></div>\n`;
             })
     }
 
@@ -588,6 +593,9 @@ export const renderAll = () => {
             renderTrig(id, trig, klass);
         //scrollit(id);
     });
+    if (source) {
+        $("source").innerHTML = source.split("\n").map(line => `<span>${line}</span><br>`).join("");
+    }
     setLocalJSON(sessionID, ed.value);
 }
 

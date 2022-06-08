@@ -728,7 +728,7 @@ function plotGraph(parent, fu, size, funks, regpoints, colors) {
     parent.append(div);
     try {
         const def = fu.replace(/([^,;]+)/g, (a, f) => {
-            if (funks[f]) return funks[f];
+            if (funks[f]) return funks[f].replace("matrix","");
             if (regpoints[f]) {
                 const [x, y] = regpoints[f];
                 const xy = x.map((v, i) => [v, y[i]]);
@@ -892,7 +892,7 @@ function _plot(f, optobj, color, i) {
             const mymin = obj.reduce((s, v) => min(v[1], s), obj[0][1]);
             const mxmax = obj.reduce((s, v) => max(v[0], s), obj[0][0]);
             const mxmin = obj.reduce((s, v) => min(v[0], s), obj[0][0]);
-            optobj.yAxis = { domain: [min(ymin, mymin - 2), max(ymax, mymax + 2)] };
+            optobj.yAxis = { domain: [min(ymin, mymin - 0.1), max(ymax, mymax + 0.1)] };
             optobj.xAxis = { domain: [min(xmin, mxmin), max(xmax, mxmax)] };
             // type d
             // data: [{ points: [  [1, 1],  [2, 1], [2, 2],  [1, 2],  [1, 1]  ],  fnType: 'points',  graphType: 'scatter'  }]
@@ -916,7 +916,7 @@ function _plot(f, optobj, color, i) {
         // type a,b,c
         let graphType = 'polyline';
         let obj = {};
-        const fn = f;
+        const fn = f.replace(/√/g,"sqrt");
         if (f.includes("=")) {
             // assume Ax+By=C
             // try as y=f(x)
@@ -929,7 +929,7 @@ function _plot(f, optobj, color, i) {
             } else {
                 const fy = giaEval(`solve(${f})`);
                 if (fy.startsWith("list[")) {
-                    const x = fy.slice(5, -1);
+                    const x = fy.slice(5, -1).replace(/√(\d+)/g, (_,n) => `sqrt(${n})`);
                     // @ts-ignore
                     obj = { x, y: 't', fnType: 'parametric', graphType, range: [ymin, ymax] }
                 }

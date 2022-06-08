@@ -96,7 +96,11 @@ div.section.fasit {
         page-break-after: always;
     }
 
-    .section, .oppgave, .math, .algebra, .equation, .plots, code {
+    div.source {
+        page-break-before: always;
+    }
+
+    .source, .section, .oppgave, .math, .algebra, .equation, .plots, code {
         page-break-inside: avoid;
     }
 
@@ -800,6 +804,7 @@ table.hidden {
     display: none;
 }
 
+div.table.frekvens td,
 div.table.dataset td {
   border: solid rgba(128, 128, 128, 0.226) 0.5px;
   padding:0.2em;
@@ -811,4 +816,38 @@ div.table table {
 
 div.nl {
     min-height: 1em;
+}
+div.source {
+    position: relative;
+    white-space: pre;
+    border:solid gray 1px;
+    box-shadow: 2px 2px 2px black;
+    max-width: 220mm;
+    margin:4mm;
+    padding: 5mm;
+    padding-left:4ch;
+    margin-top:3rem;
+    counter-reset: line-count;
+}
+
+div.source::before {
+    font-size: large;
+    position: absolute;
+    top:-2.5rem;
+    color:blue;
+    content: "Source";
+}
+
+div.source span {
+    position: relative;
+    counter-increment: line-count;
+}
+
+div.source span::before {
+    position: absolute;
+    left:-25px;
+    top:0;
+    color:blue;
+    width: 10px;
+    content: counter(line-count);
 }

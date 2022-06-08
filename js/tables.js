@@ -268,8 +268,9 @@ export const anovaTable = (_data, commands, id) => {
         const F = MSTR / MSE;
         const p = 1 - fisher(k - 1, n - k, F);
         const P = fisherCrit(.05, k - 1, n - k)
-        const names = "n,C,T,SSTOT,SSTR,SSE,F,p,P".split(",");
+        const names = "n,C,T,SSTOT,SSTR,SSE,F,p,P,Hyp".split(",");
         const vals = [n, C, T, SSTOT, SSTR, SSE, F, p, P].map(v => v.toFixed(3));
+        vals.push(p< 0.05 ? "Different" : "Same");
         const txt = wrap(names.map((e, i) => `<span>${e}</span><span>${vals[i]}</span>`), "div");
         ret.push(txt);
         return ret;
@@ -285,7 +286,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
         const data = transpose(_data);
         const [xs, fs] = data.slice(0, 2);
         const L = xs.length - 1;
-        let mean;
+        let mean,median;
         let plotData;
         if (String(xs[0]).includes(':')) {
             // assume binned data
@@ -314,18 +315,24 @@ export const frekTable = (_data, commands, id, haveHead) => {
             plotData = transpose(grouped);
             const sumf = fs.reduce((s, v) => s + v, 0);
             mean = grouped.reduce((s, v) => s + v[4], 0) / sumf;
+            median = 0;
             const trans = grouped.map(row =>
                 '<tr>' + row.map(cell => '<td>' + (cell) + '</td>').join("") + '</tr>'
             ).join("");
             tbl.innerHTML = trans;
             tableList[id] = trans;
             ret.push(`Mean=${mean.toFixed(2)}`);
+            if (!haveHead) {
+                const head = create("thead");
+                head.innerHTML = '<tr>' + wrap("Lo,Hi,f,m,m*f".split(","), "th") + '</tr>';
+                $(id).querySelector("table").append(head);
+            }
         } else {
             const sumf = fs.reduce((s, v) => s + v, 0);
             const rs = fs.map(f => f / sumf);
             const crs = [];  // cum rel
             rs.reduce((s, v, i) => crs[i] = s + v, 0);
-            const median = xs[crs.findIndex(r => r > 0.5)];
+            median = xs[crs.findIndex(r => r > 0.5)];
 
             const sumxf = fs.reduce((s, v, i) => s + v * xs[i], 0);
             mean = sumxf / sumf;
@@ -346,7 +353,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
         if (commands.length == 0) {
             return ret;
         } else {
-            const response = { mean };
+            const response = { mean, median };
             return commandWrangler(commands, "stats", response, plotData, 0, id);
         }
     }
