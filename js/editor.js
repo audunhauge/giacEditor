@@ -282,7 +282,7 @@ export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
-        .replace(/^\.$/gm,'<div class="nl"></div>');
+        .replace(/^\.$/gm, '<div class="nl"></div>');
     const [_, mylang] = (ed.value.match(/@lang ([a-z]+)/)) || [];
     if (langlist.includes(mylang)) {
         if (web.chosen !== mylang) {
@@ -403,7 +403,7 @@ export const renderAll = () => {
                 theDay.setDate(theDay.getDate() + Number(ofs || 0));
                 return `<span class="date">${theDay.toLocaleDateString('en-GB')}</span>`;
             })
-            .replace(/^@source/gm, ( ) => {
+            .replace(/^@source/gm, () => {
                 source = ed.value;
                 return `<div  class="source" id="source"></div>\n`;
             })
@@ -461,6 +461,8 @@ export const renderAll = () => {
         }
     }
 
+    let buildFasit = null;
+
     // lift fasit out to the section level
     // expect only one fasit - strange to have more than one
     const fasit = qs(".section > .fasit");
@@ -470,6 +472,12 @@ export const renderAll = () => {
         if (!fasit.classList.contains("synlig")) {
             fasit.parentNode.classList.add("skjult");
         }
+        // check if we have nothing following (only #last)
+        const after = qsa(".section.fasit ~ *");
+        if (after.length === 1) {
+            // fasit is empty
+            buildFasit = fasit;
+        }
     }
 
     // lift kolonner out to the section level
@@ -477,12 +485,12 @@ export const renderAll = () => {
     kolonner.forEach(k => k.parentNode.classList.add("kolonner"));
 
     function interpolate(seg) {
-        const div = $("seg"+seg);
+        const div = $("seg" + seg);
         if (div) {
             const old = div.innerHTML;
-            const txt = old.replace(/\$\{([a-z()0-9]+)\}/gm,(_,a)=> {
-               if (funks[a]) return funks[a];
-               return _;
+            const txt = old.replace(/\$\{([a-z()0-9]+)\}/gm, (_, a) => {
+                if (funks[a]) return funks[a];
+                return _;
             });
             if (old !== txt) {
                 div.innerHTML = txt;
@@ -593,6 +601,35 @@ export const renderAll = () => {
             renderTrig(id, trig, klass);
         //scrollit(id);
     });
+
+    if (buildFasit) {
+        const doc = Array.from(qsa(".section")).slice(0, -1);
+        const mm = [];
+        maths.forEach(({ math, id, size, seg }) => {
+            mm[seg] = { math, size };
+        });
+        ed.value = ed.value + doc.map((e, i) => {
+            if (mm[i]) {
+                const { math, size } = mm[i];
+                if (size && size.includes("likningsett")) {
+                    const lines = math.split("\n");
+                    const txt = lines.filter((e) => e).map((e,i) => `u${i}:=${e}`).join("\n");
+                    return '\n@question\n@cas ' + size  + '\n' + txt + '\nsolve([u0,u1],[x,y])\n';
+                } else if ((size && size.includes("likning")) || math.includes("=")) {
+                    const lines = math.split("\n");
+                    const txt = lines.filter(e => e).map(e => `solve(${e})`).join("\n");
+                    return '\n@question\n@cas ' + size  + '\n' + txt + '\n'; 
+                } else {
+                    return '\n@question\n@cas ' + size  + math; 
+                }
+            } else {
+                return '\n@question\n';
+            }
+        }).join("");
+    }
+
+
+
     if (source) {
         $("source").innerHTML = source.split("\n").map(line => `<span>${line}</span><br>`).join("");
     }
