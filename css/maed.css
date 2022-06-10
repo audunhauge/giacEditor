@@ -851,3 +851,9 @@ div.source span::before {
     width: 10px;
     content: counter(line-count);
 }
+
+/* reduce font for question numbers in fasit */
+div.section.fasit ~ div.section div.oppgave{
+    font-size: 1em;
+    color:darkred;
+}
