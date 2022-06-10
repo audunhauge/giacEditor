@@ -6,7 +6,7 @@ import {
 } from './Minos.js';
 
 import {
-    renderAlgebra, renderPoldiv, renderEqnSet, renderPy,
+    renderAlgebra, renderPoldiv, renderEqnSet, renderPy, giaEval,
     makeLatex, renderSigram, renderPiece,
     renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable
 } from './render.js';
@@ -612,9 +612,16 @@ export const renderAll = () => {
             if (mm[i]) {
                 const { math, size } = mm[i];
                 if (size && size.includes("likningsett")) {
-                    const lines = math.split("\n");
-                    const txt = lines.filter((e) => e).map((e,i) => `u${i}:=${e}`).join("\n");
-                    return '\n@question\n@cas ' + size  + '\n' + txt + '\nsolve([u0,u1],[x,y])\n';
+                    uieval('restart');
+                    const lines = math.split("\n").filter(e => e);
+                    const n = lines.length;
+                    const txt = lines.map((e,i) => `u${i}:=${e}`).join("\n");
+                    // pick out variables used in the equations- gives "[x,y][y,z][x,y,z]"
+                    const mwr = lines.reduce((s,v) => {const q = giaEval(`lname(${v})`); return s+q},"");
+                    // replace any "[]" and split on ,  => Set => Array to remove duplicates
+                    const wars = Array.from(new Set(mwr.replaceAll('[',',').replaceAll(']',',').split(",").filter(e => e)));
+                    const us = "012345".split("").slice(0,n).map(e => 'u'+e);
+                    return '\n@question\n@cas ' + size  + '\n' + txt + `\nsolve([${us}],[${wars}])\n`;
                 } else if ((size && size.includes("likning")) || math.includes("=")) {
                     const lines = math.split("\n");
                     const txt = lines.filter(e => e).map(e => `solve(${e})`).join("\n");
