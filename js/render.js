@@ -571,7 +571,95 @@ const tableRender = {
 }
 
 
+// scan the table, discover shape
+// inspect and locate subset with numeric data
+// the rest is formated as headers
+/**
+ *   ,a,b,c,d,e,f
+ *   x,1,2,3,4,5,6
+ *   y,4,5,6,7,8,9
+ *   commands  (any lines without , are assumed to be commands)
+ *   data = [[1,2,3,4,5,6],[4,5,6,7,8,9]]
+ *   all rows padded to same length
+ */
 export function renderTable(id, text, type, name) {
+    const parent = $(id)
+    let txt = '';
+    let haveHead = false;
+    let data = [];
+    const rows = [];
+    const commands = [];
+    const lines = text.replaceAll('"', '').split("\n").filter(l => l !== "");
+    if (lines.length < 1) {
+        txt += "Must have lines of data";
+    } else {
+        txt += `<table id="${name}">`;
+        if (type !== "") txt += `<caption>${name || type}</caption>`;
+        let wi = null, w = 0;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const elements = line.split(/[,;\t]/);
+            if (elements.length > 1) {
+                rows.push(elements);
+                const num = elements.filter(v => Number.isFinite(+v)).length;
+                if (num > w) {
+                    wi = i;
+                    w = num;
+                }
+            } else {
+                commands.push(line);
+            }
+        }
+        let start = 0, skip = 0;
+        if (wi !== null) {
+            // we have index of widest row - use as shape
+            const master = rows[wi];
+            start = master.findIndex(e => Number.isFinite(+e));
+            // start is first numeric value of master row
+            // now want to skip rows with mainly text
+            skip = rows.findIndex(r => Number.isFinite(+r[start])) || 0;
+            for (let i = skip; i < rows.length; i++) {
+                data.push(rows[i].slice(start));
+            }
+        } else {
+            data = rows.slice();
+        }
+        const n = rows[0].length;
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            txt += '<tr>';
+            for (let j = 0; j < n; j++) {
+                // TODO variable for "td|th"
+                const v = (row[j] || '').replace(/['"]/g,'');
+                if (j < start || i < skip) {
+                    txt += '<th>'
+                    txt += v;
+                    txt += '</th>'
+                } else {
+                    txt += '<td>'
+                    txt += v;
+                    txt += '</td>'
+                }
+            }
+            txt += '</tr>';
+        }
+        txt += '</table>';
+    }
+    tableList[id] = txt;
+    parent.innerHTML = txt;
+    if (tableRender[type]) {
+        tableRender[type](data.slice(), commands, id, haveHead).map(t => {
+            const d = create("div");
+            d.className = "subtype";
+            d.innerHTML = t;
+            parent.append(d);
+        });
+    }
+
+}
+
+
+ function _renderTable(id, text, type, name) {
     const parent = $(id)
     let txt = '';
     let haveHead = false;
@@ -728,7 +816,7 @@ function plotGraph(parent, fu, size, funks, regpoints, colors) {
     parent.append(div);
     try {
         const def = fu.replace(/([^,;]+)/g, (a, f) => {
-            if (funks[f]) return funks[f].replace("matrix","");
+            if (funks[f]) return funks[f].replace("matrix", "");
             if (regpoints[f]) {
                 const [x, y] = regpoints[f];
                 const xy = x.map((v, i) => [v, y[i]]);
@@ -916,7 +1004,7 @@ function _plot(f, optobj, color, i) {
         // type a,b,c
         let graphType = 'polyline';
         let obj = {};
-        const fn = f.replace(/√/g,"sqrt");
+        const fn = f.replace(/√/g, "sqrt");
         if (f.includes("=")) {
             // assume Ax+By=C
             // try as y=f(x)
@@ -929,7 +1017,7 @@ function _plot(f, optobj, color, i) {
             } else {
                 const fy = giaEval(`solve(${f})`);
                 if (fy.startsWith("list[")) {
-                    const x = fy.slice(5, -1).replace(/√(\d+)/g, (_,n) => `sqrt(${n})`);
+                    const x = fy.slice(5, -1).replace(/√(\d+)/g, (_, n) => `sqrt(${n})`);
                     // @ts-ignore
                     obj = { x, y: 't', fnType: 'parametric', graphType, range: [ymin, ymax] }
                 }
