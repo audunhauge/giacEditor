@@ -575,7 +575,7 @@ export const renderAll = () => {
     });
     tables.forEach(({ name, type, lines, id, seg }) => {
         if (rerend || dirtyList.includes(seg)) {
-            renderTable(id, lines, type, name);
+            renderTable(id, lines, type, name, regpoints);
         }
     });
     sigrams.forEach(({ eq, id, size, seg }) => {
@@ -611,7 +611,7 @@ export const renderAll = () => {
         ed.value = ed.value + doc.map((e, i) => {
             if (mm[i]) {
                 const { math, size } = mm[i];
-                if (size && size.includes("likningsett")) {
+                if (size && size.match(/li[kg]nings+et+/)) {
                     uieval('restart');
                     const lines = math.split("\n").filter(e => e);
                     const n = lines.length;

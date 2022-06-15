@@ -10,7 +10,7 @@ import {
     normal, normalC, fisher, fisherCrit
 } from './probability.js';
 
-import { frekTable, statsTable, anovaTable, dataTable } from './tables.js';
+import { frekTable, statsTable, anovaTable, dataTable, transpose } from './tables.js';
 
 const { abs, min, max, sin, cos, PI, floor, log, exp, E } = Math;
 
@@ -582,7 +582,7 @@ const tableRender = {
  *   data = [[1,2,3,4,5,6],[4,5,6,7,8,9]]
  *   all rows padded to same length
  */
-export function renderTable(id, text, type, name) {
+export function renderTable(id, text, type, name, regpoints) {
     const parent = $(id)
     let txt = '';
     let haveHead = false;
@@ -644,6 +644,18 @@ export function renderTable(id, text, type, name) {
             txt += '</tr>';
         }
         txt += '</table>';
+    }
+    if (data.length) {
+        if (data.length === 2) {
+            // assume [ xs,ys ]
+            regpoints[name || 'tbl'] = data;
+        } else {
+            // assume we need to transpose
+            const tra = transpose(data);
+            if (tra.length > 1) {
+                regpoints[name || 'tbl'] = tra.slice(0,2);
+            }
+        }
     }
     tableList[id] = txt;
     parent.innerHTML = txt;

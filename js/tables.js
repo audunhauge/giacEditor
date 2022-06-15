@@ -105,7 +105,7 @@ const pieChart = (data, sum, size) => {
         const id = "tt" + n + String(i);
         if (labels[i]) {
             const len = floor(64 * p);
-            txt.push({ text: String(labels[i]).slice(0, len), id });
+            txt.push({ text: String(labels[i]).slice(0, len).replace("'",""), id });
         }
         const [ex, ey] = p2xy(tot);
         const largeArcFlag = p > .5 ? 1 : 0;
@@ -225,7 +225,7 @@ export const statsTable = (data, commands, id) => {
     return ret;
 }
 
-const transpose = arr => {
+export const transpose = arr => {
     const data = Array(arr[0].length).fill(0).map(e => []);
     arr.map((v, i) => {
         v.map((u, j) => {
