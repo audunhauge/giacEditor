@@ -2,7 +2,7 @@
 
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
-import { web, tg } from './editor.js';
+import { web, tg, currentLanguage } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice } from './util.js';
 import {
@@ -88,7 +88,7 @@ const giaClean = (exp, fallback = "?") => {
 }
 
 export const giaEval = exp => {
-    const txt = trans(lang[web.chosen], exp);
+    const txt = trans(lang[currentLanguage], exp);
     try {
         // @ts-ignore
         return UI.eval(txt);

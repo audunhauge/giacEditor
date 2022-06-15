@@ -142,7 +142,7 @@ div.oppgave.fasit::before {
 #editor {
     position: fixed;
     right: 0;
-    top: 5rem;
+    top: 0;
     min-width: 30%;
     width: calc(90vw - 210mm);
 }
@@ -864,8 +864,60 @@ div.section.fasit ~ div.section div.oppgave{
     position: absolute;
     width: 100vw;
     height: 100vh;
-    background-color: honeydew;
-    padding:2rem;
+    background-color: white;
     top:0;
     left:0;
+    justify-content: center;
+}
+
+#config:not(.hidden) {
+    display: flex;
+}
+
+#config > div {
+    position: relative;
+    top:4rem;
+    margin: 4ch;
+    max-width: 50ch;
+    height: fit-content;
+    border:solid rgba(128, 128, 128, 0.226) 1px;
+    border-radius: 9px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0 0 9px;
+}
+
+#config div.inputDiv {
+   min-width: 40ch;
+   display:grid;
+   grid-template-columns: 2fr 1fr;
+   border-bottom: 1px rgba(128, 128, 128, 0.295) solid;
+   padding:2ch;
+}
+
+#config div.inputDiv:last-child {
+    border-bottom: none;
+}
+
+#config div.inputDiv button {
+    width: fit-content;
+ }
+ 
+#config select {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    max-width: 100%;
+    outline: none;
+    padding-bottom: 6px;
+    padding-top: 6px;
+    padding-left:4px;
+}
+
+#config label {
+    color:blue;
+    text-transform: capitalize;
+}
+
+#config div.inputDiv span {
+    font-size: 0.9rem;
+    color:darkgreen;
 }

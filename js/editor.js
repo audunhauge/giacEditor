@@ -27,7 +27,7 @@ import {
 } from './filehandling.js';
 
 import { startReplay } from './replay.js';
-import { toast, makeSelect } from './util.js';
+import { toast, makeSelect, makeInput } from './util.js';
 
 
 // used by brython to "read" a @table
@@ -45,31 +45,38 @@ export const readTable = filename => {
 let config = {};
 
 const configBase = {
-    language:"norwegian",
-    trigmode:"grader,rad",
+    language: { valg: "norwegian,english,italiano", t: "select",e:"Reload page for change to take effect" },
+    trigmode: { valg: "grader,rad", t: "select",},
+    gist:{ valg:"ja,nei",t:"select"},
+    github:{valg:"ja,nei",t:"select"},
 };
 
 
 const makeConfig = () => {
     const divConfig = $("config");
+    divConfig.innerHTML = "<h2>Settings</h2>";
     divConfig.classList.remove("hidden");
-    let s = "";
+    const box = create("div");
     Object.keys(configBase).forEach(k => {
-        const v = configBase[k];
-        const sel = config[k] || "";
-        const inp = makeSelect(k,v,sel);
-        s += `<div><label>${k}</label>${inp}</div>`;
+        const {valg,t,e=""} = configBase[k];
+        const valgt = config[k] || "";
+        const inp = makeInput(k,t,{valg,valgt});
+        const explain = create("span");
+        explain.innerHTML = e;
+        inp.append(explain);
+        box.append(inp);
     });
-    s += `<div><button type="button">Save</button>`;
-    divConfig.innerHTML = s;
+    const confirm = makeInput("configsave","button",{ledetekst:"Lagre"});
+    box.append(confirm);
+    divConfig.append(box);
     qs("#config button").addEventListener("click", () => {
         divConfig.classList.add("hidden");
         const konfig = Array.from(qsa("#config select"));
         konfig.forEach(elm => {
-            const {id,value} = elm;
+            const { id, value } = elm;
             config[id] = value;
         });
-        setLocalJSON("config",config);
+        setLocalJSON("config", config);
     })
 }
 
@@ -79,11 +86,20 @@ if (!havConfig) {
     makeConfig();
 } else {
     config = havConfig;
+    if (config["gist"] === "nei") {
+        gistlist.classList.add("hidden");
+    }
+    if (config["github"] === "nei") {
+        gitlist.classList.add("hidden");
+    }
 }
 
 
 const langlist = Object.keys(lang);
-let currentLanguage = config["language"] || "norwegian";
+export var currentLanguage = config["language"] || "norwegian";
+if (!langlist.includes(currentLanguage)) {
+    currentLanguage = 'norwegian';
+}
 let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
 
 export let tg = curry(trangui)(lang[currentLanguage]);  // translate words used by gui
@@ -93,13 +109,13 @@ export const web = updateMyProperties({ langlist });
 const sessionID = "mathEd";
 
 // web.lang = 0;  // start with first lang in list
-web.lang = langlist.indexOf(currentLanguage);
-$("lang").setAttribute("max", String(langlist.length - 1))
+web.lang = config["language"];
+//$("lang").setAttribute("max", String(langlist.length - 1))
 
-$("lang").onchange = () => setLang()
+//$("lang").onchange = () => setLang()
 
 function setLang() {
-    currentLanguage = web.chosen;
+    currentLanguage = config["language"];
     translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
     renderAll();
     setLocalJSON("lang", currentLanguage);
@@ -200,7 +216,7 @@ aside.onclick = async () => {
 
 
 conf.onclick = () => {
-  makeConfig();
+    makeConfig();
 }
 
 
@@ -327,13 +343,6 @@ export const renderAll = () => {
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
         .replace(/^\.$/gm, '<div class="nl"></div>');
-    const [_, mylang] = (ed.value.match(/@lang ([a-z]+)/)) || [];
-    if (langlist.includes(mylang)) {
-        if (web.chosen !== mylang) {
-            web.lang = langlist.indexOf(mylang);
-            setLang();
-        }
-    }
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
     let regpoints = {};   // regression points stored here
     let source = "";
