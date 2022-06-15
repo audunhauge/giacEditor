@@ -619,7 +619,7 @@ export function renderTable(id, text, type, name) {
             // now want to skip rows with mainly text
             skip = rows.findIndex(r => Number.isFinite(+r[start])) || 0;
             for (let i = skip; i < rows.length; i++) {
-                data.push(rows[i].slice(start));
+                data.push(rows[i].slice(start).map(e => Number.isFinite(+e) ? Number(e) : String(e)));
             }
         } else {
             data = rows.slice();
