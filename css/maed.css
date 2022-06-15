@@ -858,3 +858,14 @@ div.section.fasit ~ div.section div.oppgave{
     font-size: 1em;
     color:darkred;
 }
+
+
+#config {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: honeydew;
+    padding:2rem;
+    top:0;
+    left:0;
+}

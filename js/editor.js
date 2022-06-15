@@ -16,7 +16,7 @@ import { renderReg } from './regression.js';
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, aside, editor, gistlist,
+const { home, app, back, aktiv, help, info, newfile, conf, aside, editor, gistlist,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
@@ -27,9 +27,10 @@ import {
 } from './filehandling.js';
 
 import { startReplay } from './replay.js';
-import { toast } from './util.js';
+import { toast, makeSelect } from './util.js';
 
 
+// used by brython to "read" a @table
 export const readTable = filename => {
     const [id] = filename.split(".");
     const table = $(id);
@@ -41,9 +42,48 @@ export const readTable = filename => {
     return 'NO DATA';
 }
 
+let config = {};
+
+const configBase = {
+    language:"norwegian",
+    trigmode:"grader,rad",
+};
+
+
+const makeConfig = () => {
+    const divConfig = $("config");
+    divConfig.classList.remove("hidden");
+    let s = "";
+    Object.keys(configBase).forEach(k => {
+        const v = configBase[k];
+        const sel = config[k] || "";
+        const inp = makeSelect(k,v,sel);
+        s += `<div><label>${k}</label>${inp}</div>`;
+    });
+    s += `<div><button type="button">Save</button>`;
+    divConfig.innerHTML = s;
+    qs("#config button").addEventListener("click", () => {
+        divConfig.classList.add("hidden");
+        const konfig = Array.from(qsa("#config select"));
+        konfig.forEach(elm => {
+            const {id,value} = elm;
+            config[id] = value;
+        });
+        setLocalJSON("config",config);
+    })
+}
+
+let havConfig = getLocalJSON("config") || null;
+if (!havConfig) {
+    // alert("Set your config");
+    makeConfig();
+} else {
+    config = havConfig;
+}
+
 
 const langlist = Object.keys(lang);
-let currentLanguage = getLocalJSON("lang") || "norwegian";
+let currentLanguage = config["language"] || "norwegian";
 let translateAtCommands = curry(_translateAtCommands)(lang[currentLanguage]);
 
 export let tg = curry(trangui)(lang[currentLanguage]);  // translate words used by gui
@@ -158,6 +198,10 @@ aside.onclick = async () => {
     editor.classList.toggle("hidden");
 }
 
+
+conf.onclick = () => {
+  makeConfig();
+}
 
 
 newfile.onclick = () => {
@@ -416,6 +460,9 @@ export const renderAll = () => {
         // @ts-ignore
         uieval("restart");
         uieval("lg(x):=ln(x)/ln(10)");
+        if (!config["trigmode"].startsWith("rad")) {
+            uieval("angle_radian:=0");
+        }
         funks = {};
         regpoints = {};
     }
@@ -615,19 +662,19 @@ export const renderAll = () => {
                     uieval('restart');
                     const lines = math.split("\n").filter(e => e);
                     const n = lines.length;
-                    const txt = lines.map((e,i) => `u${i}:=${e}`).join("\n");
+                    const txt = lines.map((e, i) => `u${i}:=${e}`).join("\n");
                     // pick out variables used in the equations- gives "[x,y][y,z][x,y,z]"
-                    const mwr = lines.reduce((s,v) => {const q = giaEval(`lname(${v})`); return s+q},"");
+                    const mwr = lines.reduce((s, v) => { const q = giaEval(`lname(${v})`); return s + q }, "");
                     // replace any "[]" and split on ,  => Set => Array to remove duplicates
-                    const wars = Array.from(new Set(mwr.replaceAll('[',',').replaceAll(']',',').split(",").filter(e => e)));
-                    const us = "012345".split("").slice(0,n).map(e => 'u'+e);
-                    return '\n@question\n@cas ' + size  + '\n' + txt + `\nsolve([${us}],[${wars}])\n`;
+                    const wars = Array.from(new Set(mwr.replaceAll('[', ',').replaceAll(']', ',').split(",").filter(e => e)));
+                    const us = "012345".split("").slice(0, n).map(e => 'u' + e);
+                    return '\n@question\n@cas ' + size + '\n' + txt + `\nsolve([${us}],[${wars}])\n`;
                 } else if ((size && size.includes("likning")) || math.includes("=")) {
                     const lines = math.split("\n");
                     const txt = lines.filter(e => e).map(e => `solve(${e})`).join("\n");
-                    return '\n@question\n@cas ' + size  + '\n' + txt + '\n'; 
+                    return '\n@question\n@cas ' + size + '\n' + txt + '\n';
                 } else {
-                    return '\n@question\n@cas ' + size  + math; 
+                    return '\n@question\n@cas ' + size + math;
                 }
             } else {
                 return '\n@question\n';
