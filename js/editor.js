@@ -45,18 +45,18 @@ export const readTable = filename => {
 export var config = {};
 
 const configBase = {
-    language: { valg: "norwegian,english,italiano", t: "select",e:"Reload page for change to take effect" },
-    trigmode: { valg: "grader,rad", t: "select",},
-    git:{ valg:"ja,nei",t:"checkbox",e:"Show gistfiles and github"},
-    git_user:{ ledetekst:"Git username",t:"text"},
-    git_repo:{ ledetekst:"Git repo",t:"text"},
-    git_st:{ ledetekst:"gist",valg:"ja,nei",t:"checkbox",e:"Gistfiles"},
-    git_hub:{ledetekst:"github",valg:"ja,nei",t:"checkbox",e:"Files on github"},
+    language: { valg: "norwegian,english,italiano", t: "select", e: "Reload page for change to take effect" },
+    trigmode: { valg: "grader,rad", t: "select", },
+    git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
+    git_user: { ledetekst: "Git username", t: "text" },
+    git_repo: { ledetekst: "Git repo", t: "text" },
+    git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
+    git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
 };
 
 
 const enabled = () => {
-    Array.from(qsa("#config input")).forEach(e => { 
+    Array.from(qsa("#config input")).forEach(e => {
         e.parentNode.classList.remove("disabled")
         e.removeAttribute("disabled");
     });
@@ -67,7 +67,7 @@ const enabled = () => {
         lesser.forEach(e => {
             config[e.id] = "nei";
             e.removeAttribute("checked");
-            e.setAttribute("disabled","true");
+            e.setAttribute("disabled", "true");
             e.parentNode.classList.add("disabled");
         })
     });
@@ -80,15 +80,15 @@ const makeConfig = () => {
     divConfig.classList.remove("hidden");
     const box = create("div");
     Object.keys(configBase).forEach(k => {
-        const {ledetekst,valg,t,e=""} = configBase[k];
+        const { ledetekst, valg, t, e = "" } = configBase[k];
         const valgt = config[k] || "";
-        const inp = makeInput(k,t,{valg,valgt,ledetekst},valgt);
+        const inp = makeInput(k, t, { valg, valgt, ledetekst }, valgt);
         const explain = create("span");
         explain.innerHTML = e;
         inp.append(explain);
         box.append(inp);
     });
-    const confirm = makeInput("configsave","button",{ledetekst:"Lagre"});
+    const confirm = makeInput("configsave", "button", { ledetekst: "Lagre" });
     box.append(confirm);
     divConfig.append(box);
     enabled();
@@ -108,7 +108,7 @@ const makeConfig = () => {
         });
         const txt = Array.from(qsa('#config input[type="text"]:not(:disabled)'));
         txt.forEach(elm => {
-            const { id,value} = elm;
+            const { id, value } = elm;
             config[id] = value;
         });
         setLocalJSON("config", config);
@@ -123,7 +123,7 @@ if (!havConfig) {
 } else {
     config = havConfig;
     if (config["git"] !== "ja") {
-       gitter.classList.add("hidden");
+        gitter.classList.add("hidden");
     }
     if (config["git_hub"] !== "ja") {
         gili.classList.add("hidden");
@@ -292,10 +292,12 @@ async function setup() {
     // saved files may be none
     const savedFiles = getLocalJSON("savedfiles") || [];
     web.savedFiles.push(...savedFiles.slice(0, 5));
-    const gitfiles = await gitFiles();
-    web.gitlist.push(...gitfiles);
-    const gistfiles = await gistFiles();
-    web.gistlist.push(...gistfiles);
+    if (config["git"] === 'ja') {
+        const gitfiles = await gitFiles();
+        web.gitlist.push(...gitfiles);
+        const gistfiles = await gistFiles();
+        web.gistlist.push(...gistfiles);
+    }
 }
 
 setup();

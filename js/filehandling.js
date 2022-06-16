@@ -95,17 +95,17 @@ const _gitFiles = async (user, repo) => {
 
 
 // used by python to fetch json api
-export const getJSONurl = async (url,jsn) => {
+export const getJSONurl = async (url, jsn) => {
     const init = {
         method: "POST",
-        body:jsn,
+        body: jsn,
         headers: {
-          "Content-Type": "application/json",
-          "Accept-Charset": "UTF-8"
+            "Content-Type": "application/json",
+            "Accept-Charset": "UTF-8"
         },
-      };
+    };
     try {
-        const resp = await fetch(url,init);
+        const resp = await fetch(url, init);
         //const txt = await resp.text();
         const json = await resp.json();
         return json;
@@ -125,7 +125,10 @@ const userRepo = () => {
 export const gitFiles = async () => {
     const { user, repo } = userRepo();
     const files = await _gitFiles(user, repo);
-    return files.items.map(f => f.path);
+    if (files.items) {
+        return files.items.map(f => f.path);
+    }
+    return [];
 }
 
 export const getGitFile = async (filename) => {
@@ -167,21 +170,22 @@ export const gistFiles = async () => {
     const { user, repo } = userRepo();
     const files = await _gistFiles(user, repo);
     const list = [];
-    files.forEach(f => {
-        const id = f.id;
-        const filenames = Object.values(f.files);
-        const items = filenames.map(n => ({ id, name: n.filename, url: n.raw_url }))
-        list.push(...items);
-    });
+    if (Array.isArray(files))
+        files.forEach(f => {
+            const id = f.id;
+            const filenames = Object.values(f.files);
+            const items = filenames.map(n => ({ id, name: n.filename, url: n.raw_url }))
+            list.push(...items);
+        });
     return list;
 }
 
 export const gistify = async (id, name, content) => {
     const gistInfo = {
-       description:"A mathy file",
-       files: {   }
+        description: "A mathy file",
+        files: {}
     };
-    gistInfo.files[name] = { filename:name, content};
+    gistInfo.files[name] = { filename: name, content };
     const init = {
         method: "PATCH",
         body: JSON.stringify(gistInfo),

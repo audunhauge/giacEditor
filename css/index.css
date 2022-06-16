@@ -26,10 +26,13 @@
 .listing>div {
     width: fit-content;
     text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
     min-width: 5rem;
+    max-width: 8rem;
     margin: 4px;
     padding: 4px;
-    background-color: darkseagreen;
+    background-color: rgb(83, 119, 83);
     color: white;
     border-radius: 2px;
     box-shadow: 2px 2px 2px black;
