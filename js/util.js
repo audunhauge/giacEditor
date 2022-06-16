@@ -162,9 +162,10 @@ export function makeInput(id = "myid", type = "text", alternativer = {}, value =
         makeSelect(id, options, choice);
       break;
     case "checkbox":
+      const chk = alternativer.valgt === "ja" ? "checked" : "";
       t =
         `<label ${title} for="${id}">${ledetekst}</label>` +
-        `<input type="checkbox" id="${id}">`;
+        `<input type="checkbox" id="${id}" ${chk}>`;
       break;
     case "button":
       let klass = alternativer.button || "button";

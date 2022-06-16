@@ -130,13 +130,13 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
     const list = data[0];
     for (const line of commands) {
         const command = (line.split(/[^a-zA-Z]/)[0]).trim();
+        const options = line.match(/[a-z]+ ?([a-z]+)? ?([0-9.]+)?/) || [];
         if (response[command] !== undefined) {
             r.push('<span>' + command + '</span><span>' + Number(response[command]).toFixed(2) + '</span>');
         } else {
             if (command === "plot") {
                 let chart;
-                const options = line.match(/plot ?([a-z]+)? ?([0-9.]+)?/);
-                const [_, type = "bar", size] = (options || []);
+                const [_, type = "bar", size] = options;
                 if (type === "pie") {
                     chart = (pieChart(data.slice(), sum, size));
                 }
@@ -276,14 +276,13 @@ export const frekTable = (_data, commands, id, haveHead) => {
         const L = xs.length - 1;
         let mean,median;
         let plotData;
-        if (String(xs[0]).includes(':')) {
+        if (commands.some(e => e.startsWith("start"))) {
             // assume binned data
-            if (!String(xs[L]).includes(":")) {
-                ret.push('<p>First and last bin must be start:stop');
-                return ret;
-            }
+            const startline = commands.filter(e => e.startsWith("start"));
+            let [,start=0] = (startline[0].match(/start ([0-9.-]+)/));
+            let stop = xs[0];
             const grouped = [];
-            let [start, stop] = xs[0].split(":");
+            //let [start, stop] = xs[0].split(":");
             let mp = (+start + +stop) / 2;
             grouped.push([+start, +stop, fs[0], mp, fs[0] * mp]);
             for (let i = 1; i < L; i++) {
@@ -291,12 +290,8 @@ export const frekTable = (_data, commands, id, haveHead) => {
                 mp = (Number(start) + Number(stop)) / 2;
                 grouped.push([+start, +stop, fs[i], mp, (fs[i] * mp)]);
             }
-            const [a, b] = xs[L].split(":");
-            if (+a !== +stop) {
-                ret.push(`<p>Inconsistent start/end last two groups: ${a} ${stop}`);
-                return ret;
-            }
-            [start, stop] = [stop, b];
+            start = stop;
+            stop = xs[L];
             mp = (Number(start) + Number(stop)) / 2;
             grouped.push([+start, +stop, fs[L], mp, (fs[L] * mp)]);
             // grouped contains data for binned freq table

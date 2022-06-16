@@ -2,6 +2,7 @@
 
 import { $ } from './util.js'
 import { getLocalJSON } from './Minos.js'
+import { config } from './editor.js';
 
 /**
  * Adds eventlistener to a button
@@ -116,8 +117,8 @@ export const getJSONurl = async (url,jsn) => {
 }
 
 const userRepo = () => {
-    const { user = "audunhauge" } = (getLocalJSON("user") || {});
-    const { repo = "s1Oppgaver" } = (getLocalJSON("repo") || {});
+    const user = config["git_user"] || "";
+    const repo = config["git_repo"] || "";
     return { user, repo };
 }
 

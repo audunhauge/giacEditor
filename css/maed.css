@@ -888,7 +888,7 @@ div.section.fasit ~ div.section div.oppgave{
 #config div.inputDiv {
    min-width: 40ch;
    display:grid;
-   grid-template-columns: 2fr 1fr;
+   grid-template-columns: 2fr 2fr;
    border-bottom: 1px rgba(128, 128, 128, 0.295) solid;
    padding:2ch;
 }
@@ -912,6 +912,13 @@ div.section.fasit ~ div.section div.oppgave{
     padding-left:4px;
 }
 
+#config input[type="text"] {
+    border-radius: 4px;
+    padding-bottom: 6px;
+    padding-top: 6px;
+    padding-left:4px;
+}
+
 #config label {
     color:blue;
     text-transform: capitalize;
@@ -920,4 +927,8 @@ div.section.fasit ~ div.section div.oppgave{
 #config div.inputDiv span {
     font-size: 0.9rem;
     color:darkgreen;
+}
+
+#config div.inputDiv.disabled  {
+    display: none;
 }

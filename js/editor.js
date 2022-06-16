@@ -16,7 +16,7 @@ import { renderReg } from './regression.js';
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, conf, aside, editor, gistlist,
+const { home, app, back, aktiv, help, info, newfile, gitter, conf, aside, editor, gistlist, gili, gisi,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
@@ -42,14 +42,36 @@ export const readTable = filename => {
     return 'NO DATA';
 }
 
-let config = {};
+export var config = {};
 
 const configBase = {
     language: { valg: "norwegian,english,italiano", t: "select",e:"Reload page for change to take effect" },
     trigmode: { valg: "grader,rad", t: "select",},
-    gist:{ valg:"ja,nei",t:"select"},
-    github:{valg:"ja,nei",t:"select"},
+    git:{ valg:"ja,nei",t:"checkbox",e:"Show gistfiles and github"},
+    git_user:{ ledetekst:"Git username",t:"text"},
+    git_repo:{ ledetekst:"Git repo",t:"text"},
+    git_st:{ ledetekst:"gist",valg:"ja,nei",t:"checkbox",e:"Gistfiles"},
+    git_hub:{ledetekst:"github",valg:"ja,nei",t:"checkbox",e:"Files on github"},
 };
+
+
+const enabled = () => {
+    Array.from(qsa("#config input")).forEach(e => { 
+        e.parentNode.classList.remove("disabled")
+        e.removeAttribute("disabled");
+    });
+    const turnedOff = Array.from(qsa("#config input:not(:checked)"));
+    turnedOff.forEach(e => {
+        const id = e.id;
+        const lesser = Array.from(qsa(`#config input[id^="${id}_"]`));
+        lesser.forEach(e => {
+            config[e.id] = "nei";
+            e.removeAttribute("checked");
+            e.setAttribute("disabled","true");
+            e.parentNode.classList.add("disabled");
+        })
+    });
+}
 
 
 const makeConfig = () => {
@@ -58,9 +80,9 @@ const makeConfig = () => {
     divConfig.classList.remove("hidden");
     const box = create("div");
     Object.keys(configBase).forEach(k => {
-        const {valg,t,e=""} = configBase[k];
+        const {ledetekst,valg,t,e=""} = configBase[k];
         const valgt = config[k] || "";
-        const inp = makeInput(k,t,{valg,valgt});
+        const inp = makeInput(k,t,{valg,valgt,ledetekst},valgt);
         const explain = create("span");
         explain.innerHTML = e;
         inp.append(explain);
@@ -69,14 +91,28 @@ const makeConfig = () => {
     const confirm = makeInput("configsave","button",{ledetekst:"Lagre"});
     box.append(confirm);
     divConfig.append(box);
+    enabled();
+    divConfig.onchange = e => enabled();
     qs("#config button").addEventListener("click", () => {
+        config = {};
         divConfig.classList.add("hidden");
         const konfig = Array.from(qsa("#config select"));
         konfig.forEach(elm => {
             const { id, value } = elm;
             config[id] = value;
         });
+        const inps = Array.from(qsa("#config input:checked"));
+        inps.forEach(elm => {
+            const { id } = elm;
+            config[id] = "ja";
+        });
+        const txt = Array.from(qsa('#config input[type="text"]:not(:disabled)'));
+        txt.forEach(elm => {
+            const { id,value} = elm;
+            config[id] = value;
+        });
         setLocalJSON("config", config);
+        window.location.href = "/";
     })
 }
 
@@ -86,11 +122,14 @@ if (!havConfig) {
     makeConfig();
 } else {
     config = havConfig;
-    if (config["gist"] === "nei") {
-        gistlist.classList.add("hidden");
+    if (config["git"] !== "ja") {
+       gitter.classList.add("hidden");
     }
-    if (config["github"] === "nei") {
-        gitlist.classList.add("hidden");
+    if (config["git_hub"] !== "ja") {
+        gili.classList.add("hidden");
+    }
+    if (config["git_st"] !== "ja") {
+        gisi.classList.add("hidden");
     }
 }
 

@@ -31,10 +31,6 @@
     <div id="home">
         <header>
             <h2>Math editor</h2>
-            Make tests for mathematics.
-            <p>
-                Uses markdown, mathlex, katex, algebrite and functionplot.
-            </p>
             <div id="menu" class="gui minos">
                 <div class="button" id="help">ShowHelp</div>
                 <div class="button" id="newfile">New file</div>
@@ -62,15 +58,23 @@
                         <div class="listing" repeat id="savedFiles">
                             <div data-name="$" class="file"><label>$</label></div>
                         </div>
-                        <h3>Git files</h3>
-                        Click filename to edit.
-                        <div class="listing" repeat id="gitlist">
-                            <div data-name="$" class="file button"><label>$</label></div>
-                        </div>
-                        <h3>Gist-files</h3>
-                        Click filename to edit.
-                        <div class="listing" repeat id="gistlist">
-                            <div data-id="{id}" data-name="{name}" data-url="{url}" class="file button"><label>{name}</label></div>
+                        <div id="gitter">
+                            <div id="gili">
+                                <h3>Git files</h3>
+                                Click filename to edit.
+                                <div class="listing" repeat id="gitlist">
+                                    <div data-name="$" class="file button"><label>$</label></div>
+                                </div>
+                            </div>
+                            <div id="gisi">
+                                <h3>Gist-files</h3>
+                                Click filename to edit.
+                                <div class="listing" repeat id="gistlist">
+                                    <div data-id="{id}" data-name="{name}" data-url="{url}" class="file button">
+                                        <label>{name}</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,7 +151,7 @@
             }
         }
         import { renderAll, readTable } from './js/editor.js';
-        import { lowess as _low} from './js/probability.js';
+        import { lowess as _low } from './js/probability.js';
         import { getJSONurl } from './js/filehandling.js';
         render = renderAll;
         readPython = readTable;

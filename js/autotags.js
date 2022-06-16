@@ -119,6 +119,7 @@ help`,
 help`,
 normal:`Normal distribution`,
 binom:`Binomial distribution`,
+hist:`Histogram`,
 hyper:`Hypergeometric distribution`,
     eqset: `Step by step solution of equationsets
 
