@@ -4,13 +4,53 @@ import { wrap, $, create } from './Minos.js';
 import { colorscale1, colorscale2, colorscale3, nice } from './util.js';
 import { fisher, fisherCrit, lowess } from './probability.js';
 
-import { tableList,svgList } from './render.js';
+import { tableList, svgList } from './render.js';
 
 const bigScale = colorscale1.concat(colorscale2, colorscale3);
 
 const { abs, min, max, sin, cos, PI, floor } = Math;
 
 const barChart = (data, sum, size) => {
+    // assume we plot bargroups, [[1,2,3],[4,5,6]]
+    //  will give |1|4|  |2|5|  |3|6|
+    // colors taken from colorscale1 + colorscale2
+    // colors reused mod 18
+    // data assumed to be numbers - coerced before use
+    // make copy and extend short rows to length of max
+    // 1. longest row
+    const M = max(...data.map(e => e.length));
+    const N = data.length;
+    // 2. Make copy with all rows equal length (0 padded)
+    // 3. find largest value for scaling
+    const V = data.map(e => new Array(M).fill(0));
+    let large = 0;
+    data.forEach((r, i) => r.forEach((v, j) => {
+        const val = Number.isFinite(+v) ? +v : 0;
+        V[i][j] = val
+        large = max(large, val);
+    }));
+    const w = min(max(0.02, 1.7 / (N * M)), 0.4);
+    const step = 2 / 5;
+    V.forEach((r, i) => r.forEach((v, j) => V[i][j] = 2 * v / large));
+    let ssg = '';
+    let start = 0;
+    V.forEach((scaled,j) => {
+        const fill = bigScale[j % bigScale.length];
+        let innerSVG = scaled.map((v, i) => {
+            const bar = `<rect width="${w}" x="${j*(w+0.005) + i * (N*w + 0.06) - 1.1}" y="${1 - v}"  fill="${fill}" height="${v}"></rect>`;
+            return bar;
+        }
+        ).join("");
+        ssg += innerSVG;
+        start += w;
+    });
+    const ww = size ? `width:${size}px;` : '';
+    return `<svg style="${ww}" class="bar" viewBox="-1.15 -1.15 2.3 2.3" >` + ssg + '</svg>';
+
+    return _barChart(data, sum, size);
+}
+
+const _barChart = (data, sum, size) => {
     let numbers = data[0].map(Number);
     let ys = (data[1] || []).map(Number);
     let haveXS = false;
@@ -49,10 +89,10 @@ const barChart = (data, sum, size) => {
     }
     ).join("") + text.join("")
         + [0, 1, 2, 3, 4, 5].map(v => v * step)
-            .map(s => `<line x1="-1.1" y1="${1 - s}" x2="1.1" y2="${1 - s}" stroke-width: 0.001px; />`)
+            .map(s => `<line x1="-1.1" y1="${1 - s}" x2="1.1" y2="${1 - s}" fill="none" stroke="black" stroke-width="0.001px" />`)
             .join("");
     const ww = size ? `width:${size}px;` : '';
-    return `<svg style="${ww} class="bar" viewBox="-1.15 -1.15 2.3 2.3" >` + innerSVG + '</svg>';
+    return `<svg style="${ww}" class="bar" viewBox="-1.15 -1.15 2.3 2.3" >` + innerSVG + '</svg>';
 }
 
 
@@ -105,7 +145,7 @@ const pieChart = (data, sum, size) => {
         const id = "tt" + n + String(i);
         if (labels[i]) {
             const len = floor(64 * p);
-            txt.push({ text: String(labels[i]).slice(0, len).replace("'",""), id });
+            txt.push({ text: String(labels[i]).slice(0, len).replace("'", ""), id });
         }
         const [ex, ey] = p2xy(tot);
         const largeArcFlag = p > .5 ? 1 : 0;
@@ -258,7 +298,7 @@ export const anovaTable = (_data, commands, id) => {
         const P = fisherCrit(.05, k - 1, n - k)
         const names = "n,C,T,SSTOT,SSTR,SSE,F,p,P,Hyp".split(",");
         const vals = [n, C, T, SSTOT, SSTR, SSE, F, p, P].map(v => v.toFixed(3));
-        vals.push(p< 0.05 ? "Different" : "Same");
+        vals.push(p < 0.05 ? "Different" : "Same");
         const txt = wrap(names.map((e, i) => `<span>${e}</span><span>${vals[i]}</span>`), "div");
         ret.push(txt);
         return ret;
@@ -274,12 +314,12 @@ export const frekTable = (_data, commands, id, haveHead) => {
         const data = transpose(_data);
         const [xs, fs] = data.slice(0, 2);
         const L = xs.length - 1;
-        let mean,median;
+        let mean, median;
         let plotData;
         if (commands.some(e => e.startsWith("start"))) {
             // assume binned data
             const startline = commands.filter(e => e.startsWith("start"));
-            let [,start=0] = (startline[0].match(/start ([0-9.-]+)/));
+            let [, start = 0] = (startline[0].match(/start ([0-9.-]+)/));
             let stop = xs[0];
             const grouped = [];
             //let [start, stop] = xs[0].split(":");
