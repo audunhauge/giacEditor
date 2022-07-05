@@ -10,7 +10,7 @@ const bigScale = colorscale1.concat(colorscale2, colorscale3);
 
 const { abs, min, max, sin, cos, PI, floor } = Math;
 
-const barChart = (data, sum, size) => {
+const barChart = (data, sum, size, options) => {
     // assume we plot bargroups, [[1,2,3],[4,5,6]]
     //  will give |1|4|  |2|5|  |3|6|
     // colors taken from colorscale1 + colorscale2
@@ -30,24 +30,45 @@ const barChart = (data, sum, size) => {
         large = max(large, val);
     }));
     const w = min(max(0.02, 1.7 / (N * M)), 0.4);
+    const n = String(Math.random()).slice(2, 10);
     const step = 2 / 5;
     V.forEach((r, i) => r.forEach((v, j) => V[i][j] = 2 * v / large));
     let ssg = '';
     let start = 0;
-    V.forEach((scaled,j) => {
+    const text = [];
+    const labels = options.toprow || [];
+    let svgw = (M < 20) ? 2.8 : 1.8+M*(w+0.038);
+    V.forEach((scaled, j) => {
         const fill = bigScale[j % bigScale.length];
         let innerSVG = scaled.map((v, i) => {
-            const bar = `<rect width="${w}" x="${j*(w+0.005) + i * (N*w + 0.06) - 1.1}" y="${1 - v}"  fill="${fill}" height="${v}"></rect>`;
+            const bar = `<rect width="${w}" x="${j * (w + 0.005) + i * (N * w + 0.06) - 1.1}" y="${1 - v}"  fill="${fill}" height="${v}"></rect>`;
+            const lbl = labels[i];
+            if (lbl && j === 0) {
+                //const id = "bar" + n + String(i);
+                // const p = `<path id="${id}" d="M ${i * (N * w + 0.06) - 1.1} 1 l 0 -1"/>`
+                //text.push(p + `<text class="inside"><textPath startOffset="1%" href="#${id}">${lbl}</textPath></text>`);
+                text.push( `<text class="toprow" x="${i * (N * w + 0.06) - 1.1}" y="1.11">${lbl}</text>`);
+            }
             return bar;
         }
         ).join("");
         ssg += innerSVG;
         start += w;
     });
-    const ww = size ? `width:${size}px;` : '';
-    return `<svg style="${ww}" class="bar" viewBox="-1.15 -1.15 2.3 2.3" >` + ssg + '</svg>';
 
-    return _barChart(data, sum, size);
+    if (options.leftcol) {
+        options.leftcol.forEach((v,i) => {
+            const fill = bigScale[i % bigScale.length];
+            text.push( `<text class="leftcol" x="1.5" y="${-0.92 + i*0.16}">${v.replace(/['"]/g, '')}</text>
+            <rect x="1.3" y="${-1.0 + i*0.16}" width="0.1" height="0.05" fill="${fill}"></rect>`);
+        });
+        svgw += 0.3;
+    }
+
+    const ww = size ? `width:${size}px;` : '';
+    return `<svg style="${ww}" class="bar" viewBox="-1.15 -1.15 ${svgw} 2.3" >` + ssg + text.join("") + '</svg>';
+
+    //return _barChart(data, sum, size);
 }
 
 const _barChart = (data, sum, size) => {
@@ -164,7 +185,7 @@ const pieChart = (data, sum, size) => {
  * @param {array} commands list of commands
  * @param {string} type table type
  */
-const commandWrangler = (commands, type, response, data, sum, id) => {
+const commandWrangler = (commands, type, response, data, sum, id, opts) => {
     const r = [];  // computed values
     const f = [];  // figures
     const list = data[0];
@@ -184,7 +205,7 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
                     chart = (histChart(data.slice(), sum, size));
                 }
                 if (type === "bar") {
-                    chart = (barChart(data.slice(), sum, size));
+                    chart = (barChart(data.slice(), sum, size, opts));
                 }
                 f.push(chart);
                 svgList[id] = chart;
@@ -204,21 +225,21 @@ const commandWrangler = (commands, type, response, data, sum, id) => {
 }
 
 
-export const dataTable = (data, commands, id) => {
+export const dataTable = (data, commands, id, options) => {
     // calc mean, median, stddev
     let ret = [];
     if (data.length) {
         if (commands.length == 0) {
             return ret;
         } else {
-            return commandWrangler(commands, "stats", {}, data, 0, id);
+            return commandWrangler(commands, "stats", {}, data, 0, id, options);
         }
     }
     return ret;
 }
 
 
-export const statsTable = (data, commands, id) => {
+export const statsTable = (data, commands, id, options) => {
     // calc mean, median, stddev
     let ret = [];
     if (data.length) {
@@ -259,17 +280,18 @@ export const statsTable = (data, commands, id) => {
             return ret;
         } else {
             const response = { N, sum, mean, median, varians, stddev, s, maximum, minimum, type };
-            return commandWrangler(commands, "stats", response, data, sx, id);
+            return commandWrangler(commands, "stats", response, data, sx, id, options);
         }
     }
     return ret;
 }
 
 export const transpose = arr => {
-    const data = Array(arr[0].length).fill(0).map(e => []);
-    arr.map((v, i) => {
-        v.map((u, j) => {
-            data[j][i] = u
+    const w = arr[0].length;
+    const data = /** @type {number[][]} */ (Array(w).fill(0).map(e => []));
+    arr.forEach((v, i) => {
+        v.slice(0,w).forEach((u, j) => {
+            data[j][i] = u;
         })
     });
     return data;
@@ -307,7 +329,7 @@ export const anovaTable = (_data, commands, id) => {
     return ret;
 }
 
-export const frekTable = (_data, commands, id, haveHead) => {
+export const frekTable = (_data, commands, id, options) => {
     const ret = [];
     if (_data.length) {
         const tbl = $(id).querySelector("tbody");
@@ -345,7 +367,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
             tbl.innerHTML = trans;
             tableList[id] = trans;
             ret.push(`Mean=${mean.toFixed(2)}`);
-            if (!haveHead) {
+            if (!options.haveHead) {
                 const head = create("thead");
                 head.innerHTML = '<tr>' + wrap("Lo,Hi,f,m,m*f".split(","), "th") + '</tr>';
                 $(id).querySelector("table").append(head);
@@ -366,7 +388,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
             ).join("");
             tbl.innerHTML = trans;
             tableList[id] = trans;
-            if (!haveHead) {
+            if (!options.haveHead) {
                 const head = create("thead");
                 head.innerHTML = '<tr>' + wrap("Xverdier,Frekvens,RelativF,RelKumulativF".split(","), "th") + '</tr>';
                 $(id).querySelector("table").append(head);
@@ -377,7 +399,7 @@ export const frekTable = (_data, commands, id, haveHead) => {
             return ret;
         } else {
             const response = { mean, median };
-            return commandWrangler(commands, "stats", response, plotData, 0, id);
+            return commandWrangler(commands, "stats", response, plotData, 0, id, options);
         }
     }
     ret.push('<p>No data yet ...');
