@@ -589,6 +589,8 @@ export function renderTable(id, text, type, name, regpoints) {
     let data = [];
     const rows = [];
     const commands = [];
+    let toprow = null;   // col labels
+    let leftcol = null;  // row labels
     const lines = text.replaceAll('"', '').split("\n").filter(l => l !== "");
     if (lines.length < 1) {
         txt += "Must have lines of data";
@@ -621,6 +623,12 @@ export function renderTable(id, text, type, name, regpoints) {
             for (let i = skip; i < rows.length; i++) {
                 data.push(rows[i].slice(start).map(e => Number.isFinite(+e) ? Number(e) : String(e)));
             }
+            if (start > 0) {
+                leftcol = transpose(rows).slice(0, 1)[0].slice(skip);  // use as headers for rows
+            }
+            if (skip > 0) {
+                toprow = rows.slice(0, 1)[0].slice(start);  // use as headers for cols
+            }
         } else {
             data = rows.slice();
         }
@@ -630,7 +638,7 @@ export function renderTable(id, text, type, name, regpoints) {
             txt += '<tr>';
             for (let j = 0; j < n; j++) {
                 // TODO variable for "td|th"
-                const v = (row[j] || '').replace(/['"]/g,'');
+                const v = (row[j] || '').replace(/['"]/g, '');
                 if (j < start || i < skip) {
                     txt += '<th>'
                     txt += v;
@@ -653,14 +661,14 @@ export function renderTable(id, text, type, name, regpoints) {
             // assume we need to transpose
             const tra = transpose(data);
             if (tra.length > 1) {
-                regpoints[name || 'tbl'] = tra.slice(0,2);
+                regpoints[name || 'tbl'] = tra.slice(0, 2);
             }
         }
     }
     tableList[id] = txt;
     parent.innerHTML = txt;
     if (tableRender[type]) {
-        tableRender[type](data.slice(), commands, id, haveHead).map(t => {
+        tableRender[type](data.slice(), commands, id, { haveHead, leftcol, toprow }).map(t => {
             const d = create("div");
             d.className = "subtype";
             d.innerHTML = t;
@@ -671,7 +679,7 @@ export function renderTable(id, text, type, name, regpoints) {
 }
 
 
- function _renderTable(id, text, type, name) {
+function _renderTable(id, text, type, name) {
     const parent = $(id)
     let txt = '';
     let haveHead = false;

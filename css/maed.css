@@ -769,6 +769,11 @@ div.stats {
 svg.bar text {
     fill:gray;
 }
+
+svg.bar text.leftcol,
+svg.bar text.toprow {
+    font-size: 0.14px;
+}
 svg.bar text.inside {
     stroke: black;
     stroke-width: 0.002px;

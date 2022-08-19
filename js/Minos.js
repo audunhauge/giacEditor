@@ -46,7 +46,12 @@ const inputs = {};
 const styled = {}; // stylish things
 const repeatList = {}; // things that need repeating
 
-export const $ = id => document.getElementById(id);
+/**
+ * 
+ * @param {string} id 
+ * @returns any
+ */
+export const $ = id => /** @type {any} */(document.getElementById(id));
 export const create = tag => document.createElement(tag);
 export const qs = rule => document.querySelector(rule);
 export const qsa = rule => document.querySelectorAll(rule);
@@ -67,7 +72,7 @@ export const wipe = () => fill('');
  * changes to o.x will be updated into span.innerHTML
  * NOTE: start state not set, change o.x to set span.innerHTML
  */
-function prepTheWebPage(klas="minos") {
+function prepTheWebPage(klas = "minos") {
     let idnum = 0;
     const allnames = {}; // all {names} and {exp + pressions}
     // will be filtered to seperate names/expressions
@@ -92,16 +97,18 @@ function prepTheWebPage(klas="minos") {
         list.forEach(l => {
             if (!l.id) { l.id = "sty" + idnum++ }
             const orig = l.getAttribute("stil");
-            styled[l.id] = { l, orig };
-            l.setAttribute("stil", '');
-            l.setAttribute("style", "");
-            orig.replace(/\{(.+?)\}/g, (m, t) => {
-                // will be overwritten if used in innerHTMl/inputs found later
-                // needed here in case this is only usage
-                namedVariables[t] = [];
-                valueOfNamedVars[t] = undefined;
-                return '';
-            })
+            if (orig) {
+                styled[l.id] = { l, orig };
+                l.setAttribute("stil", '');
+                l.setAttribute("style", "");
+                orig.replace(/\{(.+?)\}/g, (m, t) => {
+                    // will be overwritten if used in innerHTMl/inputs found later
+                    // needed here in case this is only usage
+                    namedVariables[t] = [];
+                    valueOfNamedVars[t] = undefined;
+                    return '';
+                })
+            }
         });
 
     }
@@ -111,7 +118,7 @@ function prepTheWebPage(klas="minos") {
         inps.forEach(inp => {
             const name = inp.getAttribute("name");
             const id = inp.getAttribute("id");
-            if (!name) inp.setAttribute("name", id);
+            if (!name && id) inp.setAttribute("name", id);
             inputs[name || id] = inp;
             // @ts-ignore
             inp.dataset.id = idnum++;
@@ -122,7 +129,7 @@ function prepTheWebPage(klas="minos") {
         const list = document.querySelectorAll(`.${klas}`);
         list.forEach(l => {
             l.innerHTML = l.innerHTML.replace(/\{(.+?)\}/g, (m, t) => {
-                t = t.replace(/\&amp;/g,'&').replace(/\&gt;/g,'>').replace(/\&lt;/g,'<');
+                t = t.replace(/\&amp;/g, '&').replace(/\&gt;/g, '>').replace(/\&lt;/g, '<');
                 allnames[t] = [];
                 return `<span data-name="${t}" class="ok_gold" id="ok${idnum++}"></span>`;
             })
@@ -261,7 +268,7 @@ export const wrap = (ar, tag) => ar.map(e => `<${tag}>${e}</${tag}>`).join('');
 const interpolate = (template, obj) => template.
     replace(/\{(.+?)\}/g, (_, k) => {
         return (obj[k] !== undefined) ? obj[k]
-            : eva(obj,k) ?? _;
+            : eva(obj, k) ?? _;
     });
 
 /**
@@ -478,7 +485,7 @@ export class Keys {
     static wait(n) {
         return new Promise(resolve =>
             setTimeout(() => {
-                resolve();
+                resolve(0);
             }, n));
     }
 

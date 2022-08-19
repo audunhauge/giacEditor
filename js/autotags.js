@@ -120,6 +120,8 @@ help`,
 normal:`Normal distribution`,
 binom:`Binomial distribution`,
 hist:`Histogram`,
+bar:`Barchart`,
+pie:`Piechart`,
 hyper:`Hypergeometric distribution`,
     eqset: `Step by step solution of equationsets
 
@@ -238,7 +240,7 @@ Used together with plot() and show()`,
 }
 
 
-let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,reg,trig,eq,eqset,format,ans,dato";
+let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,reg,pie,hist,trig,eq,eqset,format,ans,dato";
 let auwords = aulist.split(",");
 let help;
 let expand = {};
