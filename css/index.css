@@ -42,6 +42,8 @@
     pointer-events: none;
 }
 
+.hidden,
+#menu.hidden,
 #home.hidden,
 #app.hidden {
     display: none;

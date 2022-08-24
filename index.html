@@ -32,7 +32,7 @@
     <div id="home">
         <header>
             <h2>Math editor</h2>
-            <div id="menu" class="gui minos">
+            <div id="menu" class="gui minos hidden">
                 <div class="button" id="help">ShowHelp</div>
                 <div class="button" id="newfile">New file</div>
                 <div class="button" id="load">Open file</div>
@@ -43,7 +43,7 @@
 
         </header>
         <main>
-            <section class="minos">
+            <section class="minos hidden">
 
                 <div class="grid-2">
                     <div>
@@ -91,7 +91,7 @@
     </div>
     <div id="app" class="hidden minos">
         <header class="gui">
-            <div id="menu" class="gui">
+            <div id="menu" class="gui hidden">
                 <div class="button" id="back">Home</div>
                 <div class="button" id="save">Save</div>
                 <div class="button" id="aside">SideEdit</div>
@@ -101,7 +101,7 @@
         </header>
         <div id="frame">
             <div>
-                <div class="gui">
+                <div class="gui hidden">
                     <label>Font size
                         <input id="fs" type="range" min="30" max="100"> {fs/50}
                     </label>

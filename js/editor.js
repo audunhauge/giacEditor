@@ -284,12 +284,12 @@ async function setup() {
     const urlParams = new URLSearchParams(ques);
     const keys = [...urlParams.keys()];
     // a=user,b=repo,c=file
-    if (keys.includes('a') && keys.includes('b') && keys.includes('c')) {
-        // assume we want to load gist b owned by user a
+    if (keys.includes('a') && keys.includes('c') ) {
+        // assume we want to load gist b 
+        editor.classList.add("hidden");
         const username = urlParams.get("a");
-        const repo = urlParams.get("b");
         const file = urlParams.get("c");
-        const existingFiles = await gistList(username,repo);
+        const existingFiles = await gistList(username);
         const getgist = existingFiles.find(elm => elm.name === file);
         if (getgist) {
             // found specified gist - edit
@@ -301,9 +301,9 @@ async function setup() {
             gist.name = file;
             gist.id = id;
             goEdit();
-            editor.classList.add("hidden");
             return;  // skip the rest
         }
+        editor.classList.remove("hidden");
     }
 
 

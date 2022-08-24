@@ -144,7 +144,7 @@ export const getGitFile = async (filename) => {
     }
 }
 
-const _gistFiles = async (user, repo) => {
+const _gistFiles = async (user) => {
     try {
         const resp = await fetch(`https://api.github.com/users/${user}/gists`);
         const json = await resp.json();
@@ -195,12 +195,12 @@ export const writeGist = async (file,name, description="mcas") => {
 }
 
 export const gistFiles = async () => {
-    const { user, repo } = userRepo();
-    return gistList(user, repo);
+    const { user } = userRepo();
+    return gistList(user);
 }
 
-export const gistList = async (user, repo) => {
-    const files = await _gistFiles(user, repo);
+export const gistList = async (user) => {
+    const files = await _gistFiles(user);
     const list = [];
     if (Array.isArray(files))
         files.forEach(f => {
