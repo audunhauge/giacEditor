@@ -16,14 +16,14 @@ import { renderReg } from './regression.js';
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, gitter, conf, aside, editor, gistlist, gili, gisi,
+const { home, app, back, aktiv, help, info, newfile, gitter, conf, aside, editor, gistlist, gili, gisi, gust,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
 
 import {
     saveFileButton, readFileButton,
-    getGitFile, getGistFile, gitFiles, gistFiles,
+    getGitFile, getGistFile, gitFiles, gistFiles, gistList, writeGist,
 } from './filehandling.js';
 
 import { startReplay } from './replay.js';
@@ -50,6 +50,7 @@ const configBase = {
     git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
     git_user: { ledetekst: "Git username", t: "text" },
     git_repo: { ledetekst: "Git repo", t: "text" },
+    gist_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
 };
@@ -273,8 +274,39 @@ Løs likninger
     helptxt("hjelp", 5, 0, ed.getBoundingClientRect(), 0, 1);
 }
 
+const gist = {};
+
+
 
 async function setup() {
+    // check if we have query parameters
+    const ques = window.location.search
+    const urlParams = new URLSearchParams(ques);
+    const keys = [...urlParams.keys()];
+    // a=user,b=repo,c=file
+    if (keys.includes('a') && keys.includes('b') && keys.includes('c')) {
+        // assume we want to load gist b owned by user a
+        const username = urlParams.get("a");
+        const repo = urlParams.get("b");
+        const file = urlParams.get("c");
+        const existingFiles = await gistList(username,repo);
+        const getgist = existingFiles.find(elm => elm.name === file);
+        if (getgist) {
+            // found specified gist - edit
+            const url = getgist.url;
+            const id = getgist.id;
+            const txt = await getGistFile(url);
+            setLocalJSON(sessionID, txt);
+            setLocalJSON("filename", file);
+            gist.name = file;
+            gist.id = id;
+            goEdit();
+            editor.classList.add("hidden");
+            return;  // skip the rest
+        }
+    }
+
+
     // must do this before await or else
     // localstorage will be overwritten by
     // renderAll
@@ -340,9 +372,6 @@ gitlist.onclick = async (e) => {
     }
 }
 
-const gist = {
-
-}
 
 gistlist.onclick = async (e) => {
     const t = e.target;
@@ -357,6 +386,12 @@ gistlist.onclick = async (e) => {
         gist.id = id;
         goEdit();
     }
+}
+
+gust.onclick = async (e) => {
+    const fileIsSaved = await writeGist(ed.value, web.filename);
+    const message = fileIsSaved ? "File saved" : "Failed saving file";
+    toast(message);
 }
 
 let globalFunk = {};  // look for funcs while typing

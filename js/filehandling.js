@@ -119,7 +119,8 @@ export const getJSONurl = async (url, jsn) => {
 const userRepo = () => {
     const user = config["git_user"] || "";
     const repo = config["git_repo"] || "";
-    return { user, repo };
+    const token = config["gist_token"] || "";
+    return { user, repo, token };
 }
 
 export const gitFiles = async () => {
@@ -166,8 +167,39 @@ export const getGistFile = async (filename) => {
     }
 }
 
+export const writeGist = async (file,name, description="mcas") => {
+    const { token } = userRepo();
+    const url = 'https://api.github.com/gists';
+    const header = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+    }
+    const gistInfo = {
+        description,
+        public:"true",
+        files: { }
+    };
+    gistInfo.files[name] = { content:file};
+    try {
+        fetch(url, {
+            method: "post",
+            headers: header,
+            body: JSON.stringify(gistInfo),
+        });
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
 export const gistFiles = async () => {
     const { user, repo } = userRepo();
+    return gistList(user, repo);
+}
+
+export const gistList = async (user, repo) => {
     const files = await _gistFiles(user, repo);
     const list = [];
     if (Array.isArray(files))
