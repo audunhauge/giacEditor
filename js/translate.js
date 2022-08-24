@@ -12,7 +12,7 @@ const english = {
         digits:"Digits",
         exact:"approx_mode:=0",
         approx:"approx_mode:=1",
-
+        numeric:"approx_mode:=1",
     },
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 or less\n7 or more\nsum\n8\n",
@@ -66,8 +66,12 @@ const norwegian = {
         grader:"angle_radian:=0",
         radianer:"angle_radian:=1",
         siffer:"Digits",
+        nøyaktig:"approx_mode:=0",
         presis:"approx_mode:=0",
+        eksakt:"approx_mode:=0",
         tilnærmet:"approx_mode:=1",
+        tallverdi:"approx_mode:=1",
+        numerisk:"approx_mode:=1",
     },
     expand : {
         binom:"distribution binom n=20 p=0.5\n6 eller mindre\n7 eller mer\nsum\n8\n",

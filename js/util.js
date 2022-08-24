@@ -29,7 +29,12 @@ export function curry(func) {
 }
 export const compose = (...fns) => x => fns.reduceRight((y, f) => f(y), x);
 
-export const $ = id => document.getElementById(id);
+/**
+ * 
+ * @param {string} id 
+ * @returns any
+ */
+export const $ = id => /** @type {any} */ (document.getElementById(id));
 export const create = tag => document.createElement(tag);
 export const qs = rule => document.querySelector(rule);
 export const qsa = rule => document.querySelectorAll(rule);

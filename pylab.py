@@ -1,5 +1,5 @@
 # Simulate pylab in brython
-from browser import html,document,window,aio, alert as message
+from browser import html,document,window, alert as message
 import array as _arr  ## someone might well use array as a name ...
 import functools  ## no such risk - eh?
 import random
