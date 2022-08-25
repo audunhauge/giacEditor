@@ -119,7 +119,7 @@ export const getJSONurl = async (url, jsn) => {
 const userRepo = () => {
     const user = config["git_user"] || "";
     const repo = config["git_repo"] || "";
-    const token = config["gist_token"] || "";
+    const token = config["git_token"] || "";
     return { user, repo, token };
 }
 

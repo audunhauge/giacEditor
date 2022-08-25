@@ -50,7 +50,7 @@ const configBase = {
     git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
     git_user: { ledetekst: "Git username", t: "text" },
     git_repo: { ledetekst: "Git repo", t: "text" },
-    gist_token: { ledetekst: "OAuth token for saving gist", t: "text" },
+    git_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
 };
