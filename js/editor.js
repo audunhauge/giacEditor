@@ -16,7 +16,9 @@ import { renderReg } from './regression.js';
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, gitter, conf, aside, editor, gistlist, gili, gisi, gust,
+const { home, app, back, aktiv, help, info, newfile, gitter, conf, 
+    aside, editor, gistlist, gili, gisi, gust,
+    menu, menuu,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
@@ -199,6 +201,7 @@ let oldSession;
 
 const goEdit = () => {
     app.classList.remove("hidden");
+    [...qsa("#app .hidden")].forEach(e => e.classList.remove("hidden"));
     home.classList.add("hidden");
     oldSession = getLocalJSON(sessionID);  // previous contents
     const filename = getLocalJSON("filename") || "test.mxy"; // filename
@@ -286,7 +289,6 @@ async function setup() {
     // a=user,b=repo,c=file
     if (keys.includes('a') && keys.includes('c') ) {
         // assume we want to load gist b 
-        editor.classList.add("hidden");
         const username = urlParams.get("a");
         const file = urlParams.get("c");
         const existingFiles = await gistList(username);
@@ -301,11 +303,11 @@ async function setup() {
             gist.name = file;
             gist.id = id;
             goEdit();
+            [...qsa("#app .gui")].forEach(e => e.classList.add("hidden"));
             return;  // skip the rest
         }
-        editor.classList.remove("hidden");
     }
-
+    [...qsa(".home")].forEach(e => e.classList.remove("hidden"));
 
     // must do this before await or else
     // localstorage will be overwritten by

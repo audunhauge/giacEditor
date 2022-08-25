@@ -343,13 +343,13 @@ div.format.number~ul>li::before {
     content: counter(ul-count) ") ";
 }
 
-#menu {
+.menu {
     display: grid;
     width: 30rem;
     grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
 }
 
-#menu>div.button {
+.menu>div.button {
     background-color: rgb(61, 61, 180);
     color: white;
     border-radius: 5px;
