@@ -16,7 +16,7 @@ import { renderReg } from './regression.js';
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
-const { home, app, back, aktiv, help, info, newfile, gitter, conf, 
+const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     aside, editor, gistlist, gili, gisi, gust,
     menu, menuu,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
@@ -24,7 +24,7 @@ const { home, app, back, aktiv, help, info, newfile, gitter, conf,
 
 
 import {
-    saveFileButton, readFileButton,
+    saveFileButton, readFileButton, updateGist,
     getGitFile, getGistFile, gitFiles, gistFiles, gistList, writeGist,
 } from './filehandling.js';
 
@@ -91,12 +91,22 @@ const makeConfig = () => {
         inp.append(explain);
         box.append(inp);
     });
+    const saveabort = create('div');
+    saveabort.className = "flexit";
     const confirm = makeInput("configsave", "button", { ledetekst: "Lagre" });
-    box.append(confirm);
+    const abort = makeInput("abort", "button", { ledetekst: "Avbryt" });
+    box.append(saveabort);
+    saveabort.append(abort);
+    saveabort.append(confirm);
     divConfig.append(box);
     enabled();
     divConfig.onchange = e => enabled();
-    qs("#config button").addEventListener("click", () => {
+    qs("#config div.flexit").addEventListener("click", (e) => {
+        if (e.target.id === "abort") {
+            divConfig.classList.add("hidden");
+            divConfig.innerHTML = "";
+            return
+        }
         config = {};
         divConfig.classList.add("hidden");
         const konfig = Array.from(qsa("#config select"));
@@ -115,6 +125,7 @@ const makeConfig = () => {
             config[id] = value;
         });
         setLocalJSON("config", config);
+
         window.location.href = "/";
     })
 }
@@ -211,6 +222,11 @@ const goEdit = () => {
     web.sp = 50;    // spacing between questions
     ed.value = oldSession || "";
     web.filename = filename;
+    if (filename !== "") {
+        const gist = existingFiles.find(e => e.name === filename);
+        gust.innerHTML = gist ? "UpdateGist" : "SaveAsGist";
+        
+    }
     if (oldSession) {
         renderAll();
     }
@@ -278,7 +294,7 @@ Løs likninger
 }
 
 const gist = {};
-
+let existingFiles;
 
 
 async function setup() {
@@ -287,11 +303,11 @@ async function setup() {
     const urlParams = new URLSearchParams(ques);
     const keys = [...urlParams.keys()];
     // a=user,b=repo,c=file
-    if (keys.includes('a') && keys.includes('c') ) {
+    if (keys.includes('a') && keys.includes('c')) {
         // assume we want to load gist b 
         const username = urlParams.get("a");
         const file = urlParams.get("c");
-        const existingFiles = await gistList(username);
+        existingFiles = await gistList(username);
         const getgist = existingFiles.find(elm => elm.name === file);
         if (getgist) {
             // found specified gist - edit
@@ -326,11 +342,16 @@ async function setup() {
     // saved files may be none
     const savedFiles = getLocalJSON("savedfiles") || [];
     web.savedFiles.push(...savedFiles.slice(0, 5));
+    const gitoken = config['git_token'];
+    if (gitoken && gitoken !== "") {
+        // enable saving as gist
+        gust.removeAttribute("disabled");
+    }
     if (config["git"] === 'ja') {
         const gitfiles = await gitFiles();
         web.gitlist.push(...gitfiles);
-        const gistfiles = await gistFiles();
-        web.gistlist.push(...gistfiles);
+        existingFiles = await gistFiles();
+        web.gistlist.push(...existingFiles);
     }
 }
 
@@ -391,9 +412,20 @@ gistlist.onclick = async (e) => {
 }
 
 gust.onclick = async (e) => {
+    const name = web.filename;
+    if (existingFiles) {
+        const existing = existingFiles.find(e => e.name === name)
+        if (existing) {
+            const fileIsSaved = await updateGist(existing.id, name, ed.value);
+            const message = fileIsSaved ? "File Updated" : "Failed updating file";
+            toast(message);
+            return;
+        }
+    }
     const fileIsSaved = await writeGist(ed.value, web.filename);
     const message = fileIsSaved ? "File saved" : "Failed saving file";
     toast(message);
+
 }
 
 let globalFunk = {};  // look for funcs while typing

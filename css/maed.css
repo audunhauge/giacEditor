@@ -354,6 +354,7 @@ div.format.number~ul>li::before {
     color: white;
     border-radius: 5px;
     padding: 2px 4px;
+    padding-top: 5px;
     width: 5rem;
 }
 
@@ -363,6 +364,19 @@ div.format.number~ul>li::before {
     transition: 200ms;
     cursor: pointer;
     user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.button[disabled] {
+    display: none;
+}
+
+.button span {
+    width:5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .button:hover {

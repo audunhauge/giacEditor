@@ -48,3 +48,11 @@
 #app.hidden {
     display: none;
 }
+
+.flexit {
+    display: flex;
+}
+
+.flexit > div {
+    min-width: fit-content !important;
+}

@@ -144,16 +144,6 @@ export const getGitFile = async (filename) => {
     }
 }
 
-const _gistFiles = async (user) => {
-    try {
-        const resp = await fetch(`https://api.github.com/users/${user}/gists`);
-        const json = await resp.json();
-        return json;
-    } catch (err) {
-        console.log(err);
-        return ([]);  // empty array
-    }
-}
 
 export const getGistFile = async (filename) => {
     //const {user,repo} = userRepo();
@@ -167,7 +157,48 @@ export const getGistFile = async (filename) => {
     }
 }
 
-export const writeGist = async (file,name, description="mcas") => {
+export const updateGist = async (id, name, content,description="mcas") => {
+    const { token } = userRepo();
+    const url = `https://api.github.com/gists/${id}`;
+    const header = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+    }
+    const gistInfo = {
+        description,
+        public: "true",
+        files: {}
+    };
+    
+    gistInfo.files[name] = { filename: name, content };
+    try {
+        fetch(url, {
+            method: "PATCH",
+            headers: header,
+            body: JSON.stringify(gistInfo),
+        });
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+    /*
+    const init = {
+        method: "PATCH",
+        body: JSON.stringify(gistInfo),
+        headers: {
+            "Content-Type": "application/vnd.github.v3+json"
+        },
+    };
+    // @ts-ignore
+    fetch(`https://api.github.com/gists/${id}`, init).catch((e) =>
+        console.log("Saving gist - virka ikke.", e)
+    );
+    */
+}
+
+export const writeGist = async (file, name, description = "mcas") => {
     const { token } = userRepo();
     const url = 'https://api.github.com/gists';
     const header = {
@@ -177,10 +208,10 @@ export const writeGist = async (file,name, description="mcas") => {
     }
     const gistInfo = {
         description,
-        public:"true",
-        files: { }
+        public: "true",
+        files: {}
     };
-    gistInfo.files[name] = { content:file};
+    gistInfo.files[name] = { content: file };
     try {
         fetch(url, {
             method: "post",
@@ -191,6 +222,17 @@ export const writeGist = async (file,name, description="mcas") => {
     } catch (error) {
         console.log(error);
         return false;
+    }
+}
+
+const _gistFiles = async (user) => {
+    try {
+        const resp = await fetch(`https://api.github.com/users/${user}/gists`);
+        const json = await resp.json();
+        return json;
+    } catch (err) {
+        console.log(err);
+        return ([]);  // empty array
     }
 }
 
@@ -210,23 +252,4 @@ export const gistList = async (user) => {
             list.push(...items);
         });
     return list;
-}
-
-export const gistify = async (id, name, content) => {
-    const gistInfo = {
-        description: "A mathy file",
-        files: {}
-    };
-    gistInfo.files[name] = { filename: name, content };
-    const init = {
-        method: "PATCH",
-        body: JSON.stringify(gistInfo),
-        headers: {
-            "Content-Type": "application/vnd.github.v3+json"
-        },
-    };
-    // @ts-ignore
-    fetch(`https://api.github.com/gists/${id}`, init).catch((e) =>
-        console.log("Saving gist - virka ikke.", e)
-    );
 }
