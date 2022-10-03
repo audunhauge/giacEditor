@@ -176,11 +176,29 @@ div.equation>div,
 div.algebra>div,
 div.math>div {
     counter-increment: math-count;
+    margin-top: 0.3em;
 }
 
 .math div.eq {
     display: grid;
     grid-template-columns: 10fr 1fr 10fr;
+}
+
+div.math.grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+div.math.grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+div.math.grid4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+div.math.grid5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
 }
 
 div.algebra.bokstav>div::before,
@@ -220,13 +238,30 @@ div.oppgave[data-poeng]:after {
     font-size: 0.9em;
 }
 
+
+div.math[class*="grid"]>div>div {
+    display: flex;
+}
+
 div.math>div>div {
     display: grid;
     grid-template-columns: 5fr 2fr;
 }
 
+div.math>div>div>span:nth-child(2):empty {
+    display: none;
+}
+
 div.math>div>div>span:nth-child(2) {
+    display: inline-block;
     color: green;
+    background-color: rgba(238, 232, 170, 0.18);
+    border-radius: 0.2em;
+    margin-top: 0.2em;
+    margin-left:2em;
+    border: solid rgba(128, 128, 128, 0.215) 1px;
+    text-align: center;
+    max-height: 1.2em;
 }
 
 pre>code[class^=language] {
