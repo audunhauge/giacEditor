@@ -241,10 +241,11 @@ export function fisher(f1, f2, X) {
  * @param {number} v target value
  * @param {number} a lower limit
  * @param {number} b upper limit
+ * @param {number|null} start
  * @returns {number}
  */
-export const newton = (f, v, a, b,x = null) => {
-    if (x === null) x = (a+b)/2;
+export const newton = (f, v, a, b,start = null) => {
+    let x = start ?? (a+b)/2;
     const e = 0.000001;
     for (let i=0; i <30; i++) {
         let z = f(x) - v;
