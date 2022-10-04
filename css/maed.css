@@ -248,20 +248,25 @@ div.math>div>div {
     grid-template-columns: 5fr 2fr;
 }
 
-div.math>div>div>span:nth-child(2):empty {
+span.comment:empty {
     display: none;
 }
 
-div.math>div>div>span:nth-child(2) {
+span.comment {
     display: inline-block;
     color: green;
     background-color: rgba(238, 232, 170, 0.18);
     border-radius: 0.2em;
     margin-top: 0.2em;
     margin-left:2em;
+    padding:2px 2px;
     border: solid rgba(128, 128, 128, 0.215) 1px;
     text-align: center;
     max-height: 1.2em;
+}
+
+div.math>div>div>span:nth-child(2) {
+   
 }
 
 pre>code[class^=language] {

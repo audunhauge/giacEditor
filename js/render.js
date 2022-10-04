@@ -310,7 +310,7 @@ export const renderPiece = (id, txt, size = "") => {
 
 export const renderSimple = (line, { mode, klass }, comment = '') => {
     const latex = makeLatex(line, { mode, klass });
-    return `<div><span>${latex}</span><span>${comment}</span></div>`;
+    return `<div><span>${latex}</span><span class="comment">${comment}</span></div>`;
 }
 
 const seplist = {
@@ -329,7 +329,7 @@ export const renderLikning = (line, comment, { mode, klass }) => {
     const sepLatex = katx(seplist[sep], mode);
     return `<div class="eq"><span>${leftLatex}</span>
     <span> ${sepLatex} </span>
-    <span>${rightLatex}</span><span>${comment}</span></div>`;
+    <span>${rightLatex}</span><span class="comment">${comment}</span></div>`;
 }
 
 
@@ -361,7 +361,7 @@ export function renderAlgebra(id, txt, funks, size = "") {
             // newMath[i] = cleanSvg;
             newMath[i] = `<span>${cleanSvg}</span>
             <span></span>
-            <span>${line.replace(/</g, "&lt;")}</span><span>${comment}</span>`;
+            <span>${line.replace(/</g, "&lt;")}</span><span class="comment">${comment}</span>`;
             continue;
         }
         comments += comment ? 1 : 0;  // count number of comments
@@ -378,11 +378,11 @@ export function renderAlgebra(id, txt, funks, size = "") {
             funks[exp] = giaEval(rhs);
             newMath[i] = `<span>${exp}</span>
             <span> := </span>
-            <span>${katx(math, mode)}</span><span>${comment}</span>`;
+            <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
         } else {
             newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
             <span>${gives}</span>
-            <span>${katx(math, mode)}</span><span>${comment}</span>`;
+            <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
         }
     }
     $(id).innerHTML = wrap(newMath, 'div');
@@ -410,7 +410,7 @@ export function renderEquation(id, txt, size = "") {
             [lhs, rhs] = clean.split("=");
             newMath[i] = `<span>${katx((simplify((lhs))))}</span>
            <span>=</span>
-           <span>${katx((simplify(rhs)))}</span><span>${comment}</span>`;
+           <span>${katx((simplify(rhs)))}</span><span class="comment">${comment}</span>`;
         } else {
             const [ol, or] = [lhs, rhs];
             lhs = operate(lhs, line);
