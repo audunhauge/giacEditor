@@ -18,8 +18,6 @@
 /**
  * interpolate fills this hash with elements that have
  * innerHTML containing {variables}
- * These are replaced with spans so that mind() can update
- * on change of minded(properties)
  */
 
 
@@ -65,9 +63,7 @@ export const wipe = () => fill('');
 
 /**
  * Replace {x} with <span>x</span> 
- * Prepare for use with mind({x}) so that
  * any changes to x will be shown as span.innerHTML
- * @example  html='<div>{x}</div>', js='let x=1;interpolate(); let o = mind({x});'
  * html changed to <div><span></span></div>
  * changes to o.x will be updated into span.innerHTML
  * NOTE: start state not set, change o.x to set span.innerHTML

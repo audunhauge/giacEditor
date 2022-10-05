@@ -29,7 +29,7 @@ import {
 } from './filehandling.js';
 
 import { startReplay } from './replay.js';
-import { toast, makeSelect, makeInput } from './util.js';
+import { toast, makeSelect, makeInput, group } from './util.js';
 
 
 // used by brython to "read" a @table
@@ -54,6 +54,7 @@ const configBase = {
     git_repo: { ledetekst: "Git repo", t: "text" },
     git_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
+    git_st_folder: { ledetekst: "Gist folder", t: "text", e: "Selected folder" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
 };
 
@@ -225,7 +226,7 @@ const goEdit = () => {
     if (filename !== "") {
         const gist = existingFiles.find(e => e.name === filename);
         gust.innerHTML = gist ? "UpdateGist" : "SaveAsGist";
-        
+
     }
     if (oldSession) {
         renderAll();
@@ -348,10 +349,20 @@ async function setup() {
         gust.removeAttribute("disabled");
     }
     if (config["git"] === 'ja') {
+        const gistfilter = config['git_st_folder'] || '';
         const gitfiles = await gitFiles();
         web.gitlist.push(...gitfiles);
         existingFiles = await gistFiles();
-        web.gistlist.push(...existingFiles);
+        const gr = group(existingFiles,e=>{
+            const a = e.name.includes("_");
+            return a ? e.name.split("_")[0] : "Docs";
+        });
+        console.log(gr)
+        if (gistfilter) {
+            web.gistlist.push(...existingFiles.filter(e => e.name.startsWith(gistfilter)));
+        } else {
+            web.gistlist.push(...existingFiles);
+        }
     }
 }
 

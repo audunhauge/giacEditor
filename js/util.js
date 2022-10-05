@@ -15,6 +15,20 @@ export function thingsWithId() {
   return ret;
 }
 
+export function group(arr, cb) {
+  let index = 0;
+  let key, value;
+  const target = {};
+  let length = arr.length;
+  for (; length > index; index++) {
+    value = arr[index];
+    key = cb(value);
+    if (key in target) (target[key].push(value));
+    else target[key] = [value];
+  }
+  return target;
+}
+
 
 export function curry(func) {
   return function curried(...args) {
@@ -34,7 +48,7 @@ export const compose = (...fns) => x => fns.reduceRight((y, f) => f(y), x);
  * @param {string} id 
  * @returns any
  */
-export const $ = id => /** @type {any} */ (document.getElementById(id));
+export const $ = id => /** @type {any} */(document.getElementById(id));
 export const create = tag => document.createElement(tag);
 export const qs = rule => document.querySelector(rule);
 export const qsa = rule => document.querySelectorAll(rule);
