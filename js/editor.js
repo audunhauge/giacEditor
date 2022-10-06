@@ -17,7 +17,7 @@ import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, gitter, conf,
-    aside, editor, gistlist, gili, gisi, gust,
+    aside, editor, gistlist, gili, gisi, gust, gistfolder,
     menu, menuu,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
@@ -359,6 +359,7 @@ async function setup() {
             return a ? e.name.split(/[_ -]/)[0] : "Docs";
         });
         if (gistfilter && gr[gistfilter]) {
+            web.gistfolder.push(...Object.keys(gr));
             web.gistlist.push(... gr[gistfilter]);
         } else {
             web.gistlist.push(...existingFiles);
