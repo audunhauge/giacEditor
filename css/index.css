@@ -21,6 +21,9 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
     gap: 0.7rem;
+    border: solid gray 1px;
+    min-height: 8rem;
+    overflow: scroll;
 }
 
 .listing>div {
@@ -30,6 +33,7 @@
     text-overflow: ellipsis;
     min-width: 5rem;
     max-width: 8rem;
+    max-height: 1rem;
     margin: 4px;
     padding: 4px;
     background-color: rgb(83, 119, 83);
@@ -55,4 +59,23 @@
 
 .flexit > div {
     min-width: fit-content !important;
+}
+
+div.folders {
+    display: flex;
+    margin:5px;
+}
+
+div.folders > div {
+    margin:2px;
+    box-shadow: 2px 2px lightsteelblue;
+    min-width: 3rem;
+    text-align: center;
+    border: solid rgba(128, 128, 128, 0.401) 1px;
+}
+
+div.fold.aktiv {
+    position: relative;
+    top:5px;
+    background-color: gray;
 }

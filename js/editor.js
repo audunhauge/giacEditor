@@ -29,7 +29,7 @@ import {
 } from './filehandling.js';
 
 import { startReplay } from './replay.js';
-import { toast, makeSelect, makeInput, group } from './util.js';
+import { toast, makeSelect, makeInput, group, unprefix } from './util.js';
 
 
 // used by brython to "read" a @table
@@ -296,6 +296,7 @@ Løs likninger
 
 const gist = {};
 let existingFiles;
+let gr = {};
 
 
 async function setup() {
@@ -354,7 +355,9 @@ async function setup() {
         const gitfiles = await gitFiles();
         web.gitlist.push(...gitfiles);
         existingFiles = await gistFiles();
-        const gr = group(existingFiles,e=>{
+        // Make displayname for files, stripping of prefix
+        Object.values(existingFiles).forEach(e => e.nice = unprefix("_", e.name));
+        gr = group(existingFiles,e=>{
             const a = e.name.match(/[_ -]/);
             return a ? e.name.split(/[_ -]/)[0] : "Docs";
         });
@@ -405,6 +408,17 @@ gitlist.onclick = async (e) => {
         setLocalJSON("filename", name);
         goEdit();
     }
+}
+
+gistfolder.onclick = (e) => {
+    const t = e.target;
+    if (t.classList.contains("fold")) {
+        qsa(".fold").forEach(e => e.classList.remove("aktiv"));
+        t.classList.add("aktiv");
+        const name = t.dataset.name;
+        web.gistlist.length = 0;
+        web.gistlist.push(... gr[name]);
+    } 
 }
 
 

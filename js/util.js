@@ -30,6 +30,15 @@ export function group(arr, cb) {
 }
 
 
+export function unprefix(pre,str) {
+  // unprefix("_",XXX_yyyy) => yyyy
+  // unprefix("_",XXXyyyy) => XXXyyyy
+  if (str.includes(pre)) {
+    return str.split(pre).slice(1).join('');
+  }
+  return str;
+}
+
 export function curry(func) {
   return function curried(...args) {
     if (args.length >= func.length) {
