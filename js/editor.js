@@ -348,18 +348,18 @@ async function setup() {
         // enable saving as gist
         gust.removeAttribute("disabled");
     }
+    // show list of files to open
     if (config["git"] === 'ja') {
         const gistfilter = config['git_st_folder'] || '';
         const gitfiles = await gitFiles();
         web.gitlist.push(...gitfiles);
         existingFiles = await gistFiles();
         const gr = group(existingFiles,e=>{
-            const a = e.name.includes("_");
-            return a ? e.name.split("_")[0] : "Docs";
+            const a = e.name.match(/[_ -]/);
+            return a ? e.name.split(/[_ -]/)[0] : "Docs";
         });
-        console.log(gr)
-        if (gistfilter) {
-            web.gistlist.push(...existingFiles.filter(e => e.name.startsWith(gistfilter)));
+        if (gistfilter && gr[gistfilter]) {
+            web.gistlist.push(... gr[gistfilter]);
         } else {
             web.gistlist.push(...existingFiles);
         }
