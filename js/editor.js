@@ -358,12 +358,13 @@ async function setup() {
         // Make displayname for files, stripping of prefix
         Object.values(existingFiles).forEach(e => e.nice = unprefix("_", e.name));
         gr = group(existingFiles,e=>{
-            const a = e.name.match(/[_ -]/);
-            return a ? e.name.split(/[_ -]/)[0] : "Docs";
+            const a = e.name.includes('_');
+            return a ? e.name.split('_')[0] : "Docs";
         });
         if (gistfilter && gr[gistfilter]) {
             web.gistfolder.push(...Object.keys(gr));
             web.gistlist.push(... gr[gistfilter]);
+            qs(`.fold[data-name="${gistfilter}"]`).classList.add("aktiv");  
         } else {
             web.gistlist.push(...existingFiles);
         }

@@ -23,7 +23,7 @@
     gap: 0.7rem;
     border: solid gray 1px;
     min-height: 8rem;
-    overflow: scroll;
+    padding:5px;
 }
 
 .listing>div {
@@ -66,16 +66,25 @@ div.folders {
     margin:5px;
 }
 
-div.folders > div {
-    margin:2px;
-    box-shadow: 2px 2px lightsteelblue;
+
+div.fold {
+    position: relative;
+    background-color: steelblue;
+    color:white;
+    margin:2px;   
     min-width: 3rem;
     text-align: center;
     border: solid rgba(128, 128, 128, 0.401) 1px;
+    height: 1.4rem;
+    margin-bottom: -6px;
+    transition: background-color 0.3s;
+    box-shadow: 2px 0px rgb(29, 35, 42);
 }
 
-div.fold.aktiv {
-    position: relative;
-    top:5px;
-    background-color: gray;
+div.fold:not(.aktiv) {
+   height: calc(1rem + 2px);
+   top:4px;
+   color:black;
+   background-color: rgba(128, 128, 128, 0.478);
+   box-shadow: 2px 0px gray;
 }
