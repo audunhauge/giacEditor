@@ -16,7 +16,7 @@
     <script src="/js/giacsimple.js" async></script>
     <script src="/js/brython.min.js" async></script>
     <script src="/js/brython_stdlib.js" async></script>
-    <script src="/pylab.py" async type="text/python" ></script>
+    <script src="/pylab.py" async type="text/python"></script>
     <!--script src="https://cdn.jsdelivr.net/npm/brython@3.10.3/brython.min.js" async></script>
     <script src="https://cdn.jsdelivr.net/npm/brython@3.10.3/brython_stdlib.js" async></script-->
     <link rel="stylesheet" href="/js/katex/katex.min.css">
@@ -47,26 +47,7 @@
 
                 <div class="grid-2">
                     <div>
-                        <h3>Example files</h3>
-                        Click one of the examples below to edit.
-                        <div class="listing" repeat id="examples">
-                            <div data-name="ex$.md" class="file button"><label>$</label></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3>Recent files</h3>
-                        Click filename to edit.
-                        <div class="listing" repeat id="savedFiles">
-                            <div data-name="$" class="file button"><label>$</label></div>
-                        </div>
                         <div id="gitter">
-                            <div id="gili">
-                                <h3>Git files</h3>
-                                Click filename to edit.
-                                <div class="listing" repeat id="gitlist">
-                                    <div data-name="$" class="file button"><label>$</label></div>
-                                </div>
-                            </div>
                             <div id="gisi">
                                 <h3>Gist-files</h3>
                                 <div class="folders" repeat id="gistfolder">
@@ -78,6 +59,27 @@
                                     </div>
                                 </div>
                                 Click filename to edit.
+                            </div>
+                            <div id="gili">
+                                <h3>Git files</h3>
+                                Click filename to edit.
+                                <div class="listing" repeat id="gitlist">
+                                    <div data-name="$" class="file button"><label>$</label></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="saved">
+                            <h3>Saved recent files</h3>
+                            Click filename to edit.
+                            <div class="listing" repeat id="savedFiles">
+                                <div data-name="$" class="file button"><label>$</label></div>
+                            </div>
+                            <div>
+                                <h3>Example files</h3>
+                                Click one of the examples below to edit.
+                                <div class="listing" repeat id="examples">
+                                    <div data-name="ex$.md" class="file button"><label>$</label></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -94,7 +96,7 @@
     </div>
     <div id="app" class="hidden minos">
         <header class="gui">
-            <div  class="menu gui hidden">
+            <div class="menu gui hidden">
                 <div class="button" id="back">Home</div>
                 <div class="button" id="save">Save</div>
                 <div class="button" id="aside">SideEdit</div>

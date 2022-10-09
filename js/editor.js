@@ -18,7 +18,7 @@ import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     aside, editor, gistlist, gili, gisi, gust, gistfolder,
-    menu, menuu,
+    menu, menuu, saved,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
@@ -49,6 +49,7 @@ export var config = {};
 const configBase = {
     language: { valg: "norwegian,english,italiano", t: "select", e: "Reload page for change to take effect" },
     trigmode: { valg: "grader,rad", t: "select", },
+    examples: {valg: "ja,nei", t: "checkbox", e: "Show examples"},
     git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
     git_user: { ledetekst: "Git username", t: "text" },
     git_repo: { ledetekst: "Git repo", t: "text" },
@@ -103,13 +104,12 @@ const makeConfig = () => {
     enabled();
     divConfig.onchange = e => enabled();
     qs("#config div.flexit").addEventListener("click", (e) => {
+        divConfig.classList.add("hidden");
         if (e.target.id === "abort") {
-            divConfig.classList.add("hidden");
             divConfig.innerHTML = "";
             return
         }
         config = {};
-        divConfig.classList.add("hidden");
         const konfig = Array.from(qsa("#config select"));
         konfig.forEach(elm => {
             const { id, value } = elm;
@@ -145,6 +145,9 @@ if (!havConfig) {
     }
     if (config["git_st"] !== "ja") {
         gisi.classList.add("hidden");
+    }
+    if (config["examples"] !== "ja") {
+        saved.classList.add("hidden");
     }
 }
 
