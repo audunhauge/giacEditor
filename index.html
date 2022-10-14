@@ -33,7 +33,6 @@
         <header>
             <h2>Math editor</h2>
             <div class="menu home gui minos hidden">
-                <div class="button" id="help">ShowHelp</div>
                 <div class="button" id="newfile">New file</div>
                 <div class="button" id="load">Open file</div>
                 <div class="button" id="conf">Configure</div>
@@ -49,7 +48,7 @@
                     <div>
                         <div id="gitter">
                             <div id="gisi">
-                                <h3>Gist-files</h3>
+                                <h3>Files</h3>
                                 <div class="folders" repeat id="gistfolder">
                                     <div data-name="$" class="fold">$</div>
                                 </div>
@@ -58,38 +57,22 @@
                                         <label>{nice}</label>
                                     </div>
                                 </div>
-                                Click filename to edit.
                             </div>
                             <div id="gili">
                                 <h3>Git files</h3>
-                                Click filename to edit.
                                 <div class="listing" repeat id="gitlist">
                                     <div data-name="$" class="file button"><label>$</label></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="saved">
-                            <h3>Saved recent files</h3>
-                            Click filename to edit.
-                            <div class="listing" repeat id="savedFiles">
-                                <div data-name="$" class="file button"><label>$</label></div>
-                            </div>
-                            <div>
-                                <h3>Example files</h3>
-                                Click one of the examples below to edit.
-                                <div class="listing" repeat id="examples">
-                                    <div data-name="ex$.md" class="file button"><label>$</label></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-            <section class="home info hidden" id="info">
+            <!--section class="home info hidden" id="info">
                 <p><a href="https://www.markdownguide.org/cheat-sheet/"> Overskrifter og formatering</a></p>
                 <p><a href="http://mathlex.org/doc/language"> Skriv med flat matematisk notasjon</a></p>
                 <p><a href="http://www-fourier.ujf-grenoble.fr/~parisse/giac/doc/en/cascmd_en/">CAS</a></p>
-            </section>
+            </section-->
         </main>
         <footer>
         </footer>

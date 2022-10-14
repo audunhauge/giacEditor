@@ -1,4 +1,4 @@
-# Prøve s1
+# Prøve 1P
 
 @question (3p)
 
