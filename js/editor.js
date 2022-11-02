@@ -346,9 +346,11 @@ async function setup() {
     const savedFiles = getLocalJSON("savedfiles") || [];
     //web.savedFiles.push(...savedFiles.slice(0, 10));
     const gitoken = config['git_st_token'];
+    let advanced = false;
     if (gitoken && gitoken !== "") {
         // enable saving as gist
         gust.removeAttribute("disabled");
+        advanced = true;
     }
     // show list of files to open
     const gistfilter = config['git_st_folder'] || '';
@@ -358,6 +360,10 @@ async function setup() {
         existingFiles = await gistFiles();
     } else {
         existingFiles = [];
+    }
+    if (!advanced) {
+        // filter out files not in gistfilter
+        existingFiles = existingFiles.filter(f => f.name.startsWith(gistfilter));
     }
     // add in existing files with prefix Recent_
     savedFiles.forEach(f => {
@@ -373,7 +379,7 @@ async function setup() {
         return a ? e.name.split('_')[0] : "Docs";
     });
     web.gistfolder.push(...Object.keys(gr));
-    if (gistfilter && gr[gistfilter]) {  
+    if (gistfilter && gr[gistfilter]) {
         web.gistlist.push(...gr[gistfilter]);
         qs(`.fold[data-name="${gistfilter}"]`).classList.add("aktiv");
     } else {
