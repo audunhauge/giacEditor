@@ -44,6 +44,7 @@ export const readTable = filename => {
     return 'NO DATA';
 }
 
+
 export var config = {};
 
 const configBase = {
@@ -301,6 +302,7 @@ let gr = {};
 
 
 async function setup() {
+    web.moveme = "Låst";
     // check if we have query parameters
     const ques = window.location.search
     const urlParams = new URLSearchParams(ques);
@@ -385,6 +387,36 @@ async function setup() {
     } else {
         web.gistlist.push(...gr["Recent"]);
         qs(`.fold[data-name="Recent"]`).classList.add("aktiv");
+    }
+    let moveme = false;
+
+    qs('[data-name="moveme"]').addEventListener("click",() => {
+        moveme = ! moveme;
+        web.moveme = moveme ? "Flytt" : "Låst";
+    })
+
+    {
+        // make the editor draggable
+        // @ts-ignore
+        interact("#editor").draggable({
+            inertia: true, // enable inertial throwing
+            autoScroll: true,
+            //hold: 50, // must hold 100ms before dragging
+            listeners: {
+                move: dragMoveListener,
+                end(event) { },
+            },
+        });
+        function dragMoveListener(event) {
+            if (!moveme) return;
+            var target = event.target;
+            var x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx;
+            var y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
+            target.style.webkitTransform = target.style.transform =
+                "translate(" + x + "px, " + y + "px)";
+            target.setAttribute("data-x", x);
+            target.setAttribute("data-y", y);
+        }
     }
 
 }
@@ -561,11 +593,6 @@ export const renderAll = () => {
                 eqsets.push({ eq, id: `eqs${seg}_${ofs}`, klass, seg });
                 return `<div class="equation qset ${klass}" id="eqs${seg}_${ofs}"></div>\n`;
             })
-            .replace(/@piecewise( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
-                ofs++;
-                piece.push({ eq, id: `piece${seg}_${ofs}`, klass, seg });
-                return `<div class="piecewise ${klass}" id="piece${seg}_${ofs}"></div>\n`;
-            })
             .replace(/@poldiv( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
                 ofs++;
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
@@ -592,6 +619,11 @@ export const renderAll = () => {
                 ofs++;
                 sigrams.push({ eq, id: `sig${seg}_${ofs}`, size, seg });
                 return `<div class="sigram" id="sig${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@piecewise( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
+                ofs++;
+                piece.push({ eq, id: `piece${seg}_${ofs}`, size, seg });
+                return `<div class="piecewise ${size}" id="piece${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@math( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;

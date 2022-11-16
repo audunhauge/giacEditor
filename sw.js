@@ -1,5 +1,5 @@
 const cacheName = 'mCasEditor';
-const version = 3.5;
+const version = 3.6;
 const filesToCache = [
   '/',
   '/index.html',
@@ -34,6 +34,7 @@ const filesToCache = [
   `/js/filehandling.js`,
   `/js/function-plot.js`,
   `/js/giacsimple.js`,
+  `/js/interact.js`,
   `/js/katex/fonts/KaTeX_AMS-Regular.woff2`,
   `/js/katex/katex.min.css`,
   `/js/katex/katex.min.js`,
