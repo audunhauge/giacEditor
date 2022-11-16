@@ -1012,6 +1012,8 @@ function _plot(f, optobj, color, i) {
             if (fy.startsWith("list[")) {
                 // found solution for y=
                 obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
+                optobj.data = optobj.data.concat(obj);
+                return optobj;
                 // @ts-ignore
                 // obj = { fn, graphType };
             } else {
