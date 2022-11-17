@@ -118,8 +118,8 @@ export const getJSONurl = async (url, jsn) => {
 
 const userRepo = () => {
     const user = config["git_user"] || "";
-    const repo = config["git_repo"] || "";
-    const token = config["git_token"] || "";
+    const repo = config["git_hub_repo"] || "";
+    const token = config["git_st_token"] || "";
     return { user, repo, token };
 }
 

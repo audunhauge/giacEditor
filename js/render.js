@@ -289,7 +289,7 @@ export const renderEqnSet = (id, txt, size = "") => {
     $(id).innerHTML = wrap(newMath, 'div');
 }
 
-export const renderPiece = (id, txt, size = "") => {
+export const renderPiece = (id, txt, size = 500) => {
     const lines = txt.split('\n').filter(e => e != "");
     //let lat = `f(a,b) =   \begin{cases} 2 \cdot x+a \quad \text{for } x\le 1 \\\\      x^2+bx  \quad \text{for } x \gt 1
     //\end{cases}`;
@@ -297,14 +297,43 @@ export const renderPiece = (id, txt, size = "") => {
         $(id).innerHTML = "Expecting<br>f(x)<br>part1:limits<br>part2:limits<br>..more parts"
         return;
     }
+    const parent = $(id);
     const funcName = lines[0];
+    const plots = [];
     let lat = funcName + '=' + '\\begin{cases}\n';
     for (let i = 1; i < lines.length; i++) {
         const [exp, limit] = lines[i].split(":");
         lat += lotex(exp) + ' \\quad \\text{for } ' + lotex(limit) + '\\\\\n';
+        plots.push({ exp, limit });
     }
     lat += ' \\end{cases}\n';
-    $(id).innerHTML = katx(lat, true);
+    parent.innerHTML = katx(lat, true);
+    const div = create('div');
+    div.id = "piece" + Date.now();
+    parent.append(div);
+    let mlo = 0, mhi = 0;
+    const fun = [];
+    plots.forEach(({ exp, limit }) => {
+        const rlo = limit.match(/\>=?(-?[0-9.]+)/) || [];
+        const rhi = limit.match(/\<=?(-?[0-9.]+)/) || [];
+        const llo = limit.match(/(-?[0-9.]+)\</) || [];
+        const lhi = limit.match(/(-?[0-9.]+)\>/) || [];
+        const lo = Number(rlo[1] ?? llo[1] ?? -10);
+        const hi = Number(rhi[1] ?? lhi[1] ?? 10);
+        mlo = min(mlo, lo);
+        mhi = max(mhi, hi);
+        fun.push({ exp, lo, hi });
+    });
+    const optObj = plotDomain(size, [mlo, mhi]);
+    // const optObj = plotDomain(mlo,mhi);
+    optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi] }));
+    optObj.target = "#" + div.id;
+    try {
+        // @ts-ignore
+        functionPlot(optObj);
+    } catch (e) {
+        console.log("Piecewise:", e);
+    }
 }
 
 
@@ -679,55 +708,6 @@ export function renderTable(id, text, type, name, regpoints) {
 }
 
 
-function _renderTable(id, text, type, name) {
-    const parent = $(id)
-    let txt = '';
-    let haveHead = false;
-    const data = [];
-    const commands = [];
-    const lines = text.split("\n").filter(l => l !== "");
-    if (lines.length < 1) {
-        txt += "Must have lines of data";
-    } else {
-        txt += `<table id="${name}">`;
-        if (type !== "") txt += `<caption>${name || type}</caption>`;
-        const headers = lines[0].replaceAll('"', '').split(/[,;\t]/);
-        if (!Number.isFinite(+headers[0]) && !headers[0].includes(":")) {
-            // not number and not start:stop - assume header
-            txt += '<thead><tr>' + wrap(headers, "th") + '</tr></thead>';
-            lines.shift();
-            haveHead = true;
-        }
-        txt += '<tbody>';
-        const w = headers.length;
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].replaceAll('"', '');
-            const values = line.split(/[,;\t]/).slice(0, w);
-            if (values.length > 1) {
-                const base = Array(w).fill("");
-                values.forEach((v, i) => base[i] = v);
-                txt += '<tr>' + wrap(base, "td") + '</tr>';
-                data.push(base.map(e => Number.isFinite(+e) ? Number(e) : String(e)));
-            } else {  // assume a command
-                commands.push(lines[i]);
-            }
-        }
-        txt += '</tbody>';
-        txt += '</table>';
-    }
-    tableList[id] = txt;
-    parent.innerHTML = txt;
-    if (tableRender[type]) {
-        tableRender[type](data.slice(), commands, id, haveHead).map(t => {
-            const d = create("div");
-            d.className = "subtype";
-            d.innerHTML = t;
-            parent.append(d);
-        });
-    }
-
-}
-
 const parsePy = py => {
     const prelude = 'from pylab import *\nreplot()\n';
     try {
@@ -1032,6 +1012,8 @@ function _plot(f, optobj, color, i) {
             if (fy.startsWith("list[")) {
                 // found solution for y=
                 obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
+                optobj.data = optobj.data.concat(obj);
+                return optobj;
                 // @ts-ignore
                 // obj = { fn, graphType };
             } else {

@@ -46,7 +46,7 @@ div.oppgave {
 }
 
 div.oppgave:empty::before {
-    content: attr(title) " "counter(oppg-count) ". ";
+    content: attr(title) " " counter(oppg-count) ". ";
     text-transform: capitalize;
 }
 
@@ -57,7 +57,7 @@ h1 {
 h1 span.date {
     position: absolute;
     right: 20px;
-    top:-12px;
+    top: -12px;
 }
 
 .red {
@@ -100,7 +100,14 @@ div.section.fasit {
         page-break-before: always;
     }
 
-    .source, .section, .oppgave, .math, .algebra, .equation, .plots, code {
+    .source,
+    .section,
+    .oppgave,
+    .math,
+    .algebra,
+    .equation,
+    .plots,
+    code {
         page-break-inside: avoid;
     }
 
@@ -120,7 +127,7 @@ div.section.fasit {
     h1 span.date {
         position: absolute;
         right: -100px;
-        top:-52px;
+        top: -52px;
     }
 
     div.section.fasit.skjult~* {
@@ -143,8 +150,12 @@ div.oppgave.fasit::before {
     position: fixed;
     right: 0;
     top: 0;
-    min-width: 30%;
-    width: calc(90vw - 210mm);
+    min-width: 300px;
+    /* width: calc(90vw - 210mm); */
+    width: fit-content;
+    border: solid 1px blue;
+    border-top: 6px solid blue;
+    background-color: #fff;
 }
 
 
@@ -153,14 +164,17 @@ div.oppgave.fasit::before {
     font-size: 1.2rem;
     line-height: 1.7rem;
     height: calc(min(60vh, 60rem));
-    width: 90%;
+    width: 30em;
+    margin-top: 5px;
+    margin-right: 15px;
 }
 
 #edbox>div {
     height: 16px;
 }
 
-div.algebra, div.equation,
+div.algebra,
+div.equation,
 div.math {
     counter-reset: math-count 0;
 }
@@ -188,14 +202,17 @@ div.math.grid2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
 }
+
 div.math.grid3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
+
 div.math.grid4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
 }
+
 div.math.grid5 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -233,7 +250,7 @@ div.math.likningsett>div>div:before {
 }
 
 div.oppgave[data-poeng]:after {
-    content: " ("attr(data-poeng) "p)";
+    content: " (" attr(data-poeng) "p)";
     color: darkslateblue;
     font-size: 0.9em;
 }
@@ -258,16 +275,14 @@ span.comment {
     background-color: rgba(238, 232, 170, 0.18);
     border-radius: 0.2em;
     margin-top: 0.2em;
-    margin-left:2em;
-    padding:2px 2px;
+    margin-left: 2em;
+    padding: 2px 2px;
     border: solid rgba(128, 128, 128, 0.215) 1px;
     text-align: center;
     max-height: 1.2em;
 }
 
-div.math>div>div>span:nth-child(2) {
-   
-}
+div.math>div>div>span:nth-child(2) {}
 
 pre>code[class^=language] {
     position: relative;
@@ -304,8 +319,10 @@ div.senter>div {
     margin-right: auto;
 }
 
-div.senter.abc, div.senter.nummer,
-div.senter.number, div.senter.bokstav {
+div.senter.abc,
+div.senter.nummer,
+div.senter.number,
+div.senter.bokstav {
     margin-left: 3rem;
 }
 
@@ -334,24 +351,24 @@ div.format.abc+ul {
     list-style-type: none;
 }
 
-div.format + ul {
+div.format+ul {
     counter-reset: ul-count;
 }
 
 /* restart counter after digression */
-div.format[data-start="1"] + ul {
+div.format[data-start="1"]+ul {
     counter-reset: ul-count 1;
 }
 
-div.format[data-start="2"] + ul {
+div.format[data-start="2"]+ul {
     counter-reset: ul-count 2;
 }
 
-div.format[data-start="3"] + ul {
+div.format[data-start="3"]+ul {
     counter-reset: ul-count 3;
 }
 
-div.format[data-start="4"] + ul {
+div.format[data-start="4"]+ul {
     counter-reset: ul-count 4;
 }
 
@@ -414,7 +431,7 @@ div.format.number~ul>li::before {
 }
 
 .button span {
-    width:5rem;
+    width: 5rem;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -627,7 +644,7 @@ div.toast {
 }
 
 div.toast span.marked {
-    color:blue;
+    color: blue;
 }
 
 #notoast {
@@ -723,74 +740,74 @@ div.sigline>span {
 }
 
 div.fordeling div.flexit {
-    display:grid;
+    display: grid;
     grid-template-columns: 1fr 1fr;
 }
 
-div.distplot  {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  gap: 20px;
+div.distplot {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 20px;
 }
 
-div.distplot > div {
+div.distplot>div {
     position: relative;
-    min-width:100px;
+    min-width: 100px;
     height: 60px;
     position: relative;
     border: solid gray 1px;
 }
 
-div.distplot > div:before {
+div.distplot>div:before {
     white-space: nowrap;
     display: block;
     position: absolute;
     left: 0px;
-    top:-20px;
+    top: -20px;
     font-size: 0.8rem;
-    color:blue;
+    color: blue;
     content: attr(title);
 }
 
-div.distplot > div > div {
+div.distplot>div>div {
     position: absolute;
-    bottom:0;
-    left:0;
+    bottom: 0;
+    left: 0;
     width: 0.3px;
-    border:solid blue 1px;
+    border: solid blue 1px;
     height: 10px;
 }
 
-div.table > table {
+div.table>table {
     text-align: center;
     height: fit-content;
-    border:solid rgba(128, 128, 128, 0.507) 1px;
+    border: solid rgba(128, 128, 128, 0.507) 1px;
 }
 
 div.anova {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap:5em;
-    border:solid rgba(128, 128, 128, 0.151) 1px;
-    padding:5px;
+    gap: 5em;
+    border: solid rgba(128, 128, 128, 0.151) 1px;
+    padding: 5px;
 }
 
-div.anova > table > caption {
+div.anova>table>caption {
     text-align: center;
     white-space: nowrap;
-    color:blue;
+    color: blue;
     font-size: 1.1em;
 }
 
 div.anova th {
-    min-width:2em;
+    min-width: 2em;
 }
 
-div.anova  {
+div.anova {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    width:22em;
+    width: 22em;
 }
 
 div.anova div.subtype div {
@@ -806,32 +823,33 @@ div.anova div.subtype span {
 div.table svg {
     width: var(--svg);
     font-size: 0.18px;
-    fill:blue;
+    fill: blue;
 }
 
 div.table svg.bar {
-    background-color:rgba(128, 128, 128, 0.062);
+    background-color: rgba(128, 128, 128, 0.062);
 }
 
 div.frekvens,
 div.stats {
-    display:flex;
+    display: flex;
     flex-wrap: wrap;
-    gap:1em;
+    gap: 1em;
 }
 
 svg.bar text {
-    fill:gray;
+    fill: gray;
 }
 
 svg.bar text.leftcol,
 svg.bar text.toprow {
     font-size: 0.14px;
 }
+
 svg.bar text.inside {
     stroke: black;
     stroke-width: 0.002px;
-    fill:rgb(221, 212, 212);
+    fill: rgb(221, 212, 212);
 }
 
 svg.bar line {
@@ -840,22 +858,22 @@ svg.bar line {
 }
 
 
-div.frekvens > div > div > div ,
-div.stats > div > div > div {
-    display:grid;
+div.frekvens>div>div>div,
+div.stats>div>div>div {
+    display: grid;
     grid-template-columns: 1fr 1fr;
-    gap:0.2em;
+    gap: 0.2em;
 }
 
 svg.hist rect {
-    fill:rgba(221, 176, 118, 0.548);
-    stroke:darkcyan;
+    fill: rgba(221, 176, 118, 0.548);
+    stroke: darkcyan;
     stroke-width: 0.003px;
 }
 
 
 svg.hist text {
-    fill:darkslategrey;
+    fill: darkslategrey;
     font-size: 0.06px;
 }
 
@@ -865,36 +883,37 @@ table.hidden {
 
 div.table.frekvens td,
 div.table.dataset td {
-  border: solid rgba(128, 128, 128, 0.226) 0.5px;
-  padding:0.2em;
+    border: solid rgba(128, 128, 128, 0.226) 0.5px;
+    padding: 0.2em;
 }
 
 div.table table {
     border-collapse: collapse;
-    padding:0.2em;
+    padding: 0.2em;
 }
 
 div.nl {
     min-height: 1em;
 }
+
 div.source {
     position: relative;
     white-space: pre;
-    border:solid gray 1px;
+    border: solid gray 1px;
     box-shadow: 2px 2px 2px black;
     max-width: 220mm;
-    margin:4mm;
+    margin: 4mm;
     padding: 5mm;
-    padding-left:4ch;
-    margin-top:3rem;
+    padding-left: 4ch;
+    margin-top: 3rem;
     counter-reset: line-count;
 }
 
 div.source::before {
     font-size: large;
     position: absolute;
-    top:-2.5rem;
-    color:blue;
+    top: -2.5rem;
+    color: blue;
     content: "Source";
 }
 
@@ -905,17 +924,17 @@ div.source span {
 
 div.source span::before {
     position: absolute;
-    left:-25px;
-    top:0;
-    color:blue;
+    left: -25px;
+    top: 0;
+    color: blue;
     width: 10px;
     content: counter(line-count);
 }
 
 /* reduce font for question numbers in fasit */
-div.section.fasit ~ div.section div.oppgave{
+div.section.fasit~div.section div.oppgave {
     font-size: 1em;
-    color:darkred;
+    color: darkred;
 }
 
 
@@ -924,8 +943,8 @@ div.section.fasit ~ div.section div.oppgave{
     width: 100vw;
     height: 100vh;
     background-color: white;
-    top:0;
-    left:0;
+    top: 0;
+    left: 0;
     justify-content: center;
 }
 
@@ -933,23 +952,23 @@ div.section.fasit ~ div.section div.oppgave{
     display: flex;
 }
 
-#config > div {
+#config>div {
     position: relative;
-    top:4rem;
+    top: 4rem;
     margin: 4ch;
     max-width: 50ch;
     height: fit-content;
-    border:solid rgba(128, 128, 128, 0.226) 1px;
+    border: solid rgba(128, 128, 128, 0.226) 1px;
     border-radius: 9px;
     box-shadow: rgba(0, 0, 0, 0.24) 0 0 9px;
 }
 
 #config div.inputDiv {
-   min-width: 40ch;
-   display:grid;
-   grid-template-columns: 2fr 2fr;
-   border-bottom: 1px rgba(128, 128, 128, 0.295) solid;
-   padding:2ch;
+    min-width: 40ch;
+    display: grid;
+    grid-template-columns: 2fr 2fr;
+    border-bottom: 1px rgba(128, 128, 128, 0.295) solid;
+    padding: 2ch;
 }
 
 #config div.inputDiv:last-child {
@@ -958,8 +977,8 @@ div.section.fasit ~ div.section div.oppgave{
 
 #config div.inputDiv button {
     width: fit-content;
- }
- 
+}
+
 #config select {
     border: none;
     border-radius: 4px;
@@ -968,28 +987,28 @@ div.section.fasit ~ div.section div.oppgave{
     outline: none;
     padding-bottom: 6px;
     padding-top: 6px;
-    padding-left:4px;
+    padding-left: 4px;
 }
 
 #config input[type="text"] {
     border-radius: 4px;
     padding-bottom: 6px;
     padding-top: 6px;
-    padding-left:4px;
+    padding-left: 4px;
 }
 
 #config label {
-    color:blue;
+    color: blue;
     text-transform: capitalize;
 }
 
 #config div.inputDiv span {
     font-size: 0.9rem;
-    color:darkgreen;
+    color: darkgreen;
     grid-column: 1/3;
-    padding-top:2px;
+    padding-top: 2px;
 }
 
-#config div.inputDiv.disabled  {
+#config div.inputDiv.disabled {
     display: none;
 }

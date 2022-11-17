@@ -18,7 +18,7 @@ import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     aside, editor, gistlist, gili, gisi, gust, gistfolder,
-    menu, menuu,
+    menu, menuu, saved,
     mathView, ed, examples, savedFiles, gitlist, sp, fs }
     = thingsWithId();
 
@@ -44,6 +44,7 @@ export const readTable = filename => {
     return 'NO DATA';
 }
 
+
 export var config = {};
 
 const configBase = {
@@ -51,11 +52,11 @@ const configBase = {
     trigmode: { valg: "grader,rad", t: "select", },
     git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
     git_user: { ledetekst: "Git username", t: "text" },
-    git_repo: { ledetekst: "Git repo", t: "text" },
-    git_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
     git_st_folder: { ledetekst: "Gist folder", t: "text", e: "Selected folder" },
+    git_st_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
+    git_hub_repo: { ledetekst: "Git repo", t: "text" },
 };
 
 
@@ -103,13 +104,12 @@ const makeConfig = () => {
     enabled();
     divConfig.onchange = e => enabled();
     qs("#config div.flexit").addEventListener("click", (e) => {
+        divConfig.classList.add("hidden");
         if (e.target.id === "abort") {
-            divConfig.classList.add("hidden");
             divConfig.innerHTML = "";
             return
         }
         config = {};
-        divConfig.classList.add("hidden");
         const konfig = Array.from(qsa("#config select"));
         konfig.forEach(elm => {
             const { id, value } = elm;
@@ -138,13 +138,13 @@ if (!havConfig) {
 } else {
     config = havConfig;
     if (config["git"] !== "ja") {
-        gitter.classList.add("hidden");
+        //gitter.classList.add("hidden");
     }
     if (config["git_hub"] !== "ja") {
         gili.classList.add("hidden");
     }
     if (config["git_st"] !== "ja") {
-        gisi.classList.add("hidden");
+        //gisi.classList.add("hidden");
     }
 }
 
@@ -222,6 +222,11 @@ const goEdit = () => {
     web.efs = 50;   // editor font size
     web.sp = 50;    // spacing between questions
     ed.value = oldSession || "";
+    if (filename !== web.filename) {
+        // update cache (10 last files)
+        console.log(web.filename, filename);
+        fileCache(filename);
+    }
     web.filename = filename;
     if (filename !== "") {
         const gist = existingFiles.find(e => e.name === filename);
@@ -242,9 +247,6 @@ fs.oninput = () => {
     root.style.setProperty("--svg", `${(250 * web.fs / 50) | 0}px`);
 }
 
-help.onclick = () => {
-    info.classList.toggle("hidden");
-}
 
 back.onclick = goHome;
 
@@ -300,6 +302,7 @@ let gr = {};
 
 
 async function setup() {
+    web.moveme = "Låst";
     // check if we have query parameters
     const ques = window.location.search
     const urlParams = new URLSearchParams(ques);
@@ -340,39 +343,87 @@ async function setup() {
     const url = "examples.json";
     const response = await fetch(url);
     const examples = await response.json();
-    web.examples.push(...examples);
+    //web.examples.push(...examples);
     // saved files may be none
     const savedFiles = getLocalJSON("savedfiles") || [];
-    web.savedFiles.push(...savedFiles.slice(0, 5));
-    const gitoken = config['git_token'];
+    //web.savedFiles.push(...savedFiles.slice(0, 10));
+    const gitoken = config['git_st_token'];
+    let advanced = false;
     if (gitoken && gitoken !== "") {
         // enable saving as gist
         gust.removeAttribute("disabled");
+        advanced = true;
     }
     // show list of files to open
+    const gistfilter = config['git_st_folder'] || '';
     if (config["git"] === 'ja') {
-        const gistfilter = config['git_st_folder'] || '';
         const gitfiles = await gitFiles();
         web.gitlist.push(...gitfiles);
         existingFiles = await gistFiles();
-        // Make displayname for files, stripping of prefix
-        Object.values(existingFiles).forEach(e => e.nice = unprefix("_", e.name));
-        gr = group(existingFiles,e=>{
-            const a = e.name.includes('_');
-            return a ? e.name.split('_')[0] : "Docs";
+    } else {
+        existingFiles = [];
+    }
+    if (!advanced) {
+        // filter out files not in gistfilter
+        existingFiles = existingFiles.filter(f => f.name.startsWith(gistfilter));
+    }
+    // add in existing files with prefix Recent_
+    savedFiles.forEach(f => {
+        existingFiles.push({ id: "0", name: "Recent_" + f, url: "" });
+    })
+    examples.forEach(f => {
+        existingFiles.push({ id: "1", name: "Examples_" + f, url: "/media/ex" + f + ".md" });
+    })
+    // Make displayname for files, stripping of prefix
+    existingFiles.forEach(e => e.nice = unprefix("_", e.name));
+    gr = group(existingFiles, e => {
+        const a = e.name.includes('_');
+        return a ? e.name.split('_')[0] : "Docs";
+    });
+    web.gistfolder.push(...Object.keys(gr));
+    if (gistfilter && gr[gistfilter]) {
+        web.gistlist.push(...gr[gistfilter]);
+        qs(`.fold[data-name="${gistfilter}"]`).classList.add("aktiv");
+    } else {
+        web.gistlist.push(...gr["Recent"]);
+        qs(`.fold[data-name="Recent"]`).classList.add("aktiv");
+    }
+    let moveme = false;
+
+    qs('[data-name="moveme"]').addEventListener("click",() => {
+        moveme = ! moveme;
+        web.moveme = moveme ? "Flytt" : "Låst";
+    })
+
+    {
+        // make the editor draggable
+        // @ts-ignore
+        interact("#editor").draggable({
+            inertia: true, // enable inertial throwing
+            autoScroll: true,
+            //hold: 50, // must hold 100ms before dragging
+            listeners: {
+                move: dragMoveListener,
+                end(event) { },
+            },
         });
-        if (gistfilter && gr[gistfilter]) {
-            web.gistfolder.push(...Object.keys(gr));
-            web.gistlist.push(... gr[gistfilter]);
-            qs(`.fold[data-name="${gistfilter}"]`).classList.add("aktiv");  
-        } else {
-            web.gistlist.push(...existingFiles);
+        function dragMoveListener(event) {
+            if (!moveme) return;
+            var target = event.target;
+            var x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx;
+            var y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
+            target.style.webkitTransform = target.style.transform =
+                "translate(" + x + "px, " + y + "px)";
+            target.setAttribute("data-x", x);
+            target.setAttribute("data-y", y);
         }
     }
+
 }
 
 setup();
 
+/**
 examples.onclick = async (e) => {
     const t = e.target;
     if (t.classList.contains("file")) {
@@ -399,6 +450,7 @@ savedFiles.onclick = async (e) => {
         goEdit();
     }
 }
+*/
 
 gitlist.onclick = async (e) => {
     const t = e.target;
@@ -418,8 +470,8 @@ gistfolder.onclick = (e) => {
         t.classList.add("aktiv");
         const name = t.dataset.name;
         web.gistlist.length = 0;
-        web.gistlist.push(... gr[name]);
-    } 
+        web.gistlist.push(...gr[name]);
+    }
 }
 
 
@@ -429,11 +481,27 @@ gistlist.onclick = async (e) => {
         const name = t.dataset.name;
         const url = t.dataset.url;
         const id = t.dataset.id;
-        const txt = await getGistFile(url);
-        setLocalJSON(sessionID, txt);
-        setLocalJSON("filename", name);
-        gist.name = name;
-        gist.id = id;
+        if (id === "0") {
+            const savedName = name.slice(7);
+            const txt = getLocalJSON("saved:" + savedName);
+            setLocalJSON(sessionID, txt);
+            setLocalJSON("filename", savedName);
+        } else if (id === "1") {
+            //const url = '/media/' + name;
+            const response = await fetch(url);
+            const txt = (response.ok)
+                ? await response.text()
+                : "Missing example";
+            setLocalJSON(sessionID, txt);
+            setLocalJSON("filename", name);
+        } else {
+            const txt = await getGistFile(url);
+            setLocalJSON(sessionID, txt);
+            setLocalJSON("filename", name);
+            gist.name = name;
+            gist.id = id;
+        }
+
         goEdit();
     }
 }
@@ -525,11 +593,6 @@ export const renderAll = () => {
                 eqsets.push({ eq, id: `eqs${seg}_${ofs}`, klass, seg });
                 return `<div class="equation qset ${klass}" id="eqs${seg}_${ofs}"></div>\n`;
             })
-            .replace(/@piecewise( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
-                ofs++;
-                piece.push({ eq, id: `piece${seg}_${ofs}`, klass, seg });
-                return `<div class="piecewise ${klass}" id="piece${seg}_${ofs}"></div>\n`;
-            })
             .replace(/@poldiv( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
                 ofs++;
                 poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
@@ -556,6 +619,11 @@ export const renderAll = () => {
                 ofs++;
                 sigrams.push({ eq, id: `sig${seg}_${ofs}`, size, seg });
                 return `<div class="sigram" id="sig${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@piecewise( .*)?$([^€]+?)^$^/gm, (_, size, eq) => {
+                ofs++;
+                piece.push({ eq, id: `piece${seg}_${ofs}`, size, seg });
+                return `<div class="piecewise ${size}" id="piece${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@math( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
@@ -843,16 +911,18 @@ readFileButton("load", (file, text) => {
     goEdit();
 });
 
-saveFileButton("save", web.filename, (newName) => {
+const fileCache = newName => {
     setLocalJSON("filename", newName);
     web.filename = newName;
     const savedFiles = getLocalJSON("savedfiles") || [];
-    savedFiles.push(newName);
-    const uniq = new Set(savedFiles);
+    savedFiles.unshift(newName);
+    const uniq = new Set(savedFiles.slice(0, 10));
     setLocalJSON("savedfiles", Array.from(uniq));
     setLocalJSON("saved:" + newName, ed.value);
     return ed.value;
-});
+}
+
+saveFileButton("save", web.filename, fileCache);
 
 document.addEventListener('selectionchange', () => {
     const word = document.getSelection();

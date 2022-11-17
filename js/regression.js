@@ -74,7 +74,6 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
                 const poly1 = giaEval(`expand(poly2symb([${arr}],x))`);
                 const poly2 = giaEval(`expand(poly2symb([${a2}],x))`);
                 funk = litex(poly2);
-
                 funks[funame] = poly1;
                 giaEval(`${funame}:=${poly1}`);
             }

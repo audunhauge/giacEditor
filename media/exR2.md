@@ -1,4 +1,4 @@
-# Prøve s1
+# Prøve R2
 
 @question Forenkle (3p)
 

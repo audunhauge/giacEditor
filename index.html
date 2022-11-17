@@ -14,9 +14,10 @@
     <script src="/js/d3.min.js"></script>
     <script src="/js/function-plot.js"></script>
     <script src="/js/giacsimple.js" async></script>
+    <script src="/js/interact.js" async></script>
     <script src="/js/brython.min.js" async></script>
     <script src="/js/brython_stdlib.js" async></script>
-    <script src="/pylab.py" async type="text/python" ></script>
+    <script src="/pylab.py" async type="text/python"></script>
     <!--script src="https://cdn.jsdelivr.net/npm/brython@3.10.3/brython.min.js" async></script>
     <script src="https://cdn.jsdelivr.net/npm/brython@3.10.3/brython_stdlib.js" async></script-->
     <link rel="stylesheet" href="/js/katex/katex.min.css">
@@ -33,7 +34,6 @@
         <header>
             <h2>Math editor</h2>
             <div class="menu home gui minos hidden">
-                <div class="button" id="help">ShowHelp</div>
                 <div class="button" id="newfile">New file</div>
                 <div class="button" id="load">Open file</div>
                 <div class="button" id="conf">Configure</div>
@@ -47,28 +47,9 @@
 
                 <div class="grid-2">
                     <div>
-                        <h3>Example files</h3>
-                        Click one of the examples below to edit.
-                        <div class="listing" repeat id="examples">
-                            <div data-name="ex$.md" class="file button"><label>$</label></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3>Recent files</h3>
-                        Click filename to edit.
-                        <div class="listing" repeat id="savedFiles">
-                            <div data-name="$" class="file button"><label>$</label></div>
-                        </div>
                         <div id="gitter">
-                            <div id="gili">
-                                <h3>Git files</h3>
-                                Click filename to edit.
-                                <div class="listing" repeat id="gitlist">
-                                    <div data-name="$" class="file button"><label>$</label></div>
-                                </div>
-                            </div>
                             <div id="gisi">
-                                <h3>Gist-files</h3>
+                                <h3>Files</h3>
                                 <div class="folders" repeat id="gistfolder">
                                     <div data-name="$" class="fold">$</div>
                                 </div>
@@ -77,24 +58,29 @@
                                         <label>{nice}</label>
                                     </div>
                                 </div>
-                                Click filename to edit.
+                            </div>
+                            <div id="gili">
+                                <h3>Git files</h3>
+                                <div class="listing" repeat id="gitlist">
+                                    <div data-name="$" class="file button"><label>$</label></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-            <section class="home info hidden" id="info">
+            <!--section class="home info hidden" id="info">
                 <p><a href="https://www.markdownguide.org/cheat-sheet/"> Overskrifter og formatering</a></p>
                 <p><a href="http://mathlex.org/doc/language"> Skriv med flat matematisk notasjon</a></p>
                 <p><a href="http://www-fourier.ujf-grenoble.fr/~parisse/giac/doc/en/cascmd_en/">CAS</a></p>
-            </section>
+            </section-->
         </main>
         <footer>
         </footer>
     </div>
     <div id="app" class="hidden minos">
         <header class="gui">
-            <div  class="menu gui hidden">
+            <div class="menu gui hidden">
                 <div class="button" id="back">Home</div>
                 <div class="button" id="save">Save</div>
                 <div class="button" id="aside">SideEdit</div>
@@ -127,6 +113,7 @@
                     <label>Editor font size
                         <input id="efs" type="range" min="30" max="100">
                     </label>{efs/50}
+                    {moveme}
                 </div>
                 <textarea name="ed" id="ed" cols="30" rows="10" stil="font-size:{efs/50}rem;line-height:{efs/50}rem;">
                 </textarea>
