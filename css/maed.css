@@ -198,22 +198,22 @@ div.math>div {
     grid-template-columns: 10fr 1fr 10fr;
 }
 
-div.math.grid2 {
+div.grid2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
 }
 
-div.math.grid3 {
+div.grid3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
 
-div.math.grid4 {
+div.grid4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
 }
 
-div.math.grid5 {
+div.grid5 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
 }

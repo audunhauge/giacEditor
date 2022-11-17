@@ -289,7 +289,7 @@ export const renderEqnSet = (id, txt, size = "") => {
     $(id).innerHTML = wrap(newMath, 'div');
 }
 
-export const renderPiece = (id, txt, size = 500) => {
+export const renderPiece = (id, txt, ksize = "") => {
     const lines = txt.split('\n').filter(e => e != "");
     //let lat = `f(a,b) =   \begin{cases} 2 \cdot x+a \quad \text{for } x\le 1 \\\\      x^2+bx  \quad \text{for } x \gt 1
     //\end{cases}`;
@@ -297,6 +297,7 @@ export const renderPiece = (id, txt, size = 500) => {
         $(id).innerHTML = "Expecting<br>f(x)<br>part1:limits<br>part2:limits<br>..more parts"
         return;
     }
+    const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
     const funcName = lines[0];
     const plots = [];
