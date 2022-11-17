@@ -53,6 +53,7 @@ const configBase = {
     git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
     git_user: { ledetekst: "Git username", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
+    git_st_tutorial: { ledetekst: "Tutorial", valg: "ja,nei", t: "checkbox", e: "Tutorial mode (enable help files)" },
     git_st_folder: { ledetekst: "Gist folder", t: "text", e: "Selected folder" },
     git_st_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
