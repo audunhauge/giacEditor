@@ -75,14 +75,17 @@ En funksjon er gitt ved $f(x)=ln(x)+ln(4-x)$
 @format abc
 * Finn nullpunkt til f.
 * Bestem def og verd mengdene til f.  
-En annen funksjon h er gitt $h(x)=ln(x)+ln(a-x)$ a>0
+En annen funksjon h er gitt $h(x)=ln(x)+ln(a-x)$ , a>0
 * Bestem a slik at verdimengden h er 
-$ V_h = \big \langle \leftarrow , 0 \big \] $
+$ V_h = \big \langle \leftarrow , 0 \big \rbrack  $
+
+
+
 
 
 @oppgave
 Bestem f når du får vite
-* f er en resjonal funk
+* f er en rasjonal funk
 * nullpunkt {-2,1}
 * y=2x+6 er skrå asymptote
 * x = 2 er vert asympt
@@ -207,7 +210,6 @@ print("Løsning i=",i," x=",x," y=",f(x))
 
 @cas
 log(3.4)/log(2)
-
 
 
 
