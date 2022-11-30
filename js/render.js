@@ -4,7 +4,7 @@ import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
 import { web, tg, currentLanguage } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
-import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice } from './util.js';
+import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
     hyperC, hyper, binomial, binomialC,
     normal, normalC, fisher, fisherCrit
@@ -290,13 +290,16 @@ export const renderEqnSet = (id, txt, size = "") => {
 }
 
 export const renderPiece = (id, txt, ksize = "") => {
-    const lines = txt.split('\n').filter(e => e != "");
+    const startlines = txt.split('\n').filter(e => e != "");
     //let lat = `f(a,b) =   \begin{cases} 2 \cdot x+a \quad \text{for } x\le 1 \\\\      x^2+bx  \quad \text{for } x \gt 1
     //\end{cases}`;
-    if (lines.length < 3) {
+    if (startlines.length < 3) {
         $(id).innerHTML = "Expecting<br>f(x)<br>part1:limits<br>part2:limits<br>..more parts"
         return;
     }
+    // check if we have xrange/yrange
+    const {commands, lines} = group(startlines,(e) =>  e.match(/^[xy]range/) ? "commands" : "lines");
+    // console.log(commands,lines);
     const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
     const funcName = lines[0];

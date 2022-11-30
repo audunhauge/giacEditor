@@ -15,6 +15,13 @@ export function thingsWithId() {
   return ret;
 }
 
+
+/**
+ * Group array by keys - keys created by cb
+ * @param {array} arr array of items
+ * @param {function} cb  create key-value from item
+ * @returns {object} array grouped by keys
+ */
 export function group(arr, cb) {
   let index = 0;
   let key, value;
