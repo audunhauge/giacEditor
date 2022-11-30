@@ -374,7 +374,12 @@ async function setup() {
     })
     examples.forEach(f => {
         existingFiles.push({ id: "1", name: "Examples_" + f, url: "/media/ex" + f + ".md" });
-    })
+    });
+    // If user checked Tutorial - parse any documentation files
+    // and build up extended help
+    if (config['git_st_tutorial'] === 'ja') {
+        
+    }
     // Make displayname for files, stripping of prefix
     existingFiles.forEach(e => e.nice = unprefix("_", e.name));
     gr = group(existingFiles, e => {
@@ -424,34 +429,6 @@ async function setup() {
 
 setup();
 
-/**
-examples.onclick = async (e) => {
-    const t = e.target;
-    if (t.classList.contains("file")) {
-        const name = t.dataset.name;
-        const url = '/media/' + name;
-        const response = await fetch(url);
-        const txt = (response.ok)
-            ? await response.text()
-            : "Missing example";
-        setLocalJSON(sessionID, txt);
-        setLocalJSON("filename", name);
-        goEdit();
-    }
-}
-
-
-savedFiles.onclick = async (e) => {
-    const t = e.target;
-    if (t.classList.contains("file")) {
-        const name = t.dataset.name;
-        const txt = getLocalJSON("saved:" + name);
-        setLocalJSON(sessionID, txt);
-        setLocalJSON("filename", name);
-        goEdit();
-    }
-}
-*/
 
 gitlist.onclick = async (e) => {
     const t = e.target;
