@@ -298,8 +298,7 @@ export const renderPiece = (id, txt, ksize = "") => {
         return;
     }
     // check if we have xrange/yrange
-    const {commands, lines} = group(startlines,(e) =>  e.match(/^[xy]range/) ? "commands" : "lines");
-    // console.log(commands,lines);
+    const { commands, lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
     const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
     const funcName = lines[0];
@@ -311,32 +310,50 @@ export const renderPiece = (id, txt, ksize = "") => {
         plots.push({ exp, limit });
     }
     lat += ' \\end{cases}\n';
-    parent.innerHTML = katx(lat, true);
-    const div = create('div');
-    div.id = "piece" + Date.now();
-    parent.append(div);
-    let mlo = 0, mhi = 0;
-    const fun = [];
-    plots.forEach(({ exp, limit }) => {
-        const rlo = limit.match(/\>=?(-?[0-9.]+)/) || [];
-        const rhi = limit.match(/\<=?(-?[0-9.]+)/) || [];
-        const llo = limit.match(/(-?[0-9.]+)\</) || [];
-        const lhi = limit.match(/(-?[0-9.]+)\>/) || [];
-        const lo = Number(rlo[1] ?? llo[1] ?? -10);
-        const hi = Number(rhi[1] ?? lhi[1] ?? 10);
-        mlo = min(mlo, lo);
-        mhi = max(mhi, hi);
-        fun.push({ exp, lo, hi });
-    });
-    const optObj = plotDomain(size, [mlo, mhi]);
-    // const optObj = plotDomain(mlo,mhi);
-    optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi] }));
-    optObj.target = "#" + div.id;
-    try {
-        // @ts-ignore
-        functionPlot(optObj);
-    } catch (e) {
-        console.log("Piecewise:", e);
+    // dont show function if command contains "nofun"
+    if (!commands.find(e => e.startsWith("nofun"))) {
+        parent.innerHTML = katx(lat, true);
+    }
+    if (!commands.find(e => e.startsWith("nogra"))) {
+        const div = create('div');
+        div.id = "piece" + Date.now();
+        parent.append(div);
+        let mlo = 0, mhi = 0;
+        const fun = [];
+        plots.forEach(({ exp, limit }) => {
+            const rlo = limit.match(/\>=?(-?[0-9.]+)/) || [];
+            const rhi = limit.match(/\<=?(-?[0-9.]+)/) || [];
+            const llo = limit.match(/(-?[0-9.]+)\</) || [];
+            const lhi = limit.match(/(-?[0-9.]+)\>/) || [];
+            const lo = Number(rlo[1] ?? llo[1] ?? -10);
+            const hi = Number(rhi[1] ?? lhi[1] ?? 10);
+            mlo = min(mlo, lo);
+            mhi = max(mhi, hi);
+            fun.push({ exp, lo, hi });
+        });
+        let xlo, xhi, ylo, yhi;
+        if (commands) {
+            // xrange or yrange
+            const { xrange, yrange } = group(commands, e => e.startsWith('x') ? 'xrange' : 'yrange');
+            if (xrange) {
+                xlo = Number((xrange[0].match(/(-?[0-9.]+),/) || [])[1]) ?? mlo;
+                xhi = Number((xrange[0].match(/,(-?[0-9.]+)/) || [])[1]) ?? mhi;
+            }
+            if (yrange) {
+                ylo = Number((yrange[0].match(/(-?[0-9.]+),/) || [])[1]) ?? -10
+                yhi = Number((yrange[0].match(/,(-?[0-9.]+)/) || [])[1]) ?? -10
+            }
+        }
+        const optObj = plotDomain(size, [xlo, xhi, ylo, yhi]);
+        // const optObj = plotDomain(mlo,mhi);
+        optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi] }));
+        optObj.target = "#" + div.id;
+        try {
+            // @ts-ignore
+            functionPlot(optObj);
+        } catch (e) {
+            console.log("Piecewise:", e);
+        }
     }
 }
 
