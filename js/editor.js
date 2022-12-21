@@ -366,7 +366,7 @@ async function setup() {
     }
     if (!advanced) {
         // filter out files not in gistfilter
-        existingFiles = existingFiles.filter(f => f.name.startsWith(gistfilter));
+        existingFiles = existingFiles.filter(f => f.name.startsWith('HELP') || f.name.startsWith(gistfilter));
     }
     // add in existing files with prefix Recent_
     savedFiles.forEach(f => {

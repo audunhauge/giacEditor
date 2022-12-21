@@ -340,8 +340,8 @@ export const renderPiece = (id, txt, ksize = "") => {
                 xhi = Number((xrange[0].match(/,(-?[0-9.]+)/) || [])[1]) ?? mhi;
             }
             if (yrange) {
-                ylo = Number((yrange[0].match(/(-?[0-9.]+),/) || [])[1]) ?? -10
-                yhi = Number((yrange[0].match(/,(-?[0-9.]+)/) || [])[1]) ?? -10
+                ylo = Number((yrange[0].match(/(-?[0-9.]+),/) || [])[1]) ?? -10;
+                yhi = Number((yrange[0].match(/,(-?[0-9.]+)/) || [])[1]) ?? -10;
             }
         }
         const optObj = plotDomain(size, [xlo, xhi, ylo, yhi]);
