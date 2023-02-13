@@ -5,7 +5,7 @@ const english = {
         solve: "solve",          // solve(x+2=4) => x=2
         division: "quorem",      // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         factor: "factor",        // factor(x^2-3x-2) => (x-2)(x+1)
-        poldiv: "propfrac",      // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        poldiv: " propfrac",      // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotinequation:"plotinequation",
         deg:"angle_radian:=0",
         rad:"angle_radian:=1",
@@ -60,8 +60,8 @@ const norwegian = {
     cas: {
         løs: "solve",                    // solve(x+2=4) => x=2
         divisjon: "quorem",              // quorem(x^2-3x-2,x-2,x) => (x+1,0)
-        faktor: "factor",                // factor(x^2-3x-2) => (x-2)(x+1)
-        poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        faktor: " factor",                // factor(x^2-3x-2) => (x-2)(x+1)
+        poldiv: " propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotulikhet: "plotinequation",
         grader:"angle_radian:=0",
         radianer:"angle_radian:=1",
@@ -160,8 +160,8 @@ const italiano = {
     cas: {
         risolvere: "solve",                    // solve(x+2=4) => x=2
         divisione: "quorem",              // quorem(x^2-3x-2,x-2,x) => (x+1,0)
-        fattore: "factor",                // factor(x^2-3x-2) => (x-2)(x+1)
-        poldiv: "propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        fattore: " factor",                // factor(x^2-3x-2) => (x-2)(x+1)
+        poldiv: " propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotdisuguaglianza: "plotinequation",
         deg:"angle_radian:=0",
         rad:"angle_radian:=1",

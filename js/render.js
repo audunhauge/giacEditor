@@ -298,7 +298,7 @@ export const renderPiece = (id, txt, ksize = "") => {
         return;
     }
     // check if we have xrange/yrange
-    const { commands, lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
+    const { commands = "", lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
     const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
     const funcName = lines[0];
