@@ -40,7 +40,9 @@ export function cleanUpMathLex(code) {
 
 const simplify = exp => {
     try {
-        const g = (exp.charAt(0) === ' ')
+        //const g = (exp.charAt(0) === ' ')
+        const txt = trans(lang[currentLanguage], exp);
+        const g = (txt.includes(" "))
             // @ts-ignore
             ? giaEval(`latex((${exp}))`)
             // @ts-ignore
