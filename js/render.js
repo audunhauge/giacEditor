@@ -244,30 +244,31 @@ export const renderSigram = (id, txt, funks, size = "") => {
     $(id).innerHTML = signums.join('');
 }
 
-export const renderEqnSet = (id, txt, size = "") => {
+export const renderEqnSet = (id, txt, klass = "") => {
     let comments = 0;
+    const order = min(5,max(2,(Number(klass) ?? 2)));
     const newMath = [];
     const lines = txt.split('\n').filter(e => e != "");
     let eqs = [];
-    if (lines.length < 2) {
-        $(id).innerHTML = "Must have exactly two equations"
+    if (lines.length < order) {
+        $(id).innerHTML = `Must have ${order} equations`;
         return;
     }
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < order; i++) {
         const [line, comment = ""] = lines[i].split("::");
         eqs[i] = line;
         const clean = cleanUpMathLex(line);
         const kalex = renderLikning(clean, comment, { mode: false, klass: "" });
-        newMath[i] = `<span data-nr="${'I'.repeat(i + 1)}" class="eqset">${kalex}</span>`;
+        newMath[i] = `<span data-nr="${'I'.repeat(i + 1)}" class="eqset green">${kalex}</span>`;
     }
     let eqnb = 1;
-    for (let i = 2; i < lines.length; i++) {
+    for (let i = order; i < lines.length; i++) {
         const [todo, comment = ""] = lines[i].split("::");
         comments += comment ? 1 : 0;            // count number of comments
         let [idx, line] = todo.split(":");     //  "1:+2"  "2:*3"
         const [a, op, b] = todo.split('');
-        if ("+-".includes(op) && +a + +b === 3) {
-            // 1+2 2-1 2+1 1-2
+        if ("+-".includes(op) && +a + +b > 1) {
+            // 1+2 2-1 2+1 1-2 1+3
             const nuline = giaEval(`simplify((${eqs[+a - 1]})${op}(${eqs[+b - 1]}))`);
             eqs[+a - 1] = nuline;
             const kalex = renderLikning(nuline, comment, { mode: false, klass: "" });
@@ -300,7 +301,7 @@ export const renderPiece = (id, txt, ksize = "") => {
         return;
     }
     // check if we have xrange/yrange
-    const { commands = "", lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
+    const { commands = [], lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
     const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
     const funcName = lines[0];

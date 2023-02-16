@@ -577,7 +577,7 @@ span.eqset::before {
     content: attr(data-nr) ")";
     color: saddlebrown;
     padding-right: 0.5em;
-    left: -1.6em;
+    left: -2.6em;
     top: 0.4em;
 }
 
@@ -590,13 +590,15 @@ div.equation.qset>div:nth-child(2) {
 }
 
 div.equation.qset>div>span {
-    color: green;
+    color: midnightblue;
     padding: 3px;
 }
 
-div.qset>div:nth-child(n+3)>span {
-    color: midnightblue;
+
+div.equation.qset>div>span.eqset.green {
+    color: green;
 }
+
 
 span.num {
     color: #820d46;
