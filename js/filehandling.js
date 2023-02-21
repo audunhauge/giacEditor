@@ -157,7 +157,7 @@ export const getGistFile = async (filename) => {
     }
 }
 
-export const updateGist = async (id, name, content,description="mcas") => {
+export const updateGist = async (id, name, content, description = "mcas") => {
     const { token } = userRepo();
     const url = `https://api.github.com/gists/${id}`;
     const header = {
@@ -170,7 +170,7 @@ export const updateGist = async (id, name, content,description="mcas") => {
         public: "true",
         files: {}
     };
-    
+
     gistInfo.files[name] = { filename: name, content };
     try {
         fetch(url, {
@@ -215,6 +215,36 @@ export const writeGist = async (file, name, description = "mcas") => {
     try {
         fetch(url, {
             method: "post",
+            headers: header,
+            body: JSON.stringify(gistInfo),
+        });
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+export const writeGit = async (content, path) => {
+    const { token, user, repo } = userRepo();
+    const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
+    const header = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+    }
+    const gistInfo = {
+        content,
+        message: 'autopush',
+        committer: {
+            name: 'Audun Hauge',
+            email: 'audun.hauge@gmail.com'
+        }
+    };
+
+    try {
+        fetch(url, {
+            method: "put",
             headers: header,
             body: JSON.stringify(gistInfo),
         });
