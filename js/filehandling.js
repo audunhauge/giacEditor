@@ -257,7 +257,7 @@ export const writeGit = async (content, path) => {
 
 const _gistFiles = async (user) => {
     try {
-        const resp = await fetch(`https://api.github.com/users/${user}/gists`);
+        const resp = await fetch(`https://api.github.com/users/${user}/gists?per_page=100`);
         const json = await resp.json();
         return json;
     } catch (err) {

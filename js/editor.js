@@ -782,13 +782,13 @@ export const renderAll = () => {
             //scrollit(id);
         }
     });
-    eqsets.forEach(({ eq, id, size, seg }) => {
+    eqsets.forEach(({ eq, id, klass, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
             resetCAS();
         }
         if (rerend || dirtyList.includes(seg)) {
-            renderEqnSet(id, eq, size);
+            renderEqnSet(id, eq, klass);
             //scrollit(id);
         }
     });
