@@ -232,7 +232,6 @@ export const writeGit = async (content, path) => {
         Accept: "application/json",
         "Content-Type": "application/json",
         Authorization: `Token ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
     }
     const gistInfo = {
         encoding:"utf-8",
