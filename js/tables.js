@@ -71,50 +71,6 @@ const barChart = (data, sum, size, options) => {
     //return _barChart(data, sum, size);
 }
 
-const _barChart = (data, sum, size) => {
-    let numbers = data[0].map(Number);
-    let ys = (data[1] || []).map(Number);
-    let haveXS = false;
-    if (ys.length && ys.every(Number.isFinite)) {
-        // 2. row is also numbers - assume y values
-        haveXS = true;
-        data.shift();  // adjust so ys not used as labels
-    } else {
-        ys = numbers.slice();
-    }
-    const N = numbers.length;
-    const w = min(max(0.02, 1.7 / N), 0.4);
-    const labels = data[1] || [];
-    const large = max(...ys);
-    const step = 2 / 5;
-    const scaled = ys.map(v => 2 * v / large);
-    const n = String(Math.random()).slice(2, 10);
-    const text = [];
-    let ofs = 0.35;
-    let innerSVG = scaled.map((v, i) => {
-        let nr = String(haveXS ? numbers[i] : i + 1);
-        let nlabel = '';
-        if (ofs > nr.length * 0.15 && nr.length < 5) {
-            nlabel = `<text x="${i * (w + 0.01) - 0.9 * (1 - w / 3)}" y="1.15">${nr}</text>`;
-            ofs -= nr.length * 0.15;
-        }
-        ofs += w + 0.01;
-        const bar = `<rect width="${w}" x="${i * (w + 0.01) - 0.9}" y="${1 - v}" height="${v}"></rect>` + nlabel;
-        const lbl = labels[i];
-        if (lbl) {
-            const id = "bar" + n + String(i);
-            const p = `<path id="${id}" d="M ${i * (w + 0.01) - 0.9 * (1 - w)} 1 l 0 -1"/>`
-            text.push(p + `<text class="inside"><textPath startOffset="1%" href="#${id}">${lbl}</textPath></text>`);
-        }
-        return bar;
-    }
-    ).join("") + text.join("")
-        + [0, 1, 2, 3, 4, 5].map(v => v * step)
-            .map(s => `<line x1="-1.1" y1="${1 - s}" x2="1.1" y2="${1 - s}" fill="none" stroke="black" stroke-width="0.001px" />`)
-            .join("");
-    const ww = size ? `width:${size}px;` : '';
-    return `<svg style="${ww}" class="bar" viewBox="-1.15 -1.15 2.3 2.3" >` + innerSVG + '</svg>';
-}
 
 
 const histChart = (data, sum, size) => {
