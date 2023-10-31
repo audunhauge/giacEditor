@@ -618,9 +618,10 @@ export const renderAll = () => {
                 eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
                 return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
             })
-            .replace(/^@question( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, fasit, synlig, kolonner, poeng, myown, txt) => {
+            .replace(/^@question( \d+)?( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, counter,fasit, synlig, kolonner, poeng, myown, txt) => {
                 const hr = fasit ? '<hr>' : '';
                 txt = txt ? txt : '';
+                console.log(counter);
                 const instead = myown ? myown.substr(2) + txt : '';
                 txt = myown ? '' : txt;
                 const points = poeng ? `data-poeng="${poeng.slice(2, -2)}"` : '';
