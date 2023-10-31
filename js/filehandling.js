@@ -226,26 +226,24 @@ export const writeGist = async (file, name, description = "mcas") => {
 }
 
 export const writeGit = async (content, path) => {
-    const { token, user, repo } = userRepo();
-    const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
-    const header = {
+    const { token, user } = userRepo();
+    const url = `https://api.github.com/repos/${user}/${path}/git/blobs`;
+    const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
         Authorization: `Token ${token}`,
     }
     const gistInfo = {
+        encoding:"utf-8",
+        owner:`${user}`,
+        repo:path,
         content,
-        message: 'autopush',
-        committer: {
-            name: 'Audun Hauge',
-            email: 'audun.hauge@gmail.com'
-        }
     };
 
     try {
         fetch(url, {
-            method: "put",
-            headers: header,
+            method: "POST",
+            headers,
             body: JSON.stringify(gistInfo),
         });
         return true;
