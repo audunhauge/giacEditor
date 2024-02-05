@@ -12,11 +12,18 @@ import {
 
 import { frekTable, statsTable, anovaTable, dataTable, transpose } from './tables.js';
 
+import AsciiMathParser from './ascii2tex.js';
+
+const ascii = new AsciiMathParser();
+
 const { abs, min, max, sin, cos, PI, floor, log, exp, E } = Math;
 
 
 export var tableList = {};
 export var svgList = {};
+
+
+
 
 
 // @ts-ignore
@@ -58,10 +65,7 @@ const simplify = exp => {
 export const makeLatex = (txt, { mode, klass }) => {
     const clean = cleanUpMathLex(txt);
     try {
-        // @ts-ignore
-        const m = MathLex.parse(clean);
-        // @ts-ignore
-        const tex = MathLex.render(m, "latex");
+        const tex = ascii.parse(txt);
         return katx(String(tex), mode);
     } catch (e) {
         //console.log(e, txt, clean);
