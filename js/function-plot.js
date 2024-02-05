@@ -4162,6 +4162,15 @@ module.exports = function () {
   math.div = function (a, b) {
     return a / b
   }
+
+  math.lg = function (a) {
+    return Math.log10(a);
+  }
+  
+  math.ln = function (a) {
+    return Math.log(a);
+  }
+
   math.mod = function (a, b) {
     return a % b
   }

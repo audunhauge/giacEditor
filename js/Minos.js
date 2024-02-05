@@ -206,6 +206,8 @@ const mathEnvironment = {
     acos: Math.acos,
     exp: Math.exp,
     floor: Math.floor,
+    ln: Math.log,
+    lg: Math.log10,
     log: Math.log,
     log10: Math.log10,
     max: Math.max,
