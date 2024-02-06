@@ -299,6 +299,7 @@ export default class AsciiMathParser {
             {asciimath:"bar", tex:"\\overline", acc:true},
             {asciimath:"overline", tex:"\\overline", acc:true},
             {asciimath: "vec", tex:"\\vec", acc:true},
+            {asciimath: "vvec", tex:"\\overrightarrow", acc:true},
             {asciimath: "tilde", tex:"\\tilde", acc:true},
             {asciimath: "dot", tex:"\\dot", acc:true},
             {asciimath: "ddot", tex:"\\ddot", acc:true},
