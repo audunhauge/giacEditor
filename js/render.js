@@ -329,6 +329,11 @@ export const renderPiece = (id, txt, ksize = "") => {
         let mlo = 0, mhi = 0;
         const fun = [];
         plots.forEach(({ exp, limit }) => {
+            // planning on adding a dot at end of graph if [3,4] vs <3,4>
+            // difficulty placing the dot in graph?
+            const dotRight = limit.match(/\<=(-?[0-9.]+)/) || limit.match(/(-?[0-9.]+)\>=/);   //  trial
+            const dotLeft =  limit.match(/\>=(-?[0-9.]+)/) || limit.match(/(-?[0-9.]+)\<=/);   //  trial
+            console.log(dotRight,dotLeft);     //  trial
             const rlo = limit.match(/\>=?(-?[0-9.]+)/) || [];
             const rhi = limit.match(/\<=?(-?[0-9.]+)/) || [];
             const llo = limit.match(/(-?[0-9.]+)\</) || [];
@@ -401,7 +406,7 @@ export const renderLikning = (line, comment, { mode, klass }) => {
 export function renderAlgebra(id, txt, funks, size = "") {
     let comments = 0;
     const newMath = [];
-    const mode = size.includes("senter");
+    const mode = size.includes("large");
     const klass = size;
     const plotSizeW = Number(size.match(/\d+/)?.[0] || 200);
     const plotSizeH = plotSizeW * 0.6;
@@ -486,7 +491,7 @@ export function renderEquation(id, txt, size = "") {
 
 export function renderMath(id, math, funks, size = "") {
     const newMath = [];
-    const mode = size.includes("senter");
+    const mode = size.includes("large");
     const likning = size.includes("likning");
     const klass = size;
     const lines = math.split('\n').filter(e => e != "");

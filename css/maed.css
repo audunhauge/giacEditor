@@ -282,7 +282,6 @@ span.comment {
     max-height: 1.2em;
 }
 
-div.math>div>div>span:nth-child(2) {}
 
 pre>code[class^=language] {
     position: relative;
