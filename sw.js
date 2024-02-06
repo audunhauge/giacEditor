@@ -1,5 +1,5 @@
 const cacheName = 'mCasEditor';
-const version = 3.6;
+const version = 3.7;
 const filesToCache = [
   '/',
   '/index.html',
@@ -25,6 +25,7 @@ const filesToCache = [
   '/media/exS1.md',
   '/media/exS2.md',
 
+  `/js/ascii2tex.js`,
   `/js/aside.js`,
   `/js/autotags.js`,
   `/js/brython_stdlib.js`,
@@ -38,7 +39,6 @@ const filesToCache = [
   `/js/katex/fonts/KaTeX_AMS-Regular.woff2`,
   `/js/katex/katex.min.css`,
   `/js/katex/katex.min.js`,
-  `/js/mathlex.min.js`,
   `/js/Minos.js`,
   `/js/probability.js`,
   `/js/regression.js`,

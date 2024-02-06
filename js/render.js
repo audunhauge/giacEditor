@@ -80,7 +80,8 @@ const lotex = txt => {
     try {
         const simplex = cleanUpMathLex(txt);
         // @ts-ignore 
-        return MathLex.render(MathLex.parse(simplex), "latex");
+        //return MathLex.render(MathLex.parse(simplex), "latex");
+        return ascii.parse(simplex);
     } catch (er) {
         return txt;
     }
