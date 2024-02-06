@@ -153,6 +153,8 @@ export default class AsciiMathParser {
             {"asciimath":"o.","tex":"\\odot"},
             {"asciimath":"^","tex":"\\hat{}"},
             {"asciimath":"_","tex":"\\_"},
+            {"asciimath":",,","tex":"\\,"},
+            {"asciimath":";;","tex":"\\;"},
             {"asciimath":"^^","tex":"\\wedge"},
             {"asciimath":"vv","tex":"\\vee"},
             {"asciimath":"nn","tex":"\\cap"},
@@ -327,6 +329,7 @@ export default class AsciiMathParser {
             {asciimath: "frac",    tex:"\\frac"},
             {asciimath: "stackrel", tex:"\\stackrel"},
             {asciimath: "overset", tex:"\\overset"},
+            {asciimath: "binom", tex:"\\binom"},
             {asciimath: "underset", tex:"\\underset"},
             {asciimath:"color", tex: "\\color", rawfirst: true},
         ]
