@@ -253,9 +253,13 @@ const expressionValue = curry(eva)(valueOfNamedVars);
  * Eks: wrap([1,2],"i") => <i>1</i><i>2</i>
  * @param {array} ar liste med ord som skal vises
  * @param {string} tag html tag som skal omgi teksten
+ * @param {string} klas valgfri klasse
  * @returns {string}
  */
-export const wrap = (ar, tag) => ar.map(e => `<${tag}>${e}</${tag}>`).join('');
+export const wrap = (ar, tag, klas='') => {
+   const kk = (klas != '') ? ` class="${klas}"` : '';
+   return ar.map(e => `<${tag}${kk}>${e}</${tag}>`).join('');
+}
 
 /**
  * Erstatter {x} med verdien til x, gitt {x:"ole"}

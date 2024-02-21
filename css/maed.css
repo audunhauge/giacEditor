@@ -1,6 +1,7 @@
 :root {
     --spacing: 0.5rem;
     --svg: 250px;
+    --gui: block;
 }
 
 #output {
@@ -116,6 +117,7 @@ div.section.fasit {
     }
 
     .gui,
+    div.erfasit,
     div.section.fasit.skjult {
         display: none;
     }
@@ -146,6 +148,10 @@ div.oppgave.fasit::before {
     padding: 5px;
 }
 
+aside.gui {
+    display: var(--gui);
+}
+
 #editor {
     position: fixed;
     right: 0;
@@ -173,24 +179,35 @@ div.oppgave.fasit::before {
     height: 16px;
 }
 
+span.reset,
 div.algebra,
 div.equation,
 div.math {
     counter-reset: math-count 0;
 }
 
+div.gridy,
 div.equation>div,
 div.algebra>div,
 div.math>div {
     position: relative;
     margin-left: 3rem;
-}
-
-div.equation>div,
-div.algebra>div,
-div.math>div {
     counter-increment: math-count;
     margin-top: 0.3em;
+}
+
+div.algebra div.gridy {
+    display: grid;
+    grid-template-columns: 10fr 1fr 10fr 5fr;
+    padding-bottom: 4px;
+    color: darkgreen;
+}
+
+div.equation>div {
+    display: grid;
+    grid-template-columns: 10fr 1fr 10fr 5fr;
+    padding-bottom: 4px;
+    color: darkblue;
 }
 
 .math div.eq {
@@ -218,6 +235,7 @@ div.grid5 {
     grid-template-columns: repeat(5, 1fr);
 }
 
+div.algebra.abc div.gridy::before,
 div.algebra.bokstav>div::before,
 div.algebra.abc>div::before,
 div.math.abc>div>div:before,
@@ -228,6 +246,8 @@ div.math.bokstav>div>div:before {
     top: 0;
 }
 
+div.math.nummer div.gridy::before,
+div.algebra.nummer div.gridy::before,
 div.equation.nummer>div::before,
 div.equation.number>div::before,
 div.math.number>div::before,
@@ -240,6 +260,9 @@ div.math.nummer>div::before {
     top: 0;
 }
 
+div.math.iv div.gridy::before,
+div.algebra.iv div.gridy::before,
+div.math.iv>div::before,
 div.algebra.iv>div::before,
 div.math.likningssett>div>div:before,
 div.math.likningsett>div>div:before {
@@ -486,19 +509,9 @@ div.equation.qset>div {
     color: darkblue;
 }
 
-div.equation>div {
-    display: grid;
-    grid-template-columns: 10fr 1fr 10fr 5fr;
-    padding-bottom: 4px;
-    color: darkblue;
-}
 
-div.algebra>div {
-    display: grid;
-    grid-template-columns: 10fr 1fr 10fr 5fr;
-    padding-bottom: 4px;
-    color: darkgreen;
-}
+
+
 
 span.answer {
     display: inline-block;

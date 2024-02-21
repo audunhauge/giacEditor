@@ -2,6 +2,10 @@
     display: none;
 }
 
+#settings {
+    font-size: small;
+}
+
 
 .grid-2 {
     display: grid;

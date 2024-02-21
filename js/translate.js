@@ -2,6 +2,7 @@
 
 const english = {
     cas: {
+        simplify: "simplify",
         solve: "solve",          // solve(x+2=4) => x=2
         division: "quorem",      // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         factor: "factor",        // factor(x^2-3x-2) => (x-2)(x+1)
@@ -58,6 +59,7 @@ const english = {
 
 const norwegian = {
     cas: {
+        forenkle: "simplify",
         løs: "solve",                    // solve(x+2=4) => x=2
         divisjon: "quorem",              // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         faktor: " factor",                // factor(x^2-3x-2) => (x-2)(x+1)
@@ -158,6 +160,7 @@ x^2:x>=1             \\  x^2 for x>=1`,
 
 const italiano = {
     cas: {
+        semplificare: "simplify",
         risolvere: "solve",                    // solve(x+2=4) => x=2
         divisione: "quorem",              // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         fattore: " factor",                // factor(x^2-3x-2) => (x-2)(x+1)

@@ -49,7 +49,8 @@ const simplify = exp => {
     try {
         //const g = (exp.charAt(0) === ' ')
         const txt = trans(lang[currentLanguage], exp);
-        const g = (txt.includes(" "))
+        //  factor/faktor or leading space -> no simplify
+        const g = (txt.includes(" ") || txt.startsWith("fa"))
             // @ts-ignore
             ? giaEval(`latex((${exp}))`)
             // @ts-ignore
@@ -251,7 +252,7 @@ export const renderSigram = (id, txt, funks, size = "") => {
 
 export const renderEqnSet = (id, txt, klass = "") => {
     let comments = 0;
-    const order = min(5,max(2,(Number(klass) ?? 2)));
+    const order = min(5, max(2, (Number(klass) ?? 2)));
     const newMath = [];
     const lines = txt.split('\n').filter(e => e != "");
     let eqs = [];
@@ -332,8 +333,8 @@ export const renderPiece = (id, txt, ksize = "") => {
             // planning on adding a dot at end of graph if [3,4] vs <3,4>
             // difficulty placing the dot in graph?
             const dotRight = limit.match(/\<=(-?[0-9.]+)/) || limit.match(/(-?[0-9.]+)\>=/);   //  trial
-            const dotLeft =  limit.match(/\>=(-?[0-9.]+)/) || limit.match(/(-?[0-9.]+)\<=/);   //  trial
-            console.log(dotRight,dotLeft);     //  trial
+            const dotLeft = limit.match(/\>=(-?[0-9.]+)/) || limit.match(/(-?[0-9.]+)\<=/);   //  trial
+            console.log(dotRight, dotLeft);     //  trial
             const rlo = limit.match(/\>=?(-?[0-9.]+)/) || [];
             const rhi = limit.match(/\<=?(-?[0-9.]+)/) || [];
             const llo = limit.match(/(-?[0-9.]+)\</) || [];
@@ -406,6 +407,7 @@ export const renderLikning = (line, comment, { mode, klass }) => {
 export function renderAlgebra(id, txt, funks, size = "") {
     let comments = 0;
     const newMath = [];
+    const [_, command] = (size.match(/command=([a-zø]+)/) || []);
     const mode = size.includes("large");
     const klass = size;
     const plotSizeW = Number(size.match(/\d+/)?.[0] || 200);
@@ -427,15 +429,18 @@ export function renderAlgebra(id, txt, funks, size = "") {
             <span>${line.replace(/</g, "&lt;")}</span><span class="comment">${comment}</span>`;
             continue;
         }
+        const before = command ? command + '(' : "";
+        const after = command ? ')' : "";
+        const adjus = before + line + after;
+        const [parts, ...nn] = adjus.split('(')
+        const prefix = nn.length ? parts : '';  // løs(x+2=0), prefix=løs
+        const isCAS = prefix.length &&
+            "løssimplifyforenklediffpoldivisjonintegrate faktorplot factorsolve".includes(prefix);
         comments += comment ? 1 : 0;  // count number of comments
-        const clean = cleanUpMathLex(line);
+        const clean = cleanUpMathLex(adjus);
         const assign = clean.includes(":=");
         const [lhs, rhs, ...xs] = clean.split("=");
-        const math = (assign || xs) ?
-            simplify(clean)
-            : (lhs && rhs && rhs.length >= 1)
-                ? solve(`(${lhs}=(${rhs}))`)
-                : simplify(lhs);
+        let math = simplify(clean);
         if (assign) {
             const [exp] = clean.split(":=");
             funks[exp] = giaEval(rhs);
@@ -443,12 +448,26 @@ export function renderAlgebra(id, txt, funks, size = "") {
             <span> := </span>
             <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
         } else {
-            newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
-            <span>${gives}</span>
-            <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
+            if (isCAS) {
+                const rest = adjus.slice(prefix.length);  // rest = (x+2=0)
+                newMath[i] = '<span>' + renderSimple('"' + prefix + '"' + rest + '', { mode, klass }) + `</span>
+                <span>${gives}</span>
+                <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
+            } else {
+                newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
+              <span>${gives}</span>
+              <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
+            }
         }
     }
-    $(id).innerHTML = wrap(newMath, 'div');
+    
+    if (klass.includes("matte")) {   // dual display, CAS hidden on print
+        //  CAS calculates answer to question, not printed
+        const pre = '<span class="reset"></span>' + renderMath('a', txt, null, size, true);
+        $(id).innerHTML = '<aside>' + pre + '</aside><aside class="gui"><hr>' + wrap(newMath, 'div', 'gridy') + '</aside>';
+    } else {
+        $(id).innerHTML =  wrap(newMath, 'div', 'gridy');
+    }
     return comments / (lines.length + 1);
 }
 
@@ -489,7 +508,7 @@ export function renderEquation(id, txt, size = "") {
     return comments / (lines.length + 1);
 }
 
-export function renderMath(id, math, funks, size = "") {
+export function renderMath(id, math, funks, size = "", just = false) {
     const newMath = [];
     const mode = size.includes("large");
     const likning = size.includes("likning");
@@ -503,7 +522,9 @@ export function renderMath(id, math, funks, size = "") {
             newMath[i] = renderSimple(line, { mode, klass }, comment);
         }
     }
+    if (just) return wrap(newMath, 'div', 'gridy');
     $(id).innerHTML = wrap(newMath, 'div');
+    return '';
 }
 
 const distfu = {

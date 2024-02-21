@@ -19,7 +19,7 @@ import { autocom, helptxt, prep } from './autotags.js';
 const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     aside, editor, gistlist, gili, gisi, gust, gistfolder,
     menu, menuu, saved,
-    mathView, ed, examples, savedFiles, gitlist, sp, fs }
+    mathView, ed, examples, savedFiles, gitlist, sp, fs, pm }
     = thingsWithId();
 
 
@@ -246,6 +246,11 @@ sp.oninput = () => {
 
 fs.oninput = () => {
     root.style.setProperty("--svg", `${(250 * web.fs / 50) | 0}px`);
+}
+
+pm.onchange = () => {
+    const show = web.pm ? "none" : "block";
+    root.style.setProperty("--gui", `${show}`);
 }
 
 
