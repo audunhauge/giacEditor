@@ -331,6 +331,7 @@ export default class AsciiMathParser {
             {asciimath: "stackrel", tex:"\\stackrel"},
             {asciimath: "overset", tex:"\\overset"},
             {asciimath: "binom", tex:"\\binom"},
+            {asciimath: "binomial", tex:"\\text{binomial }"},
             {asciimath: "underset", tex:"\\underset"},
             {asciimath:"color", tex: "\\color", rawfirst: true},
         ]

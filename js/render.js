@@ -2,7 +2,7 @@
 
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
-import { web, tg, currentLanguage } from './editor.js';
+import { web, tg, currentLanguage, mdLatex } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
@@ -434,8 +434,8 @@ export function renderAlgebra(id, txt, funks, size = "") {
         const adjus = before + line + after;
         const [parts, ...nn] = adjus.split('(')
         const prefix = nn.length ? parts : '';  // løs(x+2=0), prefix=løs
-        const isCAS = prefix.length &&
-            "løssimplifyforenklediffpoldivisjonintegrate faktorplot factorsolve".includes(prefix);
+        const isCAS = prefix.length && prefix.length > 2;
+        // "Nløssimplifyforenklediffpoldivisjonintegrate faktorplot factorfsolve".includes(prefix);
         comments += comment ? 1 : 0;  // count number of comments
         const clean = cleanUpMathLex(adjus);
         const assign = clean.includes(":=");
@@ -460,13 +460,15 @@ export function renderAlgebra(id, txt, funks, size = "") {
             }
         }
     }
-    
+
     if (klass.includes("matte")) {   // dual display, CAS hidden on print
         //  CAS calculates answer to question, not printed
-        const pre = '<span class="reset"></span>' + renderMath('a', txt, null, size, true);
-        $(id).innerHTML = '<aside>' + pre + '</aside><aside class="gui"><hr>' + wrap(newMath, 'div', 'gridy') + '</aside>';
+        // check if we have grid - moved down one level for this special case
+        const [_, grid] = (size.match(/(grid[0-9])/) || ['', '']);
+        const pre = renderMath('a', txt, null, size, true);
+        $(id).innerHTML = `<aside class="math ${grid}">` + pre + `</aside><aside class="gui ${grid}">` + wrap(newMath, 'div', 'gridy') + '</aside>';
     } else {
-        $(id).innerHTML =  wrap(newMath, 'div', 'gridy');
+        $(id).innerHTML = wrap(newMath, 'div', 'gridy');
     }
     return comments / (lines.length + 1);
 }
@@ -507,6 +509,16 @@ export function renderEquation(id, txt, size = "") {
     $(id).innerHTML = wrap(newMath, 'div');
     return comments / (lines.length + 1);
 }
+
+
+export function renderHint(id, txt, klass = "") {
+    const parent = $(id);
+    const [kls, ...header] = klass.trim().split(' ');
+    const head = header.slice(-1)[0] ?? 'Hint';
+    const contents = klass.includes("markdown") ? mdLatex(txt.trim()) : txt.trim();
+    parent.innerHTML = `<div>${head}</div><div>${contents}</div>`;
+}
+
 
 export function renderMath(id, math, funks, size = "", just = false) {
     const newMath = [];
@@ -946,6 +958,7 @@ const paramPlot = (parent, lines, width, klass) => {
         }
     }
 }
+
 
 export function renderPlot(id, plot, funks, regpoints, klass = "") {
     const parent = $(id);

@@ -4,9 +4,10 @@ const english = {
     cas: {
         simplify: "simplify",
         solve: "solve",          // solve(x+2=4) => x=2
+        fsolve: "fsolve",        // fsolve(x+2=4) => x=2.0
         division: "quorem",      // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         factor: "factor",        // factor(x^2-3x-2) => (x-2)(x+1)
-        poldiv: " propfrac",      // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        poldiv: " propfrac",     // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotinequation:"plotinequation",
         deg:"angle_radian:=0",
         rad:"angle_radian:=1",
@@ -16,6 +17,7 @@ const english = {
         numeric:"approx_mode:=1",
     },
     expand : {
+        callout:"callout hint markdown Demo\n$y=ax+b$  \nTry help for more examples\n:::\n",
         binom:"distribution binom n=20 p=0.5\n6 or less\n7 or more\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 or less\n4 or more\nsum\n5\n",
         normal:"distribution normal my=10 sigma=5\n3 or less\n4 or more\nsum\nplot 0,20\n",
@@ -26,6 +28,7 @@ const english = {
     },
     splitter: "question",
     atcommands: {
+        callout:"callout",
         hyper:"hyper",
         binom:"binom",
         normal:"normal",
@@ -61,9 +64,10 @@ const norwegian = {
     cas: {
         forenkle: "simplify",
         løs: "solve",                    // solve(x+2=4) => x=2
+        Nløs: "fsolve",                  // fsolve(x+2=4) => x=2.0
         divisjon: "quorem",              // quorem(x^2-3x-2,x-2,x) => (x+1,0)
-        faktor: " factor",                // factor(x^2-3x-2) => (x-2)(x+1)
-        poldiv: " propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        faktor: " factor",               // factor(x^2-3x-2) => (x-2)(x+1)
+        poldiv: " propfrac",             // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotulikhet: "plotinequation",
         grader:"angle_radian:=0",
         radianer:"angle_radian:=1",
@@ -76,6 +80,7 @@ const norwegian = {
         numerisk:"approx_mode:=1",
     },
     expand : {
+        tips:"tips hint markdown\n$y=ax+b$  \nSjekk help for mer info\n:::\n",
         binom:"distribution binom n=20 p=0.5\n6 eller mindre\n7 eller mer\nsum\n8\n",
         hyper:"distribution hyper n=60 m=10 r=20\n3 eller mindre\n4 eller mer\nsum\n5\n",
         normal:"distribution normal my=10 sigma=5\n3 eller mindre\n4 eller mer\nsum\nplot 0,21\n",
@@ -86,6 +91,7 @@ const norwegian = {
     },
     splitter: "oppgave",
     atcommands: {
+        tips:"callout",
         hyper:"hyper",
         binom:"binom",
         hist:"hist",
@@ -161,10 +167,11 @@ x^2:x>=1             \\  x^2 for x>=1`,
 const italiano = {
     cas: {
         semplificare: "simplify",
-        risolvere: "solve",                    // solve(x+2=4) => x=2
-        divisione: "quorem",              // quorem(x^2-3x-2,x-2,x) => (x+1,0)
+        risolvere: "solve",                // solve(x+2=4) => x=2
+        Nrisolvere: "fsolve",              // fsolve(x+2=4) => x=2.0
+        divisione: "quorem",               // quorem(x^2-3x-2,x-2,x) => (x+1,0)
         fattore: " factor",                // factor(x^2-3x-2) => (x-2)(x+1)
-        poldiv: " propfrac",              // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
+        poldiv: " propfrac",               // propfrac((5*x+3)*(x-1)/(x+2)) = 5x-12+21/(x+2)
         plotdisuguaglianza: "plotinequation",
         deg:"angle_radian:=0",
         rad:"angle_radian:=1",
@@ -183,6 +190,7 @@ const italiano = {
     },
     splitter: "domanda",
     atcommands: {
+        callout:"callout",
         hyper:"hyper",
         binom:"binom",
         normal:"normal",

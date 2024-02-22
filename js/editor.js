@@ -8,7 +8,7 @@ import {
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy, giaEval,
     makeLatex, renderSigram, renderPiece,
-    renderEquation, renderMath, renderPlot, renderTrig, renderDist, renderTable
+    renderEquation, renderMath, renderPlot, renderHint, renderTrig, renderDist, renderTable
 } from './render.js';
 
 import { renderReg } from './regression.js';
@@ -29,7 +29,7 @@ import {
 } from './filehandling.js';
 
 import { startReplay } from './replay.js';
-import { toast, makeSelect, makeInput, group, unprefix } from './util.js';
+import { toast, bread, makeSelect, makeInput, group, unprefix } from './util.js';
 
 
 // used by brython to "read" a @table
@@ -249,8 +249,9 @@ fs.oninput = () => {
 }
 
 pm.onchange = () => {
-    const show = web.pm ? "none" : "block";
-    root.style.setProperty("--gui", `${show}`);
+    const show = web.pm ? "0px" : "fit-content";
+    const important = show === "0px" ? "important" : "";
+    root.style.setProperty("--gui", show, important);
 }
 
 
@@ -383,7 +384,7 @@ async function setup() {
     // If user checked Tutorial - parse any documentation files
     // and build up extended help
     if (config['git_st_tutorial'] === 'ja') {
-        
+
     }
     // Make displayname for files, stripping of prefix
     existingFiles.forEach(e => e.nice = unprefix("_", e.name));
@@ -401,8 +402,8 @@ async function setup() {
     }
     let moveme = false;
 
-    qs('[data-name="moveme"]').addEventListener("click",() => {
-        moveme = ! moveme;
+    qs('[data-name="moveme"]').addEventListener("click", () => {
+        moveme = !moveme;
         web.moveme = moveme ? "Flytt" : "Låst";
     })
 
@@ -526,6 +527,9 @@ const commentMe = (id, perc) => {
     target.classList.add(klass);
 }
 
+export const mdLatex = txt => md.render(txt.replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
+
+
 export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
@@ -535,6 +539,7 @@ export const renderAll = () => {
     let regpoints = {};   // regression points stored here
     let source = "";
     const plots = [];
+    const callouts = [];
     const maths = [];
     const algebra = [];
     const eqsets = [];
@@ -551,10 +556,14 @@ export const renderAll = () => {
     const splitter = lang[currentLanguage]?.splitter || '€€';
     const splitReg = new RegExp(`@${splitter}|@question`, "gm");
     const sections = textWithSingleNewLineAtEnd.split(splitReg).map(e => e.replace(/\s+$/, '\n'));
-    const mdLatex = txt => md.render(txt.replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
     const prepped = (textWithSingleNewLineAtEnd, seg) => {
         const international = translateAtCommands(textWithSingleNewLineAtEnd);
         return international
+            .replace(/@callout( .*)?$([^€]+?)^:::/gm, (_, klass, txt) => {
+                ofs++;
+                callouts.push({ txt, id: `hint${seg}_${ofs}`, klass, seg });
+                return `<div class="callout ${klass}" id="hint${seg}_${ofs}"></div>\n`;
+            })
             .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
                 ofs++;
                 plots.push({ plot, id: `graf${seg}_${ofs}`, klass, seg });
@@ -616,13 +625,19 @@ export const renderAll = () => {
             .replace(/^@cas( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
                 algebra.push({ math, id: `alg${seg}_${ofs}`, size, seg });
-                return `<div  class="algebra ${size}" id="alg${seg}_${ofs}"></div>\n`;
+                const outercss = size && size.includes("matte") ? size.replace("grid", "oger") : size;
+                return `<div  class="algebra ${outercss}" id="alg${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@eq( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
                 eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
                 return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
             })
+            .replace(/^@question( .*)?$/gm, (_, txt) => {
+                txt = txt ? txt : '';
+                return `<div class="oppgave ${txt}" title="${splitter}"></div>\n`;
+            })
+            /*
             .replace(/^@question( \d+)?( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, counter,fasit, synlig, kolonner, poeng, myown, txt) => {
                 const hr = fasit ? '<hr>' : '';
                 txt = txt ? txt : '';
@@ -631,7 +646,7 @@ export const renderAll = () => {
                 txt = myown ? '' : txt;
                 const points = poeng ? `data-poeng="${poeng.slice(2, -2)}"` : '';
                 return `<div ${points} class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${instead}${hr}</div>\n${txt}\n`;
-            })
+            })*/
             .replace(/^@format( .*)?$/gm, (_, format) => {
                 const [type, start] = (format || "").trimStart().trimEnd().split(" ");
                 const reset = Number.isInteger(+start) ? Number(start) : 0;
@@ -726,8 +741,8 @@ export const renderAll = () => {
     }
 
     // lift kolonner out to the section level
-    const kolonner = qsa(".section > .kolonner");
-    kolonner.forEach(k => k.parentNode.classList.add("kolonner"));
+    const kolonner = qsa('.section > [class*="grid"');
+    kolonner.forEach(k => k.parentNode.classList.add("grid2"));
 
     function interpolate(seg) {
         const div = $("seg" + seg);
@@ -835,6 +850,11 @@ export const renderAll = () => {
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderPlot(id, plot, funks, regpoints, klass);
+        //scrollit(id);
+    });
+    callouts.forEach(({ txt, id, klass, seg }) => {
+        if (rerend || dirtyList.includes(seg))
+            renderHint(id, txt, klass);
         //scrollit(id);
     });
     python.forEach(({ pyt, id, klass, seg }) => {
@@ -986,6 +1006,9 @@ ed.onkeypress = (e) => {
 ed.onkeyup = (e) => {
     const now = Date.now();
     const k = e.key;
+    if (k === 'Escape') {
+        bread();   // close any toast
+    }
     const render = k === "Enter" || k.includes("Arrow");
     if (render) {
         // remove hot edit markers

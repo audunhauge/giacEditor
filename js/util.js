@@ -113,10 +113,14 @@ export function toast(
   }
 }
 
+export function bread() {
+  const div = qs(".toast")
+  div.style.visibility = "hidden";
+}
+
 function closeMe(e) {
   if (e.target.id === "notoast") {
-    const div = qs(".toast")
-    div.style.visibility = "hidden";
+    bread();
   }
 }
 

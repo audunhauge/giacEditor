@@ -1,7 +1,7 @@
 :root {
     --spacing: 0.5rem;
     --svg: 250px;
-    --gui: block;
+    --gui: fit-content;
 }
 
 #output {
@@ -26,6 +26,7 @@ div.section {
     font-size: 1em;
     margin-top: 2px;
     margin-bottom: var(--spacing);
+    position: relative;
 }
 
 div.section.kolonner {
@@ -89,6 +90,10 @@ div.section.fasit {
     border-right: solid rgba(128, 128, 128, 0.192) 1px;
 }
 
+aside.math div {
+    color:black !important;
+}
+
 @media print {
 
     div.format.page,
@@ -117,9 +122,10 @@ div.section.fasit {
     }
 
     .gui,
+    aside.gui,
     div.erfasit,
     div.section.fasit.skjult {
-        display: none;
+        display: none !important;
     }
 
     #mathView {
@@ -137,6 +143,7 @@ div.section.fasit {
     }
 }
 
+
 div.oppgave.fasit::before {
     content: "Fasit ";
     color: rgb(90, 17, 12);
@@ -149,8 +156,13 @@ div.oppgave.fasit::before {
 }
 
 aside.gui {
-    display: var(--gui);
+    height: var(--gui);
+    overflow:hidden;
+    margin-top: 0.2rem;
+    border-top:solid rgba(0, 0, 0, 0.203) 1px;
 }
+
+
 
 #editor {
     position: fixed;
@@ -179,7 +191,7 @@ aside.gui {
     height: 16px;
 }
 
-span.reset,
+aside,
 div.algebra,
 div.equation,
 div.math {
@@ -215,21 +227,25 @@ div.equation>div {
     grid-template-columns: 10fr 1fr 10fr;
 }
 
+aside.grid2,
 div.grid2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
 }
 
+aside.grid3,
 div.grid3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
 
+aside.grid4,
 div.grid4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
 }
 
+aside.grid5,
 div.grid5 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -1025,4 +1041,53 @@ div.section.fasit~div.section div.oppgave {
 
 #config div.inputDiv.disabled {
     display: none;
+}
+
+div.callout {
+    border:solid rgba(0, 0, 0, 0.344) 1px;
+    border-left:solid rgba(24, 24, 247, 0.729) 0.35rem;
+    min-width: 20rem;
+    width: fit-content;
+    border-radius: 5px;
+    margin:0.5rem;
+}
+
+div.callout.float {
+    position: absolute;
+    right: -60px;
+    top:1rem;
+    min-width: fit-content;
+}
+
+div.callout.merk {
+    border-left:solid red 0.35rem;
+}
+
+div.callout.hint {
+    border-left:solid green 0.35rem;
+}
+
+div.callout > div {
+    padding:0.5rem;
+}
+
+div.callout.pre > div:nth-child(2) {
+    white-space: pre;
+    font-family: monospace;
+}
+
+div.callout > div:nth-child(2) {
+    padding:-1rem;
+}
+
+div.callout > div:first-child {
+    background-color: #e9f2fc;
+    font-weight: bold;
+}
+div.callout.merk > div:first-child {
+   background: #ffe6eb; 
+}
+
+div.callout.hint > div:first-child {
+    background: #ecf8e8;
 }

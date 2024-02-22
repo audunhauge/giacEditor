@@ -120,10 +120,22 @@ help`,
 normal:`Normal distribution`,
 binom:`Binomial distribution`,
 hist:`Histogram`,
+callout:`Callout block with frame
+@callout hint pre Example
+The last word will be used as Title.
+Default color is blue.
+pre - respects space and newline
+markdown - allows markdown and $x+y$
+float - floats to right edge
+hint - green
+merk - red
+gui - not shown on printout
+:::
+Must end with :::`,
 bar:`Barchart`,
 pie:`Piechart`,
 hyper:`Hypergeometric distribution`,
-    eqset: `Step by step solution of equationsets
+eqset: `Step by step solution of equationsets
 
 ## Solving an equationset
 Note by default commands work on eq1 or previous eq.
@@ -150,6 +162,7 @@ help`,
     dato: "dato 1  show date for tomorrow",
     help: `AVAILABLE COMMANDS
 @question
+@callout
 @cas
 @math
 @fplot
@@ -240,7 +253,7 @@ Used together with plot() and show()`,
 }
 
 
-let aulist = "sign,question,poldiv,plot,cas,math,piecewise,python,reg,pie,hist,trig,eq,eqset,format,ans,dato";
+let aulist = "sign,question,poldiv,plot,cas,math,callout,piecewise,python,reg,pie,hist,trig,eq,eqset,format,ans,dato";
 let auwords = aulist.split(",");
 let help;
 let expand = {};
