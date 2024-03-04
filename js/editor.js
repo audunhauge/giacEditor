@@ -534,6 +534,7 @@ export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
+        .replace(/&_/gm, ' ')  // &_   gives a thin space
         .replace(/^\.$/gm, '<div class="nl"></div>');
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
     let regpoints = {};   // regression points stored here
@@ -740,9 +741,13 @@ export const renderAll = () => {
         }
     }
 
-    // lift kolonner out to the section level
-    const kolonner = qsa('.section > [class*="grid"');
-    kolonner.forEach(k => k.parentNode.classList.add("grid2"));
+    // lift grid out to the section level
+    const grids = qsa('.section > div.oppgave[class*="grid"');
+    grids.forEach(k => {
+        const grid = Array.from(k.classList).find(n => n.startsWith('grid'))
+        // k.parentNode.classList.add(grid);
+        k.parentNode.className = "section " + grid;
+    });
 
     function interpolate(seg) {
         const div = $("seg" + seg);

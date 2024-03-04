@@ -10,6 +10,10 @@ import {
     normal, normalC, fisher, fisherCrit
 } from './probability.js';
 
+
+import { periodic,pt } from './periodic.js';
+
+
 import { frekTable, statsTable, anovaTable, dataTable, transpose } from './tables.js';
 
 import AsciiMathParser from './ascii2tex.js';
@@ -516,7 +520,8 @@ export function renderHint(id, txt, klass = "") {
     const [kls, ...header] = klass.trim().split(' ');
     const head = header.slice(-1)[0] ?? 'Hint';
     const contents = klass.includes("markdown") ? mdLatex(txt.trim()) : txt.trim();
-    parent.innerHTML = `<div>${head}</div><div>${contents}</div>`;
+    const p = klass.includes("periodic") ? periodic(klass.split(' ')) : contents;
+    parent.innerHTML = `<div>${head}</div><div>${p}</div>`;
 }
 
 
