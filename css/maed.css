@@ -1059,8 +1059,8 @@ div.callout.naked > div:first-child {
 
 div.callout.float {
     position: absolute;
-    right: -60px;
-    top:1rem;
+    right: 0px;
+    top:-0.8rem;
     min-width: fit-content;
 }
 
@@ -1121,6 +1121,10 @@ td.elm div.name {
 td.elm div.density {
     font-size: 0.45em;
 }
+td.elm div.mass {
+    font-size: 0.45em;
+}
+
 
 td.elm div.id {
     font-size: 0.4rem;
@@ -1163,6 +1167,26 @@ div.huge {
 
 div.large {
     font-size: 1.3rem;
+}
+
+div.red {
+    color: red;
+}
+div.blue {
+    color:blue;
+}
+
+div.angry {
+    color:white;
+    background-color: red;
+}
+
+div.gray {
+    color:gray;
+}
+
+div.small {
+    font-size: 0.8rem;
 }
 
 div.large td.elm {
