@@ -55,7 +55,7 @@ h1 span.date {
     top: -12px;
 }
 
-.red {
+.blush {
     animation: blush 800ms forwards;
 }
 
@@ -1045,14 +1045,17 @@ div.callout {
     margin:0.5rem;
 }
 
+div.callout.box,
 div.callout.plain {
     border-left:solid rgba(0, 0, 0, 0.344) 1px;
     min-width: fit-content;
 }
+
 div.callout.naked {
     border:none;
     min-width: fit-content;
 }
+div.callout.box  > div:first-child,
 div.callout.naked > div:first-child {
     display: none;
 }
@@ -1198,4 +1201,29 @@ div.huge td.elm {
     max-width: 2.8rem;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+div.small.box {
+    max-width:  calc(1.1 * var(--svg));
+    max-height: var(--svg);
+    overflow: hidden;
+}
+
+div.large.box {
+    max-width:  calc(1.7 * var(--svg));
+    max-height: calc(1.1 * var(--svg));
+    overflow: hidden;
+}
+
+div.small img {
+    object-fit: cover;
+    max-width:  calc(1.1 * var(--svg));
+    max-height: var(--svg);
+}
+
+
+div.large img {
+    object-fit: cover;
+    max-width:  calc(1.7 * var(--svg));
+    max-height: calc(1.1 * var(--svg));
 }

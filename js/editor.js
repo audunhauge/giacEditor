@@ -712,7 +712,7 @@ export const renderAll = () => {
             const seg = dirtyList[i];
             const txt = sections[seg];
             const section = $('seg' + seg);
-            section.classList.toggle("red");
+            section.classList.toggle("blush");
             if (seg === 0) {
                 section.innerHTML = mdLatex(prepped(txt, seg));
             } else {
@@ -1017,7 +1017,7 @@ ed.onkeyup = (e) => {
     const render = k === "Enter" || k.includes("Arrow");
     if (render) {
         // remove hot edit markers
-        qsa(".red").forEach(e => e.classList.remove("red"));
+        qsa(".blush").forEach(e => e.classList.remove("blush"));
         const diff = oldtext !== ed.value;
         if (diff && now > timestep + 1000) {
             renderAll();
