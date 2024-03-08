@@ -534,7 +534,10 @@ export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
-        .replace(/&_/gm, ' ')  // &_   gives a thin space
+        .replace(/^\(\(( .*)?$/gm, (_, klass) => { return `<div class="${klass || ''}">` } )
+        // .replace(/^\(\($/gm,"<div>\n")
+        .replace(/^\)\)$/gm,"</div>\n")
+        .replace(/&_/gm, '  ')  // &_   gives two thin no break space
         .replace(/^\.$/gm, '<div class="nl"></div>');
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
     let regpoints = {};   // regression points stored here
