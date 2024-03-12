@@ -2,7 +2,7 @@
 
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
-import { web, tg, currentLanguage, mdLatex } from './editor.js';
+import { web, tg, currentLanguage, mdLatex, chemicals, chemnames } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
@@ -516,8 +516,25 @@ export function renderEquation(id, txt, size = "") {
     return comments / (lines.length + 1);
 }
 
+export function renderCSearch(id, smiles) {
+    const item = smiles[0].toUpperCase() + smiles.slice(1);
+    let hits = chemnames.filter(e => e.startsWith(item));
+    if (hits.length === 0) {
+        // try to search for smile
+        hits = chemnames.filter(e => chemicals[e].includes(smiles));
+    }
+    const list = hits.map(e => '<div>'+e+'</div>').join('');
+    const smile = '<div>' + (hits.length === 1 ? chemicals[hits[0]] : '') + '</div>';
+    $(id).innerHTML = '<div>' + list + smile + '</div>';
+
+}
+
 export function renderChem(id, smiles, klass = "") {
     const [_,width,height] = klass.match(/(\d+),(\d+)/) || [0,500,200];
+    
+    if (chemicals[smiles]) {
+        smiles = chemicals[smiles];
+    }
     // @ts-ignore
     let smilesDrawer = new SmilesDrawer.Drawer({ width, height});
     //let smilesSVG = new SmilesDrawer.SvgDrawer({ width, height});

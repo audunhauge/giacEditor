@@ -7,7 +7,7 @@ import {
 
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy, giaEval,
-    makeLatex, renderSigram, renderPiece, renderChem,
+    makeLatex, renderSigram, renderPiece, renderChem, renderCSearch,
     renderEquation, renderMath, renderPlot, renderHint, renderTrig, renderDist, renderTable
 } from './render.js';
 
@@ -43,6 +43,9 @@ export const readTable = filename => {
     }
     return 'NO DATA';
 }
+
+export var chemicals = {};
+export var chemnames = [];
 
 
 export var config = {};
@@ -534,9 +537,9 @@ export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
-        .replace(/^\(\(( .*)?$/gm, (_, klass) => { return `<div class="${klass || ''}">` } )
+        .replace(/^\(\(( .*)?$/gm, (_, klass) => { return `<div class="${klass || ''}">` })
         // .replace(/^\(\($/gm,"<div>\n")
-        .replace(/^\)\)$/gm,"</div>\n")
+        .replace(/^\)\)$/gm, "</div>\n")
         .replace(/&_/gm, '  ')  // &_   gives two thin no break space
         .replace(/^\.$/gm, '<div class="nl"></div>');
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
@@ -545,6 +548,7 @@ export const renderAll = () => {
     const plots = [];
     const callouts = [];
     const chems = [];
+    const chemsearch = [];
     const maths = [];
     const algebra = [];
     const eqsets = [];
@@ -569,10 +573,15 @@ export const renderAll = () => {
                 callouts.push({ txt, id: `hint${seg}_${ofs}`, klass, seg });
                 return `<div class="callout ${klass}" id="hint${seg}_${ofs}"></div>\n`;
             })
-            .replace(/@chem{([^,]+?)}(\[(.*)\])?/g, (_0, smiles, _1 ,klass) => {
+            .replace(/@chem{([^,]+?)}(\[(.*)\])?/g, (_0, smiles, _1, klass) => {
                 ofs++;
                 chems.push({ smiles, id: `chem${seg}_${ofs}`, klass, seg });
                 return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
+            })
+            .replace(/@chemsearch{([^,]+?)}/g, (_0, smiles) => {
+                ofs++;
+                chemsearch.push({ smiles, id: `csearch${seg}_${ofs}`,  seg });
+                return `<aside class="gui search" id="csearch${seg}_${ofs}"></aside>`;
             })
             .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
                 ofs++;
@@ -876,6 +885,10 @@ export const renderAll = () => {
             renderChem(id, smiles, klass);
         //scrollit(id);
     });
+    chemsearch.forEach(({ smiles, id, seg }) => {
+        if (rerend || dirtyList.includes(seg))
+            renderCSearch(id, smiles);
+    });
     python.forEach(({ pyt, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderPy(id, pyt, klass);
@@ -949,7 +962,7 @@ saveFileButton("save", web.filename, fileCache);
 
 document.addEventListener('selectionchange', () => {
     const word = document.getSelection();
-    qsa(".slow").forEach(e => e.classList.remove("slow","blush"));
+    qsa(".slow").forEach(e => e.classList.remove("slow", "blush"));
     if (word !== null) {
         if (word.focusNode === mathView) {
             console.log("jadda");
@@ -958,10 +971,10 @@ document.addEventListener('selectionchange', () => {
         const pos = ed.selectionStart;
         const lines = ed.value.slice(0, pos).split('\n');
         if (wtxt === 'oppgave') {
-           const lino = lines.filter(line => line.startsWith('@oppgave')).length + 1;
-           const div = qs("#seg"+lino);
-           div.classList.add("slow","blush");
-           scrollit(div);
+            const lino = lines.filter(line => line.startsWith('@oppgave')).length + 1;
+            const div = qs("#seg" + lino);
+            div.classList.add("slow", "blush");
+            scrollit(div);
         }
         const line = lines.length;
         const ofs = lines.slice(-1).length;
@@ -1052,3 +1065,10 @@ ed.onkeyup = (e) => {
 }
 
 setLang();
+
+{    // load all chemicals from file
+    const url = "media/smiles.json";
+    const response = await fetch(url);
+    chemicals = await response.json();
+    chemnames = Object.keys(chemicals).sort();
+}

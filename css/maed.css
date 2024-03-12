@@ -1267,3 +1267,17 @@ div.large img {
     max-width:  calc(1.7 * var(--svg));
     max-height: calc(1.1 * var(--svg));
 }
+
+aside.search > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12em, 1fr));
+    padding:5px;
+    border: solid rgba(128, 128, 128, 0.186) 1px;
+    border-radius: 0.3em;
+}
+
+aside.search > div > div {
+    display: inline-block;
+    width: fit-content;
+    padding: 2px;
+}
