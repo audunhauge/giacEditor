@@ -81,10 +81,12 @@ export const renderReg = (id, txt, funks, regpoints, i, klass = "") => {
             case "exp": {
                 const coeff = giaEval(`evalf(${rtyp}_regression([${xs}],[${ys}])))`).split(",");
                 const [a, b] = coeff || [];
-                const [A, B] = [a, b].map(v => (+v).toPrecision(5));
-                funks[funame] = `${b}*${a}^x`;
-                giaEval(`${funame}:=${b}*${a}^x`);
-                const ef = litex(`${B}*e^(${(log(a)).toPrecision(5)}x)`);
+                // the coefs may be complex - pick out real part, assume imginary like -1.234e-14*i
+                const [aa,bb] = [a,b].map(v => (v.match(/^[+-]?\d+.?\d+(e-?\d+)?/) || []) [0]);
+                const [A, B] = [aa, bb].map(v => (+v).toPrecision(5));
+                funks[funame] = `${bb}*${aa}^x`;
+                giaEval(`${funame}:=${bb}*${aa}^x`);
+                const ef = litex(`${B}*e^(${(log(+aa)).toPrecision(5)}x)`);
                 funk = litex(`f(x)=${B}*${A}^x`) + " eller " + ef;
             }
                 break;

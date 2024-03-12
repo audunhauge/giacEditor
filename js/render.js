@@ -11,7 +11,7 @@ import {
 } from './probability.js';
 
 
-import { periodic,pt } from './periodic.js';
+import { periodic, pt } from './periodic.js';
 
 
 import { frekTable, statsTable, anovaTable, dataTable, transpose } from './tables.js';
@@ -70,6 +70,8 @@ const simplify = exp => {
 export const makeLatex = (txt, { mode, klass }) => {
     const clean = cleanUpMathLex(txt);
     try {
+        // discover mcChem 
+        if (txt.includes('\ce')) return katx(String(txt), mode);
         const tex = ascii.parse(txt);
         return katx(String(tex), mode);
     } catch (e) {
@@ -512,6 +514,19 @@ export function renderEquation(id, txt, size = "") {
     }
     $(id).innerHTML = wrap(newMath, 'div');
     return comments / (lines.length + 1);
+}
+
+export function renderChem(id, smiles, klass = "") {
+    const [_,width,height] = klass.match(/(\d+),(\d+)/) || [0,500,200];
+    // @ts-ignore
+    let smilesDrawer = new SmilesDrawer.Drawer({ width, height});
+    //let smilesSVG = new SmilesDrawer.SvgDrawer({ width, height});
+    // @ts-ignore
+    SmilesDrawer.parse(smiles.trim(), function (tree) {
+        // Draw to the canvas
+        smilesDrawer.draw(tree, id, "light", false);
+        //smilesSVG.draw(tree, id, "light", false);
+    });
 }
 
 

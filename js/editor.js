@@ -7,7 +7,7 @@ import {
 
 import {
     renderAlgebra, renderPoldiv, renderEqnSet, renderPy, giaEval,
-    makeLatex, renderSigram, renderPiece,
+    makeLatex, renderSigram, renderPiece, renderChem,
     renderEquation, renderMath, renderPlot, renderHint, renderTrig, renderDist, renderTable
 } from './render.js';
 
@@ -544,6 +544,7 @@ export const renderAll = () => {
     let source = "";
     const plots = [];
     const callouts = [];
+    const chems = [];
     const maths = [];
     const algebra = [];
     const eqsets = [];
@@ -567,6 +568,11 @@ export const renderAll = () => {
                 ofs++;
                 callouts.push({ txt, id: `hint${seg}_${ofs}`, klass, seg });
                 return `<div class="callout ${klass}" id="hint${seg}_${ofs}"></div>\n`;
+            })
+            .replace(/@chem{([^,]+?)}(\[(.*)\])?/g, (_0, smiles, _1 ,klass) => {
+                ofs++;
+                chems.push({ smiles, id: `chem${seg}_${ofs}`, klass, seg });
+                return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
             })
             .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
                 ofs++;
@@ -865,6 +871,11 @@ export const renderAll = () => {
             renderHint(id, txt, klass);
         //scrollit(id);
     });
+    chems.forEach(({ smiles, id, klass, seg }) => {
+        if (rerend || dirtyList.includes(seg))
+            renderChem(id, smiles, klass);
+        //scrollit(id);
+    });
     python.forEach(({ pyt, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
             renderPy(id, pyt, klass);
@@ -938,10 +949,20 @@ saveFileButton("save", web.filename, fileCache);
 
 document.addEventListener('selectionchange', () => {
     const word = document.getSelection();
+    qsa(".slow").forEach(e => e.classList.remove("slow","blush"));
     if (word !== null) {
+        if (word.focusNode === mathView) {
+            console.log("jadda");
+        }
         const wtxt = word.toString();
         const pos = ed.selectionStart;
         const lines = ed.value.slice(0, pos).split('\n');
+        if (wtxt === 'oppgave') {
+           const lino = lines.filter(line => line.startsWith('@oppgave')).length + 1;
+           const div = qs("#seg"+lino);
+           div.classList.add("slow","blush");
+           scrollit(div);
+        }
         const line = lines.length;
         const ofs = lines.slice(-1).length;
         // helptxt(word);

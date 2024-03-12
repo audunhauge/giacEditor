@@ -24,7 +24,7 @@ div.section {
     counter-increment: oppg-count;
     color: rgb(2, 49, 2);
     font-size: 1em;
-    margin-top: 2rem;
+    margin-top: 2.3em;
     margin-bottom: var(--spacing);
     position: relative;
     min-height: 1.6rem;
@@ -58,6 +58,26 @@ h1 span.date {
 .blush {
     animation: blush 800ms forwards;
 }
+
+
+.slow.blush {
+    animation: hotblush 2800ms forwards;
+}
+
+@keyframes hotblush {
+    0% {
+        background-color: rgba(57, 205, 34, 0.653);
+    }
+
+    99% {
+        background-color: rgba(255, 0, 0, 0.055);
+    }
+
+    99% {
+        background-color: inherit;
+    }
+}
+
 
 @keyframes blush {
     0% {
@@ -840,6 +860,11 @@ div.anova div.subtype div {
 
 div.anova div.subtype span {
     display: inline-block
+}
+
+canvas.svg {
+    /*width: var(--svg) !important;
+    height: var(--svg) !important;*/
 }
 
 
