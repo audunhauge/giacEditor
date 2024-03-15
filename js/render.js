@@ -2,7 +2,7 @@
 
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
-import { web, tg, currentLanguage, mdLatex, chemicals, chemnames } from './editor.js';
+import { web, tg, currentLanguage, mdLatex, chemicals, chemnames, lochemnames } from './editor.js';
 import { code2svg, parse, eva, range } from './trig.js';
 import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
@@ -517,23 +517,30 @@ export function renderEquation(id, txt, size = "") {
 }
 
 export function renderCSearch(id, smiles) {
-    const item = smiles[0].toUpperCase() + smiles.slice(1);
-    let hits = chemnames.filter(e => e.startsWith(item));
+    const item = smiles.toLowerCase();
+    let hits = lochemnames.filter(e => e.includes(item));
     if (hits.length === 0) {
         // try to search for smile
         hits = chemnames.filter(e => chemicals[e].includes(smiles));
     }
+    let smile = '';
     const list = hits.map(e => '<div>'+e+'</div>').join('');
-    const smile = '<div>' + (hits.length === 1 ? chemicals[hits[0]] : '') + '</div>';
+    if (hits.length === 1) {
+        const idx = lochemnames.findIndex(e => e === hits[0]);
+        const upname = chemnames[idx];
+        smile = '<div>' + chemicals[upname] + '</div>';
+    }
     $(id).innerHTML = '<div>' + list + smile + '</div>';
 
 }
 
 export function renderChem(id, smiles, klass = "") {
     const [_,width,height] = klass.match(/(\d+),(\d+)/) || [0,500,200];
-    
-    if (chemicals[smiles]) {
-        smiles = chemicals[smiles];
+    const losmile = smiles.toLowerCase();
+    const idx = lochemnames.findIndex(e => e === losmile);
+    if (idx>=0) {
+        const upname = chemnames[idx]
+        smiles = chemicals[upname];
     }
     // @ts-ignore
     let smilesDrawer = new SmilesDrawer.Drawer({ width, height});
