@@ -378,9 +378,14 @@ export const renderPiece = (id, txt, ksize = "") => {
 }
 
 
-export const renderSimple = (line, { mode, klass }, comment = '') => {
-    const latex = makeLatex(line, { mode, klass });
-    return `<div><span>${latex}</span><span class="comment">${comment}</span></div>`;
+export const renderSimple = (line, { mode, klass, chemistry = false }, comment = '') => {
+    if (chemistry) {
+        const chex = katx(String('\\ce{' + line + '}'), mode);
+        return `<div><span>${chex}</span><span class="comment">${comment}</span></div>`;
+    } else {
+        const latex = makeLatex(line, { mode, klass });
+        return `<div><span>${latex}</span><span class="comment">${comment}</span></div>`;
+    }
 }
 
 const seplist = {
@@ -391,7 +396,7 @@ const seplist = {
     "<=": "\\le",
 }
 
-export const renderLikning = (line, comment, { mode, klass }) => {
+export const renderLikning = (line, comment, { mode, klass, chemistry = false }) => {
     const [sep = "="] = (line.match(/>=|<=|>|<|=/) || []);
     const [left = "", right = "0"] = line.split(sep);
     const leftLatex = makeLatex(left, { mode, klass });
@@ -524,7 +529,7 @@ export function renderCSearch(id, smiles) {
         hits = chemnames.filter(e => chemicals[e].includes(smiles));
     }
     let smile = '';
-    const list = hits.map(e => '<div>'+e+'</div>').join('');
+    const list = hits.map(e => '<div>' + e + '</div>').join('');
     if (hits.length === 1) {
         const idx = lochemnames.findIndex(e => e === hits[0]);
         const upname = chemnames[idx];
@@ -535,15 +540,17 @@ export function renderCSearch(id, smiles) {
 }
 
 export function renderChem(id, smiles, klass = "") {
-    const [_,width,height] = klass.match(/(\d+),(\d+)/) || [0,500,200];
+    const [_, width, height] = klass.match(/(\d+),(\d+)/) || [0, 500, 200];
     const losmile = smiles.toLowerCase();
     const idx = lochemnames.findIndex(e => e === losmile);
-    if (idx>=0) {
+    if (idx >= 0) {
         const upname = chemnames[idx]
         smiles = chemicals[upname];
     }
+    $(id).setAttribute("width",width+"px");
+    $(id).setAttribute("height",height+"px");
     // @ts-ignore
-    let smilesDrawer = new SmilesDrawer.Drawer({ width, height});
+    let smilesDrawer = new SmilesDrawer.Drawer({ width, height });
     //let smilesSVG = new SmilesDrawer.SvgDrawer({ width, height});
     // @ts-ignore
     SmilesDrawer.parse(smiles.trim(), function (tree) {
@@ -566,7 +573,8 @@ export function renderHint(id, txt, klass = "") {
 
 export function renderMath(id, math, funks, size = "", just = false) {
     const newMath = [];
-    const mode = size.includes("large");
+    const mode = size.includes("display");
+    const chemistry = size.includes("chem");
     const likning = size.includes("likning");
     const klass = size;
     const lines = math.split('\n').filter(e => e != "");
@@ -575,7 +583,7 @@ export function renderMath(id, math, funks, size = "", just = false) {
         if (likning) {
             newMath[i] = renderLikning(line, comment, { mode, klass });
         } else {
-            newMath[i] = renderSimple(line, { mode, klass }, comment);
+            newMath[i] = renderSimple(line, { mode, klass, chemistry }, comment);
         }
     }
     if (just) return wrap(newMath, 'div', 'gridy');

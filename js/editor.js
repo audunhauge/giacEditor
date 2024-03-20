@@ -601,6 +601,7 @@ export const renderAll = () => {
             .replace(/@chem{([^¢]+?)}(\[(.*)\])?/g, (_0, smiles, _1, klass) => {
                 ofs++;
                 chems.push({ smiles, id: `chem${seg}_${ofs}`, klass, seg });
+                //return `<svg class="svg ${klass}" id="chem${seg}_${ofs}"></svg>`;
                 return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
             })
             .replace(/@chemsearch{([^€]+?)}/g, (_0, smiles) => {
