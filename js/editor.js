@@ -562,7 +562,12 @@ export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
-        .replace(/^\(\(( .*)?$/gm, (_, klass) => { return `<div class="${klass || ''}">` })
+        .replace(/^\(\(( .*?)?(\[(-?\d+)[, ](-?\d+)\])?$/gm, (_, klass,_1,left,top) => { 
+            if (left && top) {
+                return `<div class="move ${klass}" style="transform :translate(${left}px,${top}px)">`
+            }
+            return `<div class="${klass || ''}">` 
+        })
         // .replace(/^\(\($/gm,"<div>\n")
         .replace(/^\)\)$/gm, "</div>\n")
         .replace(/&_/gm, '  ')  // &_   gives two thin no break space

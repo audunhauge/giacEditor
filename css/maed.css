@@ -1281,3 +1281,7 @@ aside.search > div > div {
     width: fit-content;
     padding: 2px;
 }
+
+div.move {
+    position: relative;
+}
