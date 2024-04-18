@@ -1,18 +1,14 @@
 
-function balance(formulaStr) {
-
-    // Parse equation
-
-    eqn = parse(formulaStr);
-
+export const balance = (formulaStr) => {
+    const eqn = parse(formulaStr);
     try {
         var matrix = buildMatrix(eqn);                // Set up matrix
         solve(matrix);                                // Solve linear system
-        var coefs = extractCoefficients(matrix);      // Get coefficients
-        checkAnswer(eqn, coefs);                      // Self-test, should not fail
-        balancedElem.appendChild(eqn.toHtml(coefs));  // Display balanced equation
+        var coffs = extractCoefficients(matrix);      // Get coefficients
+        return { eqn, coffs }
     } catch (e) {
-        setMessage(e.toString());
+        console.log(e.toString());
+        return null;
     }
 }
 
@@ -21,7 +17,7 @@ function balance(formulaStr) {
 /* Core number-processing fuctions */
 
 // Returns a matrix based on the given equation object.
-function buildMatrix(eqn) {
+const buildMatrix = (eqn) => {
     var elems = eqn.getElements();
     var rows = elems.length + 1;
     var cols = eqn.getLeftSide().length + eqn.getRightSide().length + 1;
@@ -37,7 +33,7 @@ function buildMatrix(eqn) {
 }
 
 
-function solve(matrix) {
+const solve = (matrix) => {
     matrix.gaussJordanEliminate();
 
     // Find row with more than one non-zero coefficient
@@ -57,7 +53,7 @@ function solve(matrix) {
 }
 
 
-function countNonzeroCoeffs(matrix, row) {
+const countNonzeroCoeffs = (matrix, row) => {
     var count = 0;
     for (var i = 0; i < matrix.columnCount(); i++) {
         if (matrix.get(row, i) != 0)
@@ -67,7 +63,7 @@ function countNonzeroCoeffs(matrix, row) {
 }
 
 
-function extractCoefficients(matrix) {
+const extractCoefficients = (matrix) => {
     var rows = matrix.rowCount();
     var cols = matrix.columnCount();
 
@@ -90,37 +86,28 @@ function extractCoefficients(matrix) {
     return coefs;
 }
 
-
-// Throws an exception if there's a problem, otherwise returns silently.
-function checkAnswer(eqn, coefs) {
-    if (coefs.length != eqn.getLeftSide().length + eqn.getRightSide().length)
-        throw "Assertion error: Mismatched length";
-
-    var allzero = true;
-    for (var i = 0; i < coefs.length; i++) {
-        var coef = coefs[i];
-        if (typeof coef != "number" || isNaN(coef) || Math.floor(coef) != coef)
-            throw "Assertion error: Not an integer";
-        allzero &= coef == 0;
+/*
+class Equation {
+    constructor(lhs,rhs) {
+        this.lhs = lhs.slice();
+        this.rhs = rhs.slice();
     }
-    if (allzero)
-        throw "Assertion error: All-zero solution";
+    get lhs() {
+        return this.lhs.slice();
+    }
 
-    var elems = eqn.getElements();
-    for (var i = 0; i < elems.length; i++) {
-        var sum = 0;
-        var j = 0;
-        for (var k = 0, lhs = eqn.getLeftSide(); k < lhs.length; j++, k++)
-            sum = checkedAdd(sum, checkedMultiply(lhs[k].countElement(elems[i]), coefs[j]));
-        for (var k = 0, rhs = eqn.getRightSide(); k < rhs.length; j++, k++)
-            sum = checkedAdd(sum, checkedMultiply(rhs[k].countElement(elems[i]), -coefs[j]));
-        if (sum != 0)
-            throw "Assertion error: Incorrect balance";
+    get rhs() {
+        return this.rhs.slice();
+    }
+
+    get elements() {
+        const elms = new Set();
+
+        return elms;
     }
 }
+*/
 
-
-/* Chemical equation data types */
 
 // A complete chemical equation. It has a left-hand side list of terms and a right-hand side list of terms.
 // For example: H2 + O2 -> H2O.
@@ -129,8 +116,8 @@ function Equation(lhs, rhs) {
     lhs = cloneArray(lhs);
     rhs = cloneArray(rhs);
 
-    this.getLeftSide = function () { return cloneArray(lhs); }
-    this.getRightSide = function () { return cloneArray(rhs); }
+    this.getLeftSide =  () => cloneArray(lhs); 
+    this.getRightSide = () => cloneArray(rhs); 
 
     // Returns an array of the names all of the elements used in this equation.
     // The array represents a set, so the items are in an arbitrary order and no item is repeated.
@@ -292,7 +279,7 @@ function Element(name, count) {
 
     this.countElement = function (n) { return n == name ? count : 0; }
 
-    // Returns an HTML element representing this element.
+// Returns an HTML element representing this element.
     this.toHtml = function () {
         var node = document.createElement("span");
         appendText(name, node);
@@ -309,14 +296,14 @@ function Element(name, count) {
 /* Parser functions */
 
 // Parses the given formula string and returns an equation object, or throws an exception.
-function parse(formulaStr) {
+const parse = (formulaStr) => {
     var tokenizer = new Tokenizer(formulaStr);
     return parseEquation(tokenizer);
 }
 
 
 // Parses and returns an equation.
-function parseEquation(tok) {
+const parseEquation = (tok) => {
     var lhs = [];
     var rhs = [];
 
@@ -352,7 +339,7 @@ function parseEquation(tok) {
 
 
 // Parses and returns a term.
-function parseTerm(tok) {
+const parseTerm = (tok) => {
     var startPosition = tok.position();
 
     // Parse groups and elements
@@ -397,7 +384,7 @@ function parseTerm(tok) {
     elems = elems.toArray();  // List of all elements used in this term, with no repeats
     if (items.length == 0) {
         throw { message: "Invalid term - empty", start: startPosition, end: tok.position() };
-    } else if (indexOf(elems, "e") != -1) {  // If it's the special electron element
+    } else if (elems.indexOf("e") != -1) {  // If it's the special electron element
         if (items.length > 1)
             throw { message: "Invalid term - electron needs to stand alone", start: startPosition, end: tok.position() };
         else if (charge != 0 && charge != -1)
@@ -417,7 +404,7 @@ function parseTerm(tok) {
 
 
 // Parses and returns a group.
-function parseGroup(tok) {
+const parseGroup = (tok) => {
     var startPosition = tok.position();
     tok.consume("(");
     var items = [];
@@ -443,7 +430,7 @@ function parseGroup(tok) {
 
 
 // Parses and returns an element.
-function parseElement(tok) {
+const parseElement = (tok) => {
     var name = tok.take();
     if (!/^[A-Za-z][a-z]*$/.test(name))
         throw "Assertion error";
@@ -464,7 +451,7 @@ function parseOptionalNumber(tok) {
 /* Tokenizer object */
 
 // Tokenizes a formula into a stream of token strings.
-function Tokenizer(str) {
+function Tokenizer (str)  {
     var i = 0;
 
     // Returns the index of the next character to tokenize.
@@ -667,13 +654,14 @@ function Matrix(rows, cols) {
 
 /* Set object */
 
-function Set() {
+function Set()  {
     // Storage for the set
     var items = [];
 
+
     // Adds the given object to the set. Returns nothing.
     this.add = function (obj) {
-        if (indexOf(items, obj) == -1)
+        if (items.indexOf(obj) == -1)
             items.push(obj);
     }
 
@@ -691,10 +679,10 @@ function Set() {
 
 /* Math functions (especially checked integer operations) */
 
-var INT_MAX = 9007199254740992;  // 2^53
+const INT_MAX = Number.MAX_SAFE_INTEGER;
 
 // Returns the given string parsed into a number, or throws an exception if the result is too large.
-function checkedParseInt(str) {
+const checkedParseInt = (str) => {
     var result = parseInt(str, 10);
     if (isNaN(result))
         throw "Not a number";
@@ -704,7 +692,7 @@ function checkedParseInt(str) {
 }
 
 // Returns the sum of the given integers, or throws an exception if the result is too large.
-function checkedAdd(x, y) {
+const checkedAdd = (x, y) => {
     var z = x + y;
     if (z <= -INT_MAX || z >= INT_MAX)
         throw "Arithmetic overflow";
@@ -712,7 +700,7 @@ function checkedAdd(x, y) {
 }
 
 // Returns the product of the given integers, or throws an exception if the result is too large.
-function checkedMultiply(x, y) {
+const checkedMultiply = (x, y) => {
     var z = x * y;
     if (z <= -INT_MAX || z >= INT_MAX)
         throw "Arithmetic overflow";
@@ -721,7 +709,7 @@ function checkedMultiply(x, y) {
 
 
 // Returns the greatest common divisor of the given integers.
-function gcd(x, y) {
+const gcd = (x, y) => {
     if (typeof x != "number" || typeof y != "number" || isNaN(x) || isNaN(y))
         throw "Invalid argument";
     x = Math.abs(x);
@@ -738,42 +726,15 @@ function gcd(x, y) {
 /* Miscellaneous */
 
 // Unicode character constants (because this script file's character encoding is unspecified)
-var MINUS = "\u2212";        // Minus sign
-var RIGHT_ARROW = "\u2192";  // Right arrow
-
-
-// A JavaScript 1.6 function for Array, which every browser has except for Internet Explorer.
-function indexOf(array, item) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] == item)
-            return i;
-    }
-    return -1;
-}
+const MINUS = "\u2212";        // Minus sign
+const RIGHT_ARROW = "\u2192";  // Right arrow
 
 
 // Returns a shallow copy of the given array. Usually used for making defensive copies.
-function cloneArray(array) {
+const cloneArray = (array) => {
     return array.slice(0);
 }
 
-
-// Sets the page's message element to the given string. Returns nothing.
-function setMessage(str) {
-    var messageElem = document.getElementById("message");
-    removeAllChildren(messageElem);
-    appendText(str, messageElem);
-}
-
-
-// Removes all the children of the given DOM node. Returns nothing.
-function removeAllChildren(node) {
-    while (node.childNodes.length > 0)
-        node.removeChild(node.firstChild);
-}
-
-
-// Creates a new text node with the given text and appends it to the given DOM node. Returns nothing.
 function appendText(text, node) {
     node.appendChild(document.createTextNode(text));
 }

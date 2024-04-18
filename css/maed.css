@@ -28,7 +28,11 @@ div.section {
     margin-bottom: var(--spacing);
     position: relative;
     min-height: 1.6rem;
-    padding-top:0.8rem;
+    padding-top:0.8em;
+}
+
+div.section > *:nth-child(2) {
+    margin-top:calc(2em + var(--spacing));
 }
 
 
@@ -37,10 +41,11 @@ div.oppgave {
     color: blue;
     font-size: 1.5em;
     position: absolute;
-    top:-2rem;
+    top:0rem;
 }
 
 div.oppgave:empty::before {
+    position: relative;
     content: attr(title) " " counter(oppg-count) ". ";
     text-transform: capitalize;
 }
@@ -117,6 +122,10 @@ aside.math div {
 
     div.source {
         page-break-before: always;
+    }
+
+    div.oppgave {
+        page-break-after: avoid !important;
     }
 
     .source,

@@ -22,6 +22,8 @@ const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     mathView, ed, examples, savedFiles, gitlist, sp, fs, pm }
     = thingsWithId();
 
+import { balance } from './balanceChem.js';
+console.log(balance);
 
 import {
     saveFileButton, readFileButton, updateGist,

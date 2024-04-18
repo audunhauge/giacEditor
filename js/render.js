@@ -366,7 +366,7 @@ export const renderPiece = (id, txt, ksize = "") => {
         }
         const optObj = plotDomain(size, [xlo, xhi, ylo, yhi]);
         // const optObj = plotDomain(mlo,mhi);
-        optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi] }));
+        optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi],graphType: "polyline" }));
         optObj.target = "#" + div.id;
         try {
             // @ts-ignore
