@@ -297,7 +297,7 @@ class T {
         return s;
     }
 
-    static tri = param => {
+    static tri =  param => {
         let { a = 0, b = 0, c = 0, A = 0, B = 0, C = 0, } = param;
         let sides = [a, b, c].filter(e => e !== 0);
         let angles = [A, B, C].filter(e => e > 0);
@@ -323,6 +323,7 @@ class T {
             if (Math.abs(sum - 180) > 100 * Number.EPSILON) return { valid: false }; // AngleSum must be 180
             // calculate missing sides if any
             let sinus = [a, b, c].map((e, i) => e / SIN(angles[i])).filter(e => e !== 0).pop();
+            // @ts-ignore
             sides = [a, b, c].map((e, i) => e ? e : sinus * SIN(angles[i]));
             param.a = sides[0];
             param.b = sides[1];
@@ -390,15 +391,15 @@ class T {
             valid: true,
             polygon: "",
             points: {},
-            scaled: [],
+            scaled: [{}],
             area: 0,
             radius: 1,
             center: V,
-            ABC: [],
-            vert: [],
-            vABC: [],
-            angles: [],
-            abc: [],
+            ABC: [{}],
+            vert: [{}],
+            vABC: [{}],
+            angles: [{}],
+            abc: [{}],
             size,
             circum: V,
             cr: 0
@@ -670,6 +671,9 @@ function mp(e) {
     ed.value += `q=(${nice(8*x/350)},${nice(-8*(y - 350)/350)});p.push(q)\n`;
 }
 
+// EXPERIMENTS BELOW
+// can we move points
+/*
 let movePoints = false;
 //$("pointer").onclick = () => {
 () => {
@@ -687,3 +691,4 @@ let movePoints = false;
         }
     }
 }
+*/
