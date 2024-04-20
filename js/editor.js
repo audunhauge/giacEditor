@@ -22,6 +22,8 @@ const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     mathView, ed, examples, savedFiles, gitlist, sp, fs, pm }
     = thingsWithId();
 
+import { balance } from './balanceChem.js';
+console.log(balance);
 
 import {
     saveFileButton, readFileButton, updateGist,
@@ -46,6 +48,7 @@ export const readTable = filename => {
 
 export var chemicals = {};
 export var chemnames = [];
+export var lochemnames = [];
 
 
 export var config = {};
@@ -56,7 +59,7 @@ const configBase = {
     git: { valg: "ja,nei", t: "checkbox", e: "Show gistfiles and github" },
     git_user: { ledetekst: "Git username", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
-    git_st_tutorial: { ledetekst: "Tutorial", valg: "ja,nei", t: "checkbox", e: "Tutorial mode (enable help files)" },
+    git_st_chemicals: { ledetekst: "Kjemi", t: "text", e: "Navn på gistfil med stoff:smiles" },
     git_st_folder: { ledetekst: "Gist folder", t: "text", e: "Selected folder" },
     git_st_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
@@ -291,6 +294,7 @@ conf.onclick = () => {
     makeConfig();
 }
 
+let chemlist = '';
 
 newfile.onclick = () => {
     const txt = `# Prøve @dato
@@ -313,12 +317,15 @@ let gr = {};
 
 async function setup() {
     web.moveme = "Låst";
+    let chemgit = {};
     // check if we have query parameters
     const ques = window.location.search
     const urlParams = new URLSearchParams(ques);
     const keys = [...urlParams.keys()];
+    chemlist = config['git_st_chemicals'] || '';
     // a=user,b=repo,c=file
-    if (keys.includes('a') && keys.includes('c')) {
+    const getfilename = keys.includes('a') && keys.includes('c');
+    if (getfilename) {
         // assume we want to load gist b 
         const username = urlParams.get("a");
         const file = urlParams.get("c");
@@ -370,6 +377,7 @@ async function setup() {
         const gitfiles = await gitFiles();
         web.gitlist.push(...gitfiles);
         existingFiles = await gistFiles();
+        chemgit = existingFiles.find(elm => elm.name === chemlist);
     } else {
         existingFiles = [];
     }
@@ -384,11 +392,8 @@ async function setup() {
     examples.forEach(f => {
         existingFiles.push({ id: "1", name: "Examples_" + f, url: "/media/ex" + f + ".md" });
     });
-    // If user checked Tutorial - parse any documentation files
-    // and build up extended help
-    if (config['git_st_tutorial'] === 'ja') {
 
-    }
+
     // Make displayname for files, stripping of prefix
     existingFiles.forEach(e => e.nice = unprefix("_", e.name));
     gr = group(existingFiles, e => {
@@ -432,6 +437,28 @@ async function setup() {
             target.setAttribute("data-x", x);
             target.setAttribute("data-y", y);
         }
+    }
+
+    {    // load all chemicals from file
+        const url = "media/smiles.json";
+        const response = await fetch(url);
+        chemicals = await response.json();
+
+        // add in userdefined list of chemicals
+        if (chemgit && chemgit.url) {
+            const url = chemgit.url;
+            const txt = await getGistFile(url);
+            const lines = txt.split('\n');
+            lines.forEach(e => {
+                const [name, smile] = e.split(':');
+                if (!chemicals[name]) {
+                    const upper = name[0].toUpperCase() + name.slice(1).toLowerCase();
+                    chemicals[upper] = smile;
+                }
+            })
+        }
+        chemnames = Object.keys(chemicals).sort();
+        lochemnames = chemnames.map(e => e.toLowerCase());
     }
 
 }
@@ -537,7 +564,12 @@ export const renderAll = () => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
-        .replace(/^\(\(( .*)?$/gm, (_, klass) => { return `<div class="${klass || ''}">` })
+        .replace(/^\(\(( .*?)?(\[(-?\d+)[, ](-?\d+)\])?$/gm, (_, klass,_1,left,top) => { 
+            if (left && top) {
+                return `<div class="move ${klass}" style="transform :translate(${left}px,${top}px)">`
+            }
+            return `<div class="${klass || ''}">` 
+        })
         // .replace(/^\(\($/gm,"<div>\n")
         .replace(/^\)\)$/gm, "</div>\n")
         .replace(/&_/gm, '  ')  // &_   gives two thin no break space
@@ -573,14 +605,15 @@ export const renderAll = () => {
                 callouts.push({ txt, id: `hint${seg}_${ofs}`, klass, seg });
                 return `<div class="callout ${klass}" id="hint${seg}_${ofs}"></div>\n`;
             })
-            .replace(/@chem{([^,]+?)}(\[(.*)\])?/g, (_0, smiles, _1, klass) => {
+            .replace(/@chem{([^¢]+?)}(\[(.*)\])?/g, (_0, smiles, _1, klass) => {
                 ofs++;
                 chems.push({ smiles, id: `chem${seg}_${ofs}`, klass, seg });
+                //return `<svg class="svg ${klass}" id="chem${seg}_${ofs}"></svg>`;
                 return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
             })
-            .replace(/@chemsearch{([^,]+?)}/g, (_0, smiles) => {
+            .replace(/@chemsearch{([^€]+?)}/g, (_0, smiles) => {
                 ofs++;
-                chemsearch.push({ smiles, id: `csearch${seg}_${ofs}`,  seg });
+                chemsearch.push({ smiles, id: `csearch${seg}_${ofs}`, seg });
                 return `<aside class="gui search" id="csearch${seg}_${ofs}"></aside>`;
             })
             .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
@@ -1065,10 +1098,3 @@ ed.onkeyup = (e) => {
 }
 
 setLang();
-
-{    // load all chemicals from file
-    const url = "media/smiles.json";
-    const response = await fetch(url);
-    chemicals = await response.json();
-    chemnames = Object.keys(chemicals).sort();
-}
