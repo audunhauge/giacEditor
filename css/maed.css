@@ -1093,6 +1093,11 @@ div.box {
     border:solid rgba(0, 0, 0, 0.344) 1px;
     margin-right:0.3em;
     padding-right:0.3em;
+    width:fit-content
+}
+
+div.box.caption > h4 {
+    text-align: center;
 }
 
 div.callout.naked {

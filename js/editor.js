@@ -23,7 +23,6 @@ const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     = thingsWithId();
 
 import { balance } from './balanceChem.js';
-console.log(balance);
 
 import {
     saveFileButton, readFileButton, updateGist,
@@ -297,13 +296,7 @@ conf.onclick = () => {
 let chemlist = '';
 
 newfile.onclick = () => {
-    const txt = `# Prøve @dato
-@oppgave
-
-Løs likninger
-@matte abc
-2x+4=5
-`;
+    const txt = ``;
     setLocalJSON(sessionID, txt);
     setLocalJSON("filename", "newfile");
     goEdit();
@@ -611,9 +604,9 @@ export const renderAll = () => {
                 //return `<svg class="svg ${klass}" id="chem${seg}_${ofs}"></svg>`;
                 return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
             })
-            .replace(/@chemsearch{([^€]+?)}/g, (_0, smiles) => {
+            .replace(/@chemsearch{([^€]+?)}( happy)?/g, (_0, smiles,happy) => {
                 ofs++;
-                chemsearch.push({ smiles, id: `csearch${seg}_${ofs}`, seg });
+                chemsearch.push({ smiles, id: `csearch${seg}_${ofs}`, seg, happy });
                 return `<aside class="gui search" id="csearch${seg}_${ofs}"></aside>`;
             })
             .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
@@ -918,9 +911,9 @@ export const renderAll = () => {
             renderChem(id, smiles, klass);
         //scrollit(id);
     });
-    chemsearch.forEach(({ smiles, id, seg }) => {
+    chemsearch.forEach(({ smiles, id, seg, happy }) => {
         if (rerend || dirtyList.includes(seg))
-            renderCSearch(id, smiles);
+            renderCSearch(id, smiles, happy);
     });
     python.forEach(({ pyt, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))

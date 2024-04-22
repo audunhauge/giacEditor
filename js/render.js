@@ -17,6 +17,7 @@ import { periodic, pt } from './periodic.js';
 import { frekTable, statsTable, anovaTable, dataTable, transpose } from './tables.js';
 
 import AsciiMathParser from './ascii2tex.js';
+import { balance } from './balanceChem.js';
 
 const ascii = new AsciiMathParser();
 
@@ -90,6 +91,7 @@ const lotex = txt => {
         //return MathLex.render(MathLex.parse(simplex), "latex");
         return ascii.parse(simplex);
     } catch (er) {
+        simplify
         return txt;
     }
 }
@@ -366,7 +368,7 @@ export const renderPiece = (id, txt, ksize = "") => {
         }
         const optObj = plotDomain(size, [xlo, xhi, ylo, yhi]);
         // const optObj = plotDomain(mlo,mhi);
-        optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi],graphType: "polyline" }));
+        optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi], graphType: "polyline" }));
         optObj.target = "#" + div.id;
         try {
             // @ts-ignore
@@ -380,6 +382,18 @@ export const renderPiece = (id, txt, ksize = "") => {
 
 export const renderSimple = (line, { mode, klass, chemistry = false }, comment = '') => {
     if (chemistry) {
+        if (line.startsWith("balance")) {
+            try {
+                const b = balance(line.slice(7));
+                if (b?.coffs && b?.eqn) {
+                    const chex = katx(String('\\ce{' + b.eqn.toHtml(b.coffs) + '}'), mode);
+                    return `<div><span>${chex}</span><span class="comment">${comment}</span></div>`;            
+                }
+                return '<div>No balance found</div>';
+            } catch (e) {
+                return `<div>balance : ${e.message}</div>`;
+            }
+        }
         const chex = katx(String('\\ce{' + line + '}'), mode);
         return `<div><span>${chex}</span><span class="comment">${comment}</span></div>`;
     } else {
@@ -521,10 +535,10 @@ export function renderEquation(id, txt, size = "") {
     return comments / (lines.length + 1);
 }
 
-export function renderCSearch(id, smiles) {
+export function renderCSearch(id, smiles, happy) {
     const item = smiles.toLowerCase();
     let hits = lochemnames.filter(e => e.includes(item));
-    if (hits.length === 0) {
+    if (happy || hits.length === 0) {  // if happy only look for smiles
         // try to search for smile
         hits = chemnames.filter(e => chemicals[e].includes(smiles));
     }
@@ -547,8 +561,8 @@ export function renderChem(id, smiles, klass = "") {
         const upname = chemnames[idx]
         smiles = chemicals[upname];
     }
-    $(id).setAttribute("width",width+"px");
-    $(id).setAttribute("height",height+"px");
+    $(id).setAttribute("width", width + "px");
+    $(id).setAttribute("height", height + "px");
     // @ts-ignore
     let smilesDrawer = new SmilesDrawer.Drawer({ width, height });
     //let smilesSVG = new SmilesDrawer.SvgDrawer({ width, height});
