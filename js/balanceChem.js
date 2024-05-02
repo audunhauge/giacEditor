@@ -138,13 +138,16 @@ function Equation(lhs, rhs) {
 
         // Creates this kind of DOM node: <span class="className">text</span>
         function createSpan(text, className) {
+            return text;
+            return `<span class="${className}">${text}</span>`;
             var span = document.createElement("span");
             appendText(text, span);
             span.className = className;
             return span;
         }
 
-        var node = document.createElement("span");
+        //var node = document.createElement("span");
+        var node = "";
 
         var j = 0;
         function termsToHtml(terms) {
@@ -153,16 +156,16 @@ function Equation(lhs, rhs) {
                 var coef = coefs !== undefined ? coefs[j] : 1;
                 if (coef != 0) {
                     if (head) head = false;
-                    else node.appendChild(createSpan(" + ", "plus"));
+                    else node += (createSpan(" + ", "plus"));
                     if (coef != 1)
-                        node.appendChild(createSpan(coef.toString().replace(/-/, MINUS), "coefficient"));
-                    node.appendChild(terms[i].toHtml());
+                        node += (createSpan(coef.toString().replace(/-/, '-'), "coefficient"));
+                    node += (terms[i].toHtml());
                 }
             }
         }
 
         termsToHtml(lhs);
-        node.appendChild(createSpan(" " + RIGHT_ARROW + " ", "rightarrow"));
+        node += (createSpan(" -> ", "rightarrow"));
         termsToHtml(rhs);
 
         return node;
@@ -200,24 +203,25 @@ function Term(items, charge) {
 
     // Returns an HTML element representing this term.
     this.toHtml = function () {
-        var node = document.createElement("span");
+        var node = "";
         if (items.length == 0 && charge == -1) {
-            appendText("e", node);
-            var sup = document.createElement("sup");
-            appendText(MINUS, sup);
-            node.appendChild(sup);
+            node += "e"; // appendText("e", node);
+            //var sup = document.createElement("sup");
+            //appendText(MINUS, sup);
+            var sup = '-'; // `<sup>${MINUS}</sup>`
+            node += sup;
         } else {
             for (var i = 0; i < items.length; i++)
-                node.appendChild(items[i].toHtml());
+                node += (items[i].toHtml());
             if (charge != 0) {
-                var sup = document.createElement("sup");
+                var sup = ""; //"<sup>";
                 var s;
                 if (Math.abs(charge) == 1) s = "";
                 else s = Math.abs(charge).toString();
                 if (charge > 0) s += "+";
-                else s += MINUS;
-                appendText(s, sup);
-                node.appendChild(sup);
+                else s += "-";
+                sup += s; // + '</sup>';
+                node += sup;
             }
         }
         return node;
@@ -250,15 +254,12 @@ function Group(items, count) {
 
     // Returns an HTML element representing this group.
     this.toHtml = function () {
-        var node = document.createElement("span");
-        appendText("(", node);
+        var node ="(";
         for (var i = 0; i < items.length; i++)
-            node.appendChild(items[i].toHtml());
-        appendText(")", node);
+            node += items[i].toHtml();
+        node += ")";
         if (count != 1) {
-            var sub = document.createElement("sub");
-            appendText(count.toString(), sub);
-            node.appendChild(sub);
+            node += count.toString() ;
         }
         return node;
     }
@@ -281,12 +282,9 @@ function Element(name, count) {
 
 // Returns an HTML element representing this element.
     this.toHtml = function () {
-        var node = document.createElement("span");
-        appendText(name, node);
+        var node =  name;
         if (count != 1) {
-            var sub = document.createElement("sub");
-            appendText(count.toString(), sub);
-            node.appendChild(sub);
+            node += count.toString() ;
         }
         return node;
     }
