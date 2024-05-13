@@ -18,7 +18,7 @@ import { autocom, helptxt, prep } from './autotags.js';
 
 const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     aside, editor, gistlist, gili, gisi, gust, gistfolder,
-    menu, menuu, saved,
+    menu, menuu, saved, repaint,
     mathView, ed, examples, savedFiles, gitlist, sp, fs, pm }
     = thingsWithId();
 
@@ -196,6 +196,9 @@ $("replay").onclick = () => {
     toast("Starting replay - use arrow keys to controll<p>'Esc' to end.", { delay: 0.8 });
     startReplay(ed, renderAll);
 }
+
+repaint.onclick = () =>  renderAll(true);
+
 
 
 
@@ -550,10 +553,10 @@ const commentMe = (id, perc) => {
     target.classList.add(klass);
 }
 
-export const mdLatex = txt => md.render(txt.replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
+export const mdLatex = txt => md.render(txt.replace(/\$([^@$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
 
 
-export const renderAll = () => {
+export const renderAll = (repaint = false) => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
@@ -714,14 +717,14 @@ export const renderAll = () => {
     // @ts-ignore
     const uieval = txt => UI.eval(txt);
 
-    const resetCAS = () => {
+    const resetCAS = (seg) => {
         // @ts-ignore
         uieval("restart");
         uieval("lg(x):=ln(x)/ln(10)");
         if (!config["trigmode"].startsWith("rad")) {
             uieval("angle_radian:=0");
         }
-        funks = {};
+        funks[seg] = {};
         regpoints = {};
     }
 
@@ -732,12 +735,13 @@ export const renderAll = () => {
         if (sections[i] !== oldRest[i]) {
             dirtyList.push(i);
         }
+        funks[i] = funks[i] || {};
     }
-    if (sections.length < 3 || oldRest.length !== sections.length) {
+    if (repaint || sections.length < 3 || oldRest.length !== sections.length) {
         // just rerender everything
         const preludeMath = `<div class="prelude" id="seg0">\n` + mdLatex(prepped(sections[0], 0)) + '</div>';
         const theSections = sections.slice(1);
-        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i) + '\n</div>').join("");
+        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i+1) + '\n</div>').join("");
         mathView.innerHTML = mdLatex(preludeMath + restMath) + '<div id="last" class="gui"></div>';
         rerend = true;
     } else if (dirtyList.length === 1 && dirtyList[0] === oldRest.length) {
@@ -793,16 +797,26 @@ export const renderAll = () => {
         k.parentNode.className = "section " + grid;
     });
 
+
+    // replace @{name} if found in CAS generated names for this segment, else Ø
+    const exapol = (funks, txt) => txt.replace(/\@\{([a-z()0-9]+)\}/gm, (_, a) => {
+        if (funks && funks[a]) return funks[a];
+        return "Ø";
+    });
+
     function interpolate(seg) {
-        const div = $("seg" + seg);
+        const div = $("seg" + (seg));
         if (div) {
             const old = div.innerHTML;
-            const txt = old.replace(/\$\{([a-z()0-9]+)\}/gm, (_, a) => {
-                if (funks[a]) return funks[a];
+            const txt = exapol(funks[seg],old);
+            /*const txt = old.replace(/\@\{([a-z()0-9]+)\}/gm, (_, a) => {
+                if (funks[seg] && funks[seg][a]) return funks[seg][a];
                 return _;
-            });
-            if (old !== txt) {
-                div.innerHTML = txt;
+            });  */
+            // any    $ x + @{namedefinedinCAS} $    is now rendered
+            const latex = md.render(txt.replace(/\$([^$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
+            if (old !== latex) {
+                div.innerHTML = latex;
             }
         }
 
@@ -814,37 +828,21 @@ export const renderAll = () => {
     oldRest = sections.slice();  // make copy
 
 
-    maths.forEach(({ math, id, size, seg }) => {
-        if (rerend || dirtyList.includes(seg))
-            renderMath(id, math, funks, size);
-    });
     let segnum = {};  // have we reset giac for this segment?
     // regression before cas so that we can use function p[a-z](x) in cas
     regress.forEach(({ eq, id, klass, seg }, i) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            resetCAS();
+            resetCAS(seg);
         }
         if (rerend || dirtyList.includes(seg)) {
-            renderReg(id, eq, funks, regpoints, i, klass);
-        }
-    });
-    algebra.forEach(({ math, id, size, seg }) => {
-        if (segnum[seg] === undefined) {
-            segnum[seg] = 1;
-            resetCAS();
-        }
-        if (rerend || dirtyList.includes(seg)) {
-            const perc = renderAlgebra(id, math, funks, size);
-            commentMe(id, perc);
-            Object.assign(globalFunk, funks);
-            interpolate(seg);
+            renderReg(id, eq, funks[seg], regpoints, i, klass);
         }
     });
     eqs.forEach(({ math, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            resetCAS();
+            resetCAS(seg);
         }
         if (rerend || dirtyList.includes(seg)) {
             const perc = renderEquation(id, math, size);
@@ -855,7 +853,7 @@ export const renderAll = () => {
     eqsets.forEach(({ eq, id, klass, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            resetCAS();
+            resetCAS(seg);
         }
         if (rerend || dirtyList.includes(seg)) {
             renderEqnSet(id, eq, klass);
@@ -865,7 +863,7 @@ export const renderAll = () => {
     poldivs.forEach(({ eq, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
-            resetCAS();
+            resetCAS(seg);
         }
         if (rerend || dirtyList.includes(seg)) {
             renderPoldiv(id, eq, size);
@@ -886,20 +884,6 @@ export const renderAll = () => {
         if (rerend || dirtyList.includes(seg)) {
             renderTable(id, lines, type, name, regpoints);
         }
-    });
-    sigrams.forEach(({ eq, id, size, seg }) => {
-        if (segnum[seg] === undefined) {
-            segnum[seg] = 1;
-            resetCAS();
-        }
-        if (rerend || dirtyList.includes(seg)) {
-            renderSigram(id, eq, funks, size);
-        }
-    });
-    plots.forEach(({ plot, id, klass, seg }) => {
-        if (rerend || dirtyList.includes(seg))
-            renderPlot(id, plot, funks, regpoints, klass);
-        //scrollit(id);
     });
     callouts.forEach(({ txt, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))
@@ -923,6 +907,38 @@ export const renderAll = () => {
         if (rerend || dirtyList.includes(seg))
             renderTrig(id, trig, klass);
         //scrollit(id);
+    });
+    algebra.forEach(({ math, id, size, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            resetCAS(seg);
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            const perc = renderAlgebra(id, math, funks[seg], size);
+            commentMe(id, perc);
+            Object.assign(globalFunk, funks[seg]);
+            interpolate(seg);
+        }
+    });
+    maths.forEach(({ math, id, size, seg }) => {
+        if (rerend || dirtyList.includes(seg)) {
+            const latex = exapol(funks[seg],math)
+            renderMath(id, latex, funks[seg], size);
+        }
+    });
+    plots.forEach(({ plot, id, klass, seg }) => {
+        if (rerend || dirtyList.includes(seg))
+            renderPlot(id, plot, funks[seg], regpoints, klass);
+        //scrollit(id);
+    });
+    sigrams.forEach(({ eq, id, size, seg }) => {
+        if (segnum[seg] === undefined) {
+            segnum[seg] = 1;
+            resetCAS(seg);
+        }
+        if (rerend || dirtyList.includes(seg)) {
+            renderSigram(id, eq, funks[seg], size);
+        }
     });
 
     if (buildFasit) {
