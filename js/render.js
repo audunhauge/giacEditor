@@ -314,7 +314,7 @@ export const renderPiece = (id, txt, ksize = "") => {
         $(id).innerHTML = "Expecting<br>f(x)<br>part1:limits<br>part2:limits<br>..more parts"
         return;
     }
-    // check if we have xrange/yrange
+    // check if we have xrange/yrange or nofun,nogra,grid 
     const { commands = [], lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
     const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
@@ -370,6 +370,9 @@ export const renderPiece = (id, txt, ksize = "") => {
         // const optObj = plotDomain(mlo,mhi);
         optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi], graphType: "polyline" }));
         optObj.target = "#" + div.id;
+        if (! commands.includes("nogrid")) {
+            optObj.grid = true;
+        }
         try {
             // @ts-ignore
             functionPlot(optObj);
