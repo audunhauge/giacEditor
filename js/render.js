@@ -1061,9 +1061,13 @@ export function renderTrig(id, trig, klass = "") {
     const parent = $(id);
     const [_, w = 350, s = 8, scale = 1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
     const parsed = parse(trig, `{w:${w},s:${s}}`);
+    const [_1, x0 = 0, y0 = 0 ] = ( trig.match(  /origin\((-?[0-9.]+),(-?[0-9.]+)\)/  ) ) || [];
+    const sz = Number(s);
+    const x = +w * x0 / sz;
+    const y = -w * y0 / sz; 
     const lines = parsed.split('\n').filter(e => e != "");
     const svg = code2svg(lines, w, s);
-    parent.innerHTML = `<svg id="${id}" width="${w}" viewBox="0 0  ${w} ${w}"> 
+    parent.innerHTML = `<svg id="${id}" width="${w}" viewBox="${x} ${y}  ${w} ${w}"> 
       <g transform="scale(${scale})">
         ${svg}
       </g>

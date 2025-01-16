@@ -180,20 +180,24 @@ const circumcirc = (param) => {
 class T {
     static size = { w: 300, s: 8, c: "blue" };
 
+    static origin = (x,y) => '';    // nullop so that we can parse out origin with no effect here
+
     static circle = (p, r, s) => {
-        const size = s || T.size;
+        const size = Object.assign({}, T.size, s); // s || T.size;
         let color = T.size.c || "blue";
         return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${fx(r, size)}" stroke="${color}" fill="none"/>`;
     }
 
     static line = (p, q, s) => {
-        const size = s || T.size;
+        //const size = s || T.size;
+        const size = Object.assign({}, T.size, s);
         let color = size.c || "blue";
         return `<line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}"   stroke="${color}" />`;
     }
 
     static bez = (p, q, r, t, s) => {
-        const size = s || T.size;
+        // const size = s || T.size;
+        const size = Object.assign({}, T.size, s);
         let color = size.c || "blue";
         const b = `<path d="M ${fx(p.x, size)} ${fy(p.y, size)} 
                     C ${fx(q.x, size)} ${fy(q.y, size)},
@@ -204,9 +208,11 @@ class T {
     }
 
     static dot = (p, s) => {
-        const size = s || T.size;
+        // const size = s || T.size;
+        const size = Object.assign({}, T.size, s);
         let color = size.c || "blue";
-        return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="3" fill="${color}"/>`;
+        const r = size.r || 3;
+        return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${r}" fill="${color}"/>`;
     }
 
     // many dots
@@ -217,7 +223,8 @@ class T {
     }
 
     static text = (p, q, s, z) => {
-        const size = z || T.size;
+        // const size = z || T.size;
+        const size = Object.assign({}, T.size, z);
         const txt = String(s);
         let now = String(Math.random()).slice(2, 10);
         if (q === null || q === undefined) {
@@ -226,12 +233,13 @@ class T {
             q = p.add(v);
         }
         let path = `M ${fx(p.x, size)} ${fy(p.y, size)} L ${fx(q.x, size)} ${fy(q.y, size)}`;
-        let scale = 10 / size.s;
-        let percent = clamp(100 * scale, 50, 100);
-        let color = size.c || "blue";
+        let r = +size.r || 1;
+        let scale = r * 10 / size.s;
+        let percent = clamp(100 * scale, 50, 900);
+        let color = size.c || "black";
         let fz = `font-size="${percent}%"`;
         return `<path id="mm${now}" d="${path}"  />
-        <text ${fz}><textPath x="${p.x}" y="${p.y}" 
+        <text ${fz}><textPath x="${p.x}" y="${p.y}" fill="${color}"
          startOffset="25%" href="#mm${now}">
         <tspan dy="-5">
         ${txt}
@@ -245,7 +253,8 @@ class T {
         //      |     |b
         //      |_____|
         //     p   a   t
-        const size = z || T.size;
+        // const size = z || T.size;
+        const size = Object.assign({}, T.size, s);
         let color = T.size.c || "blue";
         let v = new Point(1, 0); // use point as vector
         if (q != null) {
@@ -382,6 +391,8 @@ class T {
             q,
             size = T.size
         } = param;
+
+        size = Object.assign({}, T.size, size);
 
         let fxz = x => fx(x, size);
         let fyz = x => fy(x, size);
@@ -572,11 +583,11 @@ const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π,
     log: ln, log10: lg, log, abs, max, min, random: rnd } = Math;
 
 
-const { circle, line, bez, square, text, dot, dots, tri2svg, tri } = T;
+const { circle, line, bez, square, text, dot, dots, tri2svg, tri, origin } = T;
 
 const mathEnvironment = {
     SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc,
-    circle, line, bez, square, text, dot, dots, tri2svg, tri,
+    circle, line, bez, square, text, dot, dots, tri2svg, tri, origin,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log,
     sin, cos, tan, asin, atan2, acos, atan, π,
 }

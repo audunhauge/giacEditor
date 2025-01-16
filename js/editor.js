@@ -59,6 +59,7 @@ const configBase = {
     git_user: { ledetekst: "Git username", t: "text" },
     git_st: { ledetekst: "gist", valg: "ja,nei", t: "checkbox", e: "Gistfiles" },
     git_st_chemicals: { ledetekst: "Kjemi", t: "text", e: "Navn på gistfil med stoff:smiles" },
+    git_st_help: { ledetekst: "Help", t: "text", e: "Navn på gistfil med utvida hjelp" },
     git_st_folder: { ledetekst: "Gist folder", t: "text", e: "Selected folder" },
     git_st_token: { ledetekst: "OAuth token for saving gist", t: "text" },
     git_hub: { ledetekst: "github", valg: "ja,nei", t: "checkbox", e: "Files on github" },
@@ -197,7 +198,7 @@ $("replay").onclick = () => {
     startReplay(ed, renderAll);
 }
 
-repaint.onclick = () =>  renderAll(true);
+repaint.onclick = () => renderAll(true);
 
 
 
@@ -297,6 +298,7 @@ conf.onclick = () => {
 }
 
 let chemlist = '';
+let helpmore = '';
 
 newfile.onclick = () => {
     const txt = ``;
@@ -314,12 +316,14 @@ let gr = {};
 async function setup() {
     web.moveme = "Låst";
     let chemgit = {};
+    let helpgit = {};
     // check if we have query parameters
     const ques = window.location.search
     const urlParams = new URLSearchParams(ques);
     const keys = [...urlParams.keys()];
-    chemlist = config['git_st_chemicals'] || '';
     // a=user,b=repo,c=file
+    chemlist = config['git_st_chemicals'] || '';
+    helpmore = config['git_st_help'] || '';
     const getfilename = keys.includes('a') && keys.includes('c');
     if (getfilename) {
         // assume we want to load gist b 
@@ -374,6 +378,7 @@ async function setup() {
         web.gitlist.push(...gitfiles);
         existingFiles = await gistFiles();
         chemgit = existingFiles.find(elm => elm.name === chemlist);
+        helpgit = existingFiles.find(elm => elm.name === chemlist);
     } else {
         existingFiles = [];
     }
@@ -455,6 +460,16 @@ async function setup() {
         }
         chemnames = Object.keys(chemicals).sort();
         lochemnames = chemnames.map(e => e.toLowerCase());
+
+        // add in userdefined list of chemicals
+        if (helpgit && helpgit.url) {
+            const url = helpgit.url;
+            const txt = await getGistFile(url);
+            const lines = txt.split('\n');
+            lines.forEach(e => {
+                // add to helpfile
+            })
+        }
     }
 
 }
@@ -560,11 +575,11 @@ export const renderAll = (repaint = false) => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
-        .replace(/^\(\(( .*?)?(\[(-?\d+)[, ](-?\d+)\])?$/gm, (_, klass,_1,left,top) => { 
+        .replace(/^\(\(( .*?)?(\[(-?\d+)[, ](-?\d+)\])?$/gm, (_, klass, _1, left, top) => {
             if (left && top) {
                 return `<div class="move ${klass}" style="transform :translate(${left}px,${top}px)">`
             }
-            return `<div class="${klass || ''}">` 
+            return `<div class="${klass || ''}">`
         })
         // .replace(/^\(\($/gm,"<div>\n")
         .replace(/^\)\)$/gm, "</div>\n")
@@ -607,7 +622,7 @@ export const renderAll = (repaint = false) => {
                 //return `<svg class="svg ${klass}" id="chem${seg}_${ofs}"></svg>`;
                 return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
             })
-            .replace(/@chemsearch{([^€]+?)}( happy)?/g, (_0, smiles,happy) => {
+            .replace(/@chemsearch{([^€]+?)}( happy)?/g, (_0, smiles, happy) => {
                 ofs++;
                 chemsearch.push({ smiles, id: `csearch${seg}_${ofs}`, seg, happy });
                 return `<aside class="gui search" id="csearch${seg}_${ofs}"></aside>`;
@@ -741,7 +756,7 @@ export const renderAll = (repaint = false) => {
         // just rerender everything
         const preludeMath = `<div class="prelude" id="seg0">\n` + mdLatex(prepped(sections[0], 0)) + '</div>';
         const theSections = sections.slice(1);
-        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i+1) + '\n</div>').join("");
+        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i + 1) + '\n</div>').join("");
         mathView.innerHTML = mdLatex(preludeMath + restMath) + '<div id="last" class="gui"></div>';
         rerend = true;
     } else if (dirtyList.length === 1 && dirtyList[0] === oldRest.length) {
@@ -808,7 +823,7 @@ export const renderAll = (repaint = false) => {
         const div = $("seg" + (seg));
         if (div) {
             const old = div.innerHTML;
-            const txt = exapol(funks[seg],old);
+            const txt = exapol(funks[seg], old);
             /*const txt = old.replace(/\@\{([a-z()0-9]+)\}/gm, (_, a) => {
                 if (funks[seg] && funks[seg][a]) return funks[seg][a];
                 return _;
@@ -922,7 +937,7 @@ export const renderAll = (repaint = false) => {
     });
     maths.forEach(({ math, id, size, seg }) => {
         if (rerend || dirtyList.includes(seg)) {
-            const latex = exapol(funks[seg],math)
+            const latex = exapol(funks[seg], math)
             renderMath(id, latex, funks[seg], size);
         }
     });
