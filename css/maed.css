@@ -614,6 +614,11 @@ div.trig svg {
     border: solid rgba(128, 128, 128, 0.144) 1px;
 }
 
+
+div.plain div.trig svg {
+    border: none;
+}
+
 #editor.hidden {
     display: none;
 }
@@ -869,11 +874,6 @@ div.anova div.subtype div {
 
 div.anova div.subtype span {
     display: inline-block
-}
-
-canvas.svg {
-    /*width: var(--svg) !important;
-    height: var(--svg) !important;*/
 }
 
 

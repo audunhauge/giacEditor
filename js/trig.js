@@ -180,7 +180,7 @@ const circumcirc = (param) => {
 class T {
     static size = { w: 300, s: 8, c: "blue" };
 
-    static origin = (x,y) => '';    // nullop so that we can parse out origin with no effect here
+    static origin = (x, y) => '';    // nullop so that we can parse out origin with no effect here
 
     static circle = (p, r, s) => {
         const size = Object.assign({}, T.size, s); // s || T.size;
@@ -192,17 +192,20 @@ class T {
         //const size = s || T.size;
         const size = Object.assign({}, T.size, s);
         let color = size.c || "blue";
-        return `<line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}"   stroke="${color}" />`;
+        let r = size.r || 1;
+        return `<line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" stroke-width="${r}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}"   stroke="${color}" />`;
     }
 
     static bez = (p, q, r, t, s) => {
         // const size = s || T.size;
         const size = Object.assign({}, T.size, s);
-        let color = size.c || "blue";
+        const color = size.c || "blue";
+        const strokeWidth = size.r || 1;
         const b = `<path d="M ${fx(p.x, size)} ${fy(p.y, size)} 
                     C ${fx(q.x, size)} ${fy(q.y, size)},
                       ${fx(r.x, size)} ${fy(r.y, size)},
                       ${fx(t.x, size)} ${fy(t.y, size)}"
+                        stroke-width="${strokeWidth}"
                         stroke="${color}"  fill="none" />`;
         return b;
     }
@@ -219,7 +222,7 @@ class T {
     static dots = (...s) => {
         const size = T.size;
         let color = size.c || "blue";
-        return s.map(p=>`<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="3" fill="${color}"/>`).join("");
+        return s.map(p => `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="3" fill="${color}"/>`).join("");
     }
 
     static text = (p, q, s, z) => {
@@ -228,7 +231,7 @@ class T {
         const txt = String(s);
         let now = String(Math.random()).slice(2, 10);
         if (q === null || q === undefined) {
-            const l = Math.max(1,Number((txt.length/2).toFixed(2)));
+            const l = Math.max(1, Number((txt.length / 2).toFixed(2)));
             let v = new Point(l, 0); // direction of path for text
             q = p.add(v);
         }
@@ -254,19 +257,25 @@ class T {
         //      |_____|
         //     p   a   t
         // const size = z || T.size;
-        const size = Object.assign({}, T.size, s);
-        let color = T.size.c || "blue";
+        const size = Object.assign({}, T.size, z);
+        const color = size.c || "blue";
+        const strokeWidth = size.r || 1;
+        let t,r,s;
         let v = new Point(1, 0); // use point as vector
-        if (q != null) {
-            // need to create unit vector (p,q)
-            v = q.sub(p).unit();
+        if (!(p?.norm && q?.norm && a?.norm && b?.norm)) {
+            if (q != null) {
+                // need to create unit vector (p,q)
+                v = q.sub(p).unit();
+            }
+            const n = v.norm();
+            t = p.add(v.mult(a));
+            r = p.add(n.mult(b));
+            s = r.add(v.mult(a));
+        } else {
+            [t,r,s] = [q,a,b];   
         }
-        let n = v.norm();
-        let t = p.add(v.mult(a));
-        let r = p.add(n.mult(b));
-        let s = r.add(v.mult(a));
-        let poly = [p, t, s, r].map(e => fx(e.x, size) + "," + fy(e.y, size)).join(" ");
-        return `<polygon points="${poly}" stroke="${color}" fill="none" />`;
+        const poly = [p, t, s, r].map(e => fx(e.x, size) + "," + fy(e.y, size)).join(" ");
+        return `<polygon points="${poly}" stroke-width="${strokeWidth}" stroke="${color}" fill="none" />`;
     }
 
     static tri2svg = p => {
@@ -306,7 +315,7 @@ class T {
         return s;
     }
 
-    static tri =  param => {
+    static tri = param => {
         let { a = 0, b = 0, c = 0, A = 0, B = 0, C = 0, } = param;
         let sides = [a, b, c].filter(e => e !== 0);
         let angles = [A, B, C].filter(e => e > 0);
@@ -627,7 +636,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^linje/gm, 'line')
     .replace(/^tekst/gm, 'text')
     .replace(/^sirkel/gm, 'circle')
-    .replace(/^trekant/gm,'triangle')
+    .replace(/^trekant/gm, 'triangle')
     .replace(/^triangle\((.+),(.+),(.+)\)$/gm, (_, p, q, r) => `line(${p},${q})\nline(${q},${r})\nline(${p},${r})`)
     .replace(/^([a-zA-Z])=\((.+),(.+)\)$/gm, (_, p, u, v) => `${p}=new Point(${u},${v})`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\+\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.add(new Point(${u},${v}))`)
@@ -676,10 +685,10 @@ function mp(e) {
     const x = e.clientX - B.x;
     const y = e.clientY - B.y;
     //let wx = 300 * x / 8;
-    if (! ed.value.endsWith('\n')) {
+    if (!ed.value.endsWith('\n')) {
         ed.value += '\n';
     }
-    ed.value += `q=(${nice(8*x/350)},${nice(-8*(y - 350)/350)});p.push(q)\n`;
+    ed.value += `q=(${nice(8 * x / 350)},${nice(-8 * (y - 350) / 350)});p.push(q)\n`;
 }
 
 // EXPERIMENTS BELOW
