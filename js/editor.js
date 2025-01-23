@@ -571,6 +571,14 @@ const commentMe = (id, perc) => {
 export const mdLatex = txt => md.render(txt.replace(/\$([^@$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
 
 
+
+// replace @{name} if found in CAS generated names for this segment, else Ø
+const exapol = (funks, txt) => txt.replace(/\@\{([a-z()0-9]+)\}/gm, (_, a) => {
+    if (funks && funks[a]) return funks[a];
+    return "Ø";
+});
+
+
 export const renderAll = (repaint = false) => {
     const textWithSingleNewLineAtEnd = ed.value
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
@@ -700,16 +708,6 @@ export const renderAll = (repaint = false) => {
                 txt = txt ? txt : '';
                 return `<div class="oppgave ${txt}" title="${splitter}"></div>\n`;
             })
-            /*
-            .replace(/^@question( \d+)?( fasit)?( synlig)?( kolonner)?( \(\d+p?\))?( :.*)?( .*)?$/gm, (_, counter,fasit, synlig, kolonner, poeng, myown, txt) => {
-                const hr = fasit ? '<hr>' : '';
-                txt = txt ? txt : '';
-                console.log(counter);
-                const instead = myown ? myown.substr(2) + txt : '';
-                txt = myown ? '' : txt;
-                const points = poeng ? `data-poeng="${poeng.slice(2, -2)}"` : '';
-                return `<div ${points} class="oppgave ${kolonner || ""} ${fasit || ""} ${synlig || ""}" title="${splitter}">${instead}${hr}</div>\n${txt}\n`;
-            })*/
             .replace(/^@format( .*)?$/gm, (_, format) => {
                 const [type, start] = (format || "").trimStart().trimEnd().split(" ");
                 const reset = Number.isInteger(+start) ? Number(start) : 0;
@@ -813,12 +811,6 @@ export const renderAll = (repaint = false) => {
     });
 
 
-    // replace @{name} if found in CAS generated names for this segment, else Ø
-    const exapol = (funks, txt) => txt.replace(/\@\{([a-z()0-9]+)\}/gm, (_, a) => {
-        if (funks && funks[a]) return funks[a];
-        return "Ø";
-    });
-
     function interpolate(seg) {
         const div = $("seg" + (seg));
         if (div) {
@@ -918,11 +910,6 @@ export const renderAll = (repaint = false) => {
         if (rerend || dirtyList.includes(seg))
             renderPy(id, pyt, klass);
     });
-    trigs.forEach(({ trig, id, klass, seg }) => {
-        if (rerend || dirtyList.includes(seg))
-            renderTrig(id, trig, klass);
-        //scrollit(id);
-    });
     algebra.forEach(({ math, id, size, seg }) => {
         if (segnum[seg] === undefined) {
             segnum[seg] = 1;
@@ -940,6 +927,12 @@ export const renderAll = (repaint = false) => {
             const latex = exapol(funks[seg], math)
             renderMath(id, latex, funks[seg], size);
         }
+    });
+    trigs.forEach(({ trig, id, klass, seg }) => {
+        const trigg = exapol(funks[seg], trig)
+        if (rerend || dirtyList.includes(seg))
+            renderTrig(id, trigg, klass);
+        //scrollit(id);
     });
     plots.forEach(({ plot, id, klass, seg }) => {
         if (rerend || dirtyList.includes(seg))

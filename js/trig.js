@@ -578,8 +578,12 @@ class T {
                 dot = vec1.unit().norm().dot(V); // ~ 0 means nearly horizontal
                 anchor = dot < 0 ? "start" : "end";
                 anchor = Math.abs(dot) < 0.1 ? "middle" : anchor;
-                dd = Math.max(0.3, factor * vec2.dot(jad));
-                pa = pnt.sub(vec1.unit().mult(side / 2)).add(vec2.mult(dd));
+                dd = Math.max(0.5, factor * vec2.dot(jad));
+                if (anchor === "middle") {
+                    pa = pnt.sub(vec1.unit().mult(side / 2)).add(vec2.mult(.7));
+                } else {
+                    pa = pnt.sub(vec1.unit().mult(side / 2.2)).add(vec2.mult(dd));
+                }
                 return { x: fxz(pa.x), y: fyz(pa.y), txt: txt, anchor };
             }
         }
