@@ -134,6 +134,8 @@ class Point {
     }
 }
 
+const pt = (x, y) => new Point(x, y);
+
 const triheight = (p, q, r) => {
     // p,q,r point
     // return { h:num,s:point }
@@ -180,7 +182,7 @@ const circumcirc = (param) => {
 class T {
     static size = { w: 300, s: 8, c: "blue" };
 
-    static origin = (x, y) => '';    // nullop so that we can parse out origin with no effect here
+    static origin = (x, y) => { T.size.x = x; T.size.y=y };   
 
     static circle = (p, r, s) => {
         const size = Object.assign({}, T.size, s); // s || T.size;
@@ -210,19 +212,118 @@ class T {
         return b;
     }
 
+    static plot = (fxy, rng, cc) => {
+        const size = Object.assign({}, T.size, { c: "blue", r: 0.6 }, cc);
+        const bad = p => Number.isNaN(p.x + p.y)
+        const m = size.s / size.w;
+        const seg = (p, q, s) => {
+            if (bad(p) || bad(q)) return '';
+            return line(p, q, s);
+        }
+        const pline = (fxy, s, t, cc) => {
+            r = p; p = fxy(t);
+            q = r ?? p;
+            if (Math.abs(p.sub(q).length()) < m) {
+                // dont draw very short lines
+                p = q;
+                return s
+            };
+            return s + seg(p, q, cc)
+        }
+        let marker = '';
+        if (size.marker) {
+            const [a, b] = rng.slice(-2);
+            let color = size.c || "blue";
+            let r = size.r || 1;
+            let m = 12;
+            const mname = size.marker;
+            const marks = { arrow:`<path d="M -6 0 L 2 5 L -6 10 L -2 5 z" fill="${color}" />` , 
+                            x:`<path d="M -5 1 L -4 0 L 0 4 L 4 0 L 5 1 L 1 5 L 5 9 L 4 10 
+                                L 0 6 L -4 10 L -5 9 L -1 5 z" fill="${color}" />`,
+                            end:`<path d="M -2 0 l 3 0 l 0 10 l -3 0 l 0 -1 l 2 0 l 0 -8 l -2 0 z" fill="${color}" />`
+                            }
+            const mark = marks[mname] ?? marks.arrow;
+            const p = fxy(a); const q = fxy(b);  //  <path d="M 0 0 L 10 5 L 0 10 z" fill="#f00" />  
+            marker = `        
+                <defs>
+                <marker
+                    id="${mname}"
+                    refX="1"
+                    refY="5"
+                    viewBox="-6 0 10 10"
+                    markerUnits="strokeWidth"
+                    markerWidth="${m}"
+                    markerHeight="${m}"
+                    orient="auto">
+                    ${mark}
+                </marker>
+                </defs>
+            <line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" stroke-width="${r}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}" 
+            marker-end="url(#${mname})"  stroke="${color}" />`;
+        }
+        let q = 0; let r = 0; let p = null;
+        return rng.reduce((s, t) => pline(fxy, s, t, size), "") + marker;
+    }
+
+    static grid = (d,cc) => {
+        const size = Object.assign({}, T.size,{c:"#aaa",r:0.3}, cc);
+        const x = +size.x
+        const y = +size.y
+        const w = +size.s
+        d = d ?? 0.1;
+        const xr = range(floor(x), floor(x + w + 1), d)
+        const yr = range(floor(y), floor(w + y + 1), d)
+        const gy = b => b.reduce((s, v) => { const p = pt(x, v); const q = pt(x + w, v); return s + line(p, q, size) }, "")
+        const gx = b => b.reduce((s, v) => { const p = pt(v, y); const q = pt(v, w + y); return s + line(p, q, size) }, "")
+        return gx(xr) + gy(yr)
+    }
+
+    static axis = (d,cc) => {
+        const sp = n => {
+           if (Number.isInteger(10*n)) return n.toFixed(1);
+           return n.toFixed(2)
+        }
+        const size = Object.assign({}, T.size, { c: "#aaa", r: 0.6 }, cc);
+        const color = size.c ?? "blue";
+        const xbase = size.xbase ?? 0;
+        const ybase = size.ybase ?? 0;
+        const m = 40 * size.s / 450 * size.w / 450;  // font size
+        const x = +size.x
+        const y = +size.y
+        const w = +size.s
+        const oy = 0.1 * w / 6;
+        const xis = () => { const p = pt(x, xbase); const q = pt(x + w, xbase); return line(p, q, cc) };
+        const yis = () => { const p = pt(ybase, y); const q = pt(ybase, y + w); return line(p, q, cc) }
+        const nums = (p, d) => range(floor(p), floor(p + w+1), d)
+        const xnum = (d, r = 0.25) => nums(x, d).reduce((s, v) => {
+            const p = pt(v, xbase); const q = pt(v, xbase-oy);
+            return s + text(p, null, sp(v), { r, o: "1", dy: "16", c:color }) + line(p, q,cc)
+        }, "");
+        const ynum = (d, r = 0.25) => {
+            let yn = nums(y,d);
+            if (xbase == 0)  yn = yn.filter(x => x != 0);  // avoid double (0,0)
+            return yn.reduce((s, v) => {
+                const p = pt(ybase + oy / 2, v); const q = pt(ybase - oy / 2, v);
+                return s + text(p, null, sp(v), { r, o: "1", dy: "3", c:color }) + line(p, q, cc)
+            }, "");
+        }
+        return xis()+yis()+xnum(d, m)+ynum(d, m);
+    }
+
     static dot = (p, s) => {
         // const size = s || T.size;
         const size = Object.assign({}, T.size, s);
-        let color = size.c || "blue";
-        const r = size.r || 3;
+        let color = s?.c || "blue";  // T.size.r may be smallish
+        const r = s?.r || 3;
         return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${r}" fill="${color}"/>`;
     }
 
     // many dots
     static dots = (...s) => {
-        const size = T.size;
-        let color = size.c || "blue";
-        return s.map(p => `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="3" fill="${color}"/>`).join("");
+        const size = Object.assign({}, T.size, s);
+        let color = s?.c || "blue";
+        let r = s?.r || "3";
+        return s.map(p => `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${r}" fill="${color}"/>`).join("");
     }
 
     static text = (p, q, s, z) => {
@@ -235,16 +336,19 @@ class T {
             let v = new Point(l, 0); // direction of path for text
             q = p.add(v);
         }
-        let path = `M ${fx(p.x, size)} ${fy(p.y, size)} L ${fx(q.x, size)} ${fy(q.y, size)}`;
-        let r = +size.r || 1;
-        let scale = r * 10 / size.s;
-        let percent = clamp(100 * scale, 50, 900);
-        let color = size.c || "black";
-        let fz = `font-size="${percent}%"`;
-        return `<path id="mm${now}" d="${path}"  />
+        const path = `M ${fx(p.x, size)} ${fy(p.y, size)} L ${fx(q.x, size)} ${fy(q.y, size)}`;
+        const r = +size.r || 1;
+        const scale = r * 10 / size.s;
+        const percent = clamp(100 * scale, 10, 900);
+        const color = size.c || "black";
+        const fz = `font-size="${percent}%"`;
+        const sofs = size.o || 25;
+        const dy = size.dy || -5;
+        const dx = size.dx || 0;
+        return `<path id="mm${now}" d="${path}"  stroke-opacity="0.0" />
         <text ${fz}><textPath x="${p.x}" y="${p.y}" fill="${color}"
-         startOffset="25%" href="#mm${now}">
-        <tspan dy="-5">
+         startOffset="${sofs}%" href="#mm${now}">
+        <tspan dy="${dy}" dx="${dx}">
         ${txt}
         </tspan>
         </textpath></text>`;
@@ -283,33 +387,34 @@ class T {
         // let scale2 = p.size.w / 400;  // font scale for size (w:400 = normal)
         const percent = clamp(100 * scale1, 50, 100);
         const color = p.size?.c || "blue";
+        const r = p.size?.r || "1";
         const err = p.error || "";
         const fz = `font-size="${percent}%"`;
         let s = `<text fill="red" x ="30" y="30" >Invalid triangle ${err}</text>`;
         if (p.valid) {
             s = "";
             if (p.polygon) {
-                s += `<polygon points="${p.polygon}" stroke="${color}" fill="none" />`;
+                s += `<polygon points="${p.polygon}" stroke="${color}" fill="none" stroke-width="${r}"  />`;
             }
             if (p.ABC) {
-                s += p.ABC.map(e => `<text ${fz} x="${e.x}" y="${e.y}">${e.txt}</text>`).join("");
+                s += p.ABC.map(e => e.x ? `<text ${fz} x="${e.x}" y="${e.y}">${e.txt}</text>` : '').join("");
             }
             if (p.abc) {
-                s += p.abc.map(e => `<text ${fz} x="${e.x}" y="${e.y}" text-anchor="${e.anchor}">${e.txt}</text>`).join("");
+                s += p.abc.map(e => e.x ? `<text ${fz} x="${e.x}" y="${e.y}" text-anchor="${e.anchor}">${e.txt}</text>` : '').join("");
             }
             if (p.vert) {
-                s += p.vert.map(e => `<circle cx="${e.x}" cy="${e.y}" r="3" fill="${color}" />`).join("");
+                s += p.vert.map(e => e.x ? `<circle cx="${e.x}" cy="${e.y}" r="3" fill="${color}" />` : '').join("");
             }
             if (p.vABC) {
                 // the path must be unique - or all angles will follow same paths 0,1,2
                 let now = String(Math.random()).substr(2, 6);
-                s += p.vABC.map((e, i) => `<path id="mm${i + now}" d="${e.p}" />
+                s += p.vABC.map((e, i) => e.p ? `<path id="mm${i + now}" d="${e.p}" />
             <text ${fz}><textPath x="${e.x}" y="${e.y}"
              startOffset="25%" href="#mm${i + now}">
             <tspan dy="5" dx="5">
             ${e.txt}
             </tspan>
-            </textpath></text>`).join("");
+            </textpath></text>` : '').join("");
             }
         }
         return s;
@@ -466,7 +571,7 @@ class T {
         let jad = new Point(-1, -1).unit(); // opposite of adj
         ret.center = CO;
         ret.radius = r;
-        let factor = 250 / size.w;
+        let factor = 150 / size.w;
         if (ABC) {
             // supplied text for corner points
             // text pushed away from triangle center
@@ -592,16 +697,16 @@ class T {
 }
 
 
-const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π,
+const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π, floor, round,
     log: ln, log10: lg, log, abs, max, min, random: rnd } = Math;
 
 
-const { circle, line, bez, square, text, dot, dots, tri2svg, tri, origin } = T;
+const { circle, line, plot, bez, square, text, dot, dots, tri2svg, tri, origin, size, grid, axis } = T;
 
 const mathEnvironment = {
-    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc,
-    circle, line, bez, square, text, dot, dots, tri2svg, tri, origin,
-    abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log,
+    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, plot, pt, grid, axis,
+    circle, line, bez, square, text, dot, dots, tri2svg, tri, origin, size,
+    abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log, floor, round,
     sin, cos, tan, asin, atan2, acos, atan, π,
 }
 
@@ -641,6 +746,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^tekst/gm, 'text')
     .replace(/^sirkel/gm, 'circle')
     .replace(/^trekant/gm, 'triangle')
+    .replace(/([ =(])xy\((.+?),(.+?)\)/gm, (_, p, u, v) => `${p} (t => pt(${u},${v}) )`)
     .replace(/^triangle\((.+),(.+),(.+)\)$/gm, (_, p, q, r) => `line(${p},${q})\nline(${q},${r})\nline(${p},${r})`)
     .replace(/^([a-zA-Z])=\((.+),(.+)\)$/gm, (_, p, u, v) => `${p}=new Point(${u},${v})`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\+\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.add(new Point(${u},${v}))`)
@@ -662,7 +768,9 @@ export const code2svg = (kode, w, s) => {
     const variables = { SVG: "" };
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .split("").forEach(e => variables[e] = 0);
-    T.size = { w, s, c: "blue" };
+    const r = 40 * s / w;  // default font size
+    T.size = { w, s, c: "blue",r };
+    mathEnvironment.size = T.size;
     Object.assign(variables, mathEnvironment);
     kode.forEach(line => {
         eva(line, variables);
@@ -683,7 +791,7 @@ function mm(e) {
     //web.my = y;
 }
 
-let ed;  // DUMMY
+let ed = {value:''};  // DUMMY
 
 function mp(e) {
     const x = e.clientX - B.x;

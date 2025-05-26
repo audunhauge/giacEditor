@@ -98,7 +98,7 @@ const lotex = txt => {
 
 
 const giaClean = (exp, fallback = "?") => {
-    const v = exp.replace(/["*]/g, '').replace('mbox', 'boxed');
+    const v = exp.replace(/["*]/g, '').replaceAll('mbox', 'boxed');
     if (v.startsWith("GIAC")) return fallback;
     return v;
 }
