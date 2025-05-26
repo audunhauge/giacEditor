@@ -321,7 +321,9 @@ class T {
     // many dots
     static dots = (...s) => {
         const size = Object.assign({}, T.size, s);
+        // @ts-ignore
         let color = s?.c || "blue";
+        // @ts-ignore
         let r = s?.r || "3";
         return s.map(p => `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${r}" fill="${color}"/>`).join("");
     }
