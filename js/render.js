@@ -3,7 +3,7 @@
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
 import { web, tg, currentLanguage, mdLatex, chemicals, chemnames, lochemnames } from './editor.js';
-import { code2svg, parse, eva, range } from './trig.js';
+import { code2svg, parse, eva, range, T } from './trig.js';
 import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
     hyperC, hyper, binomial, binomialC,
@@ -1057,6 +1057,48 @@ export function renderPlot(id, plot, funks, regpoints, klass = "") {
     }
 }
 
+/**
+ * zips two arrays 
+ * @param {Array} a 
+ * @param {Array} b 
+ * @returns Array
+ */
+
+const zip = (a, b) => a.map((val, i) => [val, b[i]]);
+
+
+const parseOptions = (s,o={}) => {
+    const parts = s.trim().split(/\s+/);
+    const oo = Object.assign({},o);
+    const keys = Object.keys(o);
+    const main = keys.filter(e => o[e]);
+    const secunda = keys.filter(e => o[e] === undefined);
+    const pairs = zip(main,secunda);
+    for (const part of parts) {
+        if (part.includes('=')) {
+            const [key, val] = part.split('=');
+            oo[key] = Number(val);
+        } else if (part.includes(',')) {
+            const [a, b] = part.split(',');
+            for (const [x,y] of pairs) {
+                if (oo[x] !== o[x] || oo[y] !== undefined) continue;
+                oo[x]=a; oo[y]=b; break;
+            }
+        } else {
+            for (const x of main) {
+                if (oo[x] !== o[x] ) continue;
+                oo[x]=part; break;
+            }
+        }
+    }
+    // copy primary to secondary if undefined
+    for (const [x,y] of pairs) {
+       if (oo[y] === undefined) oo[y] = oo[x];
+    }
+    return oo;
+}
+
+/*
 export function renderTrig(id, trig, klass = "") {
     const parent = $(id);
     const [_, w = 350, s = 8, scale = 1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
@@ -1072,6 +1114,29 @@ export function renderTrig(id, trig, klass = "") {
         ${svg}
       </g>
     </svg>`;
+}
+*/
+
+export function renderTrig(id, trig, klass = "") {
+    const parent = $(id);
+    // const [_, w = 350, s = 8, scale = 1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
+    // @ts-ignore
+    const { wx, wy, hx, hy, sx, sy } = parseOptions(klass, { wx: 350, wy: undefined, hx: 8, hy: undefined, sx: 1, sy: undefined });
+    // sy is never used - just present for symmetry with x,y
+    const parsed = parse(trig, `{w:${wx},s:${hx}}`);
+    const [_1, x0 = 0, y0 = 0] = (trig.match(/origin\((-?[0-9.]+),(-?[0-9.]+)\)/)) || [];
+    const x = +wx * x0 / +hx;
+    const y = -wy * y0 / +hy;
+    const lines = parsed.split('\n').filter(e => e != "");
+    T.init();
+    const svg = code2svg(lines, wx, hx, wy, hy);
+    parent.innerHTML = `<svg id="${id}" width="${wx}" viewBox="${x} ${y}  ${wx} ${wy}"> 
+      <g transform="scale(${sx})">
+        ${svg}
+      </g>
+    </svg>`;
+    T.renderAfter();
+    // x-pos of some texts adjusted for textlength after render
 }
 
 

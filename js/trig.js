@@ -16,9 +16,6 @@
  * s = tria.center
  * r = tria.radius
  * tri2svg(tria)
- * svgCircle(s,r,size)
- * svgDot(s,size)
- * svgText(s,null,"S",size)
  * r = roll(1,9)
  * A = 3*Math.sqrt(3)*r*r
  * trib = tri({p,a:6,B:30,C:30, ABC:",,S",size})
@@ -35,6 +32,12 @@ const nice = x => {
     return x.toFixed(2);
 };
 
+// used for labeling tickmarks
+const sp = n => {
+    if (Number.isInteger(10*n)) return n.toFixed(1);
+    return n.toFixed(2)
+ }
+
 const fx = (x, size) => {
     let wx = size.w * x / size.s;
     // clean up for use as coordinates
@@ -42,7 +45,7 @@ const fx = (x, size) => {
 };
 
 const fy = (y, size) => {
-    let hy = size.w - size.w * y / size.s;
+    let hy = size.wy - size.wy * y / size.sy;
     // clean up for use as coordinates
     return nice(hy);
 };
@@ -179,8 +182,63 @@ const circumcirc = (param) => {
 }
 
 
-class T {
-    static size = { w: 300, s: 8, c: "blue" };
+const measure = (element) => {
+    if (element === 0) return 0;
+    const bbox = element.getBBox();
+    return  bbox;
+    
+}
+
+const svgText = (x, y, s, id, z) => {
+    const size = Object.assign({}, T.size, z);
+    const txt = String(s);
+    const transform = size.transform ?? '';
+    const r = Number(size.rt || size.r || 1);
+    const scale = r * 10 / size.s;
+    const percent = clamp(100 * scale, 10, 900);
+    const color = size.c || "black";
+    const fz = `font-size="${percent.toFixed(2)}%"`;
+    const sofs = size.o || 25;
+    const dy = size.dy || -5;
+    const dx = size.dx || 0;
+    return `<text id="${id}" ${fz} x="${x}" y="${y}" fill="${color}"
+         startOffset="${sofs}%" ${transform} >
+        <tspan dy="${dy}" dx="${dx}">
+        ${txt}
+        </tspan>
+        </text>`;
+}
+
+
+
+export class T {
+    static size = { w: 300, wy: 300,s: 8, sy:8, c: "blue" };
+
+    static aftereffects = {x:["ole"],y:["ole"]};
+
+    static init = () => T.aftereffects = {x:[],y:[]};
+
+    static renderAfter = () => {
+        // a list of element-ids that need to
+        // be shifted width of text to the left
+        // used by axis to set label on xaxis
+        this.aftereffects.x.forEach(e => {
+            const elm = document.getElementById(e);
+            const x = elm?.getAttribute("x") ?? 0;
+            const bb = measure(elm);
+            const w = bb?.width ?? 0;
+            elm?.setAttribute("x",String(+x-w-2));
+        })
+        /*
+        this.aftereffects.y.forEach(e => {
+            const elm = document.getElementById(e);
+            const path = document.querySelector("#"+e+" textPath")
+            const bb = measure(elm);
+            const h = bb?.height ?? 0;
+            path?.setAttribute("startOffset",String(+size.wy-h-4));
+        })
+        */
+    }
 
     static origin = (x, y) => { T.size.x = x; T.size.y=y };   
 
@@ -198,6 +256,44 @@ class T {
         return `<line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" stroke-width="${r}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}"   stroke="${color}" />`;
     }
 
+    static markedline = (p,q,s) => {
+        const cc = Object.assign({}, T.size, s);
+        const color = cc.c ?? "blue";
+        const direction = cc.direction ?? "end";
+        const m = 12;
+        const r = cc.r || 1;
+        const mname = cc.marker ?? 'arrow';
+        const marks = {
+            arrow: `<path d="M -6 0 L 2 5 L -6 10 L -2 5 z" fill="${color}" />`,
+            x: `<path d="M -5 1 L -4 0 L 0 4 L 4 0 L 5 1 L 1 5 L 5 9 L 4 10 
+                                    L 0 6 L -4 10 L -5 9 L -1 5 z" fill="${color}" />`,
+            end: `<path d="M -2 0 l 3 0 l 0 10 l -3 0 l 0 -1 l 2 0 l 0 -8 l -2 0 z" fill="${color}" />`
+        }
+        const mark = marks[mname] ?? marks.arrow;
+        const id = mname + String(Math.random()).slice(2,6)
+        return `<defs>
+        <marker
+            id="${id}"
+            refX="1"
+            refY="5"
+            viewBox="-6 0 10 10"
+            markerUnits="strokeWidth"
+            markerWidth="${m}"
+            markerHeight="${m}"
+            orient="auto-start-reverse">
+            ${mark}
+        </marker>
+        </defs>
+    <line x1="${fx(p.x, cc)}" y1="${fy(p.y, cc)}" stroke-width="${r}" x2="${fx(q.x, cc)}" y2="${fy(q.y, cc)}" 
+    marker-${direction}="url(#${id})"  stroke="${color}" />`;
+    }
+
+    // simply alias for marked line
+    static vec = (p,q,s) => {
+        const cc = Object.assign({}, T.size, {r:1}, s);
+        return markedline(p,q,cc)
+    }
+
     static bez = (p, q, r, t, s) => {
         // const size = s || T.size;
         const size = Object.assign({}, T.size, s);
@@ -212,8 +308,12 @@ class T {
         return b;
     }
 
-    static plot = (fxy, rng, cc) => {
-        const size = Object.assign({}, T.size, { c: "blue", r: 0.6 }, cc);
+
+    static plot = (fxy0, rng0, cc) => {
+        const size = Object.assign({},{x:0,y:0}, T.size, { c: "blue", r: 0.6 }, cc);
+        const fxy = fxy0(1) instanceof Point ? fxy0 : (t => pt(t,fxy0(t)));
+        // if fxy0 does not return point, assume regular func of t
+        const rng = rng0 ? rng0 : range(+size.x,+size.x + +size.s,size.s/size.w);
         const bad = p => Number.isNaN(p.x + p.y)
         const m = size.s / size.w;
         const seg = (p, q, s) => {
@@ -232,82 +332,109 @@ class T {
         }
         let marker = '';
         if (size.marker) {
-            const [a, b] = rng.slice(-2);
-            let color = size.c || "blue";
-            let r = size.r || 1;
-            let m = 12;
-            const mname = size.marker;
-            const marks = { arrow:`<path d="M -6 0 L 2 5 L -6 10 L -2 5 z" fill="${color}" />` , 
-                            x:`<path d="M -5 1 L -4 0 L 0 4 L 4 0 L 5 1 L 1 5 L 5 9 L 4 10 
-                                L 0 6 L -4 10 L -5 9 L -1 5 z" fill="${color}" />`,
-                            end:`<path d="M -2 0 l 3 0 l 0 10 l -3 0 l 0 -1 l 2 0 l 0 -8 l -2 0 z" fill="${color}" />`
-                            }
-            const mark = marks[mname] ?? marks.arrow;
-            const p = fxy(a); const q = fxy(b);  //  <path d="M 0 0 L 10 5 L 0 10 z" fill="#f00" />  
-            marker = `        
-                <defs>
-                <marker
-                    id="${mname}"
-                    refX="1"
-                    refY="5"
-                    viewBox="-6 0 10 10"
-                    markerUnits="strokeWidth"
-                    markerWidth="${m}"
-                    markerHeight="${m}"
-                    orient="auto">
-                    ${mark}
-                </marker>
-                </defs>
-            <line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" stroke-width="${r}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}" 
-            marker-end="url(#${mname})"  stroke="${color}" />`;
+            const direction = size.direction ?? "end";
+            const [a, b] = (direction === "end")  ? rng.slice(-2) : rng.slice(0,2);
+            const p = fxy(a); const q = fxy(b);
+            marker = T.markedline(p,q,size);
         }
         let q = 0; let r = 0; let p = null;
         return rng.reduce((s, t) => pline(fxy, s, t, size), "") + marker;
     }
 
-    static grid = (d,cc) => {
-        const size = Object.assign({}, T.size,{c:"#aaa",r:0.3}, cc);
+    static grid = (...ps) => {
+        let dx,dy,cc,b,c;
+        [dx,b,c] = ps;
+        if (Number.isFinite(+b)) {
+            dy = +b;
+        }
+        if (c === undefined) cc = b;
+        const size = Object.assign({x:0,y:0}, T.size,{c:"#aaa",r:0.3}, cc);
         const x = +size.x
         const y = +size.y
-        const w = +size.s
-        d = d ?? 0.1;
-        const xr = range(floor(x), floor(x + w + 1), d)
-        const yr = range(floor(y), floor(w + y + 1), d)
-        const gy = b => b.reduce((s, v) => { const p = pt(x, v); const q = pt(x + w, v); return s + line(p, q, size) }, "")
-        const gx = b => b.reduce((s, v) => { const p = pt(v, y); const q = pt(v, w + y); return s + line(p, q, size) }, "")
+        const wx = +size.s
+        const wy = +size.sy
+        dx = dx ?? 0.1;
+        dy = dy ?? dx;
+        const xr = range(floor(x/dx)*dx, floor(x + wx + 1), dx)
+        const yr = range(floor(y/dy)*dy, floor(wy + y + 1), dy)
+        const gy = b => b.reduce((s, v) => { const p = pt(x, v); const q = pt(x + wx, v); return s + line(p, q, size) }, "")
+        const gx = b => b.reduce((s, v) => { const p = pt(v, y); const q = pt(v, wy + y); return s + line(p, q, size) }, "")
         return gx(xr) + gy(yr)
     }
 
-    static axis = (d,cc) => {
-        const sp = n => {
-           if (Number.isInteger(10*n)) return n.toFixed(1);
-           return n.toFixed(2)
+    static yaxis = (d,cc) => {
+        if (cc == undefined) {
+            cc = {r:0.6, c:"gray"}
         }
-        const size = Object.assign({}, T.size, { c: "#aaa", r: 0.6 }, cc);
-        const color = size.c ?? "blue";
+        const size = Object.assign({x:0,y:0}, T.size, cc);
+        const y = +size.y
+        const wy = +size.sy
+        const color = size.c ?? "gray";
         const xbase = size.xbase ?? 0;
         const ybase = size.ybase ?? 0;
-        const m = 40 * size.s / 450 * size.w / 450;  // font size
-        const x = +size.x
-        const y = +size.y
-        const w = +size.s
-        const oy = 0.1 * w / 6;
-        const xis = () => { const p = pt(x, xbase); const q = pt(x + w, xbase); return line(p, q, cc) };
-        const yis = () => { const p = pt(ybase, y); const q = pt(ybase, y + w); return line(p, q, cc) }
-        const nums = (p, d) => range(floor(p), floor(p + w+1), d)
-        const xnum = (d, r = 0.25) => nums(x, d).reduce((s, v) => {
-            const p = pt(v, xbase); const q = pt(v, xbase-oy);
-            return s + text(p, null, sp(v), { r, o: "1", dy: "16", c:color }) + line(p, q,cc)
-        }, "");
+        let m = Math.min(0.75,40*Math.min(size.s / 450 * size.w / 450,size.sy/450*size.wy/450));  // font size
+        m = size.rt ? size.rt : m;
+        const oy = 0.1 * wy / 6;
+        let names = '';
+        if (size.namey) {
+            const name = size.namey;
+            const id = "yax" + String(Math.random()).slice(2,8);
+            const myz = Object.assign({id,o:"0"}, size);
+            const p = pt(-20*size.s/size.w,+y+ +size.sy -10*size.sy/size.wy);
+            const q = pt(-20*size.s/size.w,+y -10*size.sy/size.wy);
+            names += text(p,q,name,myz);
+            // T.aftereffects.y.push(id);
+        }
+        const mark = cc.marker;
+        const mlin = mark ? markedline : line ;
+        const yis = () => { const p = pt(ybase, y); const q = pt(ybase, y + wy); return mlin(p, q, cc) }
+        const nums = (p, d, w) => range(floor(p/d)*d, floor(p + w+1), d)
         const ynum = (d, r = 0.25) => {
-            let yn = nums(y,d);
+            let yn = nums(y,d, wy);
             if (xbase == 0)  yn = yn.filter(x => x != 0);  // avoid double (0,0)
             return yn.reduce((s, v) => {
                 const p = pt(ybase + oy / 2, v); const q = pt(ybase - oy / 2, v);
                 return s + text(p, null, sp(v), { r, o: "1", dy: "3", c:color }) + line(p, q, cc)
             }, "");
         }
-        return xis()+yis()+xnum(d, m)+ynum(d, m);
+        return yis()+ynum(d, m) + names;
+    }
+
+
+    static xaxis = (d,cc) => {
+        if (cc == undefined) {
+            cc = {r:0.6, c:"gray"}
+        }
+        const size = Object.assign({x:0,y:0}, T.size, cc);
+        const x = +size.x
+        const w = +size.s
+        const wy = +size.sy
+        const color = size.c ?? "gray";
+        const xbase = size.xbase ?? 0;
+        let m = Math.min(0.75,40*Math.min(size.s / 450 * size.w / 450,size.sy/450*size.wy/450));  // font size
+        m = size.rt ? size.rt : m;
+        const oy = 0.1 * wy / 6;
+        let names = '';
+        if (size.namex) {
+            const name = size.namex;
+            const px = +size.w + x* +size.w/(+size.s); const py = +size.wy - 2;
+            const id = "xax" + String(Math.random()).slice(2,8);
+            names += svgText(px,py,name,id,size);
+            T.aftereffects.x.push(id);
+        }
+        const mark = cc.marker;
+        const mlin = mark ? markedline : line ;
+        const xis = () => { const p = pt(x, xbase); const q = pt(x + w, xbase); return mlin(p, q, cc) };
+        const nums = (p, d, w) => range(floor(p/d)*d, floor(p + w+1), d)
+        const xnum = (d, r = 0.25) => nums(x, d, w).reduce((s, v) => {
+            const p = pt(v, xbase); const q = pt(v, xbase-oy);
+            return s + text(p, null, sp(v), { r, o: "1", dy: "16", c:color }) + line(p, q,cc)
+        }, "");
+        return xis()+xnum(d, m)+ names;
+    }
+
+    static axis = (d,cc) => {
+        return this.xaxis(d,cc) + this.yaxis(d,cc);
     }
 
     static dot = (p, s) => {
@@ -320,26 +447,31 @@ class T {
 
     // many dots
     static dots = (...s) => {
-        const size = Object.assign({}, T.size, s);
+        const dotlist = s.filter(e => e.x !== undefined);
+        const [s0] = s.slice(-1);
+        const ss = dotlist.length === s.length ? {} : s0;
+        const size = Object.assign({}, T.size, ss);
         // @ts-ignore
-        let color = s?.c || "blue";
+        let color = ss?.c || "blue";
         // @ts-ignore
-        let r = s?.r || "3";
+        let r = ss?.r || "3";
         return s.map(p => `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${r}" fill="${color}"/>`).join("");
     }
 
     static text = (p, q, s, z) => {
         // const size = z || T.size;
-        const size = Object.assign({}, T.size, z);
-        const txt = String(s);
+        const as = typeof s === "object" ? s : z; 
+        const size = Object.assign({}, T.size,as,z);
+        const txt = typeof s === "string" ? String(s) : String(q);
         let now = String(Math.random()).slice(2, 10);
-        if (q === null || q === undefined) {
+        if (typeof q === "string" ||q === null || q === undefined) {
             const l = Math.max(1, Number((txt.length / 2).toFixed(2)));
-            let v = new Point(l, 0); // direction of path for text
+            let v = pt(l, 0); // direction of path for text
             q = p.add(v);
         }
         const path = `M ${fx(p.x, size)} ${fy(p.y, size)} L ${fx(q.x, size)} ${fy(q.y, size)}`;
-        const r = +size.r || 1;
+        const r = Number(size.rt || size.r || 1);
+        const id = size.id ? `id="${size.id}"` : '';
         const scale = r * 10 / size.s;
         const percent = clamp(100 * scale, 10, 900);
         const color = size.c || "black";
@@ -348,7 +480,7 @@ class T {
         const dy = size.dy || -5;
         const dx = size.dx || 0;
         return `<path id="mm${now}" d="${path}"  stroke-opacity="0.0" />
-        <text ${fz}><textPath x="${p.x}" y="${p.y}" fill="${color}"
+        <text ${fz} ${id}><textPath x="${p.x}" y="${p.y}" fill="${color}"
          startOffset="${sofs}%" href="#mm${now}">
         <tspan dy="${dy}" dx="${dx}">
         ${txt}
@@ -699,20 +831,25 @@ class T {
 }
 
 
-const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π, floor, round,
-    log: ln, log10: lg, log, abs, max, min, random: rnd } = Math;
+const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π, floor, 
+        round, exp, sinh, cosh, tanh, asinh, acosh, atanh, pow,
+        log: ln, log10: lg, log, abs, max, min, random: rnd 
+      }  =  Math;
 
 
-const { circle, line, plot, bez, square, text, dot, dots, tri2svg, tri, origin, size, grid, axis } = T;
+const { circle, line, plot, bez, square, text, dot, dots, tri2svg, tri, 
+    origin, size, grid, axis, xaxis,yaxis, markedline, vec } = T;
 
 const mathEnvironment = {
-    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, plot, pt, grid, axis,
-    circle, line, bez, square, text, dot, dots, tri2svg, tri, origin, size,
+    sinh, cosh, exp, tanh, asinh, acosh, atanh, pow,
+    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, plot, pt, grid, axis,xaxis,yaxis,
+    circle, line, bez, square, text, dot, dots, tri2svg, tri, origin, size, markedline,vec,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log, floor, round,
     sin, cos, tan, asin, atan2, acos, atan, π,
 }
 
-export const eva = (exp, variables) => {
+export const eva = (exp0, variables) => {
+    const exp = exp0.replaceAll("^","**");
     let v = "";
     const [lhs, value] = exp.split("=");
     try {
@@ -748,6 +885,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^tekst/gm, 'text')
     .replace(/^sirkel/gm, 'circle')
     .replace(/^trekant/gm, 'triangle')
+    .replace(/([ =(])func\((.+?)\)$/gm, (_, p, u) => `${p} (t => {x=t; return ${u}} )`)
     .replace(/([ =(])xy\((.+?),(.+?)\)/gm, (_, p, u, v) => `${p} (t => pt(${u},${v}) )`)
     .replace(/^triangle\((.+),(.+),(.+)\)$/gm, (_, p, q, r) => `line(${p},${q})\nline(${q},${r})\nline(${p},${r})`)
     .replace(/^([a-zA-Z])=\((.+),(.+)\)$/gm, (_, p, u, v) => `${p}=new Point(${u},${v})`)
@@ -766,12 +904,12 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
  * 
  * @param {array} kode lines of code to evaluate
  */
-export const code2svg = (kode, w, s) => {
+export const code2svg = (kode, w, s, wy, sy) => {
     const variables = { SVG: "" };
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .split("").forEach(e => variables[e] = 0);
     const r = 40 * s / w;  // default font size
-    T.size = { w, s, c: "blue",r };
+    T.size = { w, s, wy, sy, c: "blue",r };
     mathEnvironment.size = T.size;
     Object.assign(variables, mathEnvironment);
     kode.forEach(line => {
