@@ -10,6 +10,7 @@ export function thingsWithId() {
   const ret = {};
   const list = document.querySelectorAll("[id]");
   list.forEach(e => {
+    // @ts-ignore
     ret[e.id] = e;
   })
   return ret;
@@ -18,7 +19,7 @@ export function thingsWithId() {
 
 /**
  * Group array by keys - keys created by cb
- * @param {array} arr array of items
+ * @param {Array<any>} arr array of items
  * @param {function} cb  create key-value from item
  * @returns {object} array grouped by keys
  */
@@ -30,13 +31,19 @@ export function group(arr, cb) {
   for (; length > index; index++) {
     value = arr[index];
     key = cb(value);
+    // @ts-ignore
     if (key in target) (target[key].push(value));
+    // @ts-ignore
     else target[key] = [value];
   }
   return target;
 }
 
 
+/**
+ * @param {string} pre
+ * @param {string} str
+ */
 export function unprefix(pre,str) {
   // unprefix("_",XXX_yyyy) => yyyy
   // unprefix("_",XXXyyyy) => XXXyyyy
@@ -46,18 +53,46 @@ export function unprefix(pre,str) {
   return str;
 }
 
+/**
+ * @param {{ (f1: number, f2: number, X: number): number; length?: any; apply?: any; }} func
+ */
 export function curry(func) {
-  return function curried(...args) {
+  return function curried(/** @type {any[]} */ ...args) {
     if (args.length >= func.length) {
+      // @ts-ignore
       return func.apply(this, args);
     } else {
-      return function (...args2) {
+      // @ts-ignore
+      return function (/** @type {ConcatArray<any>} */ ...args2) {
+        // @ts-ignore
         return curried.apply(this, args.concat(args2));
       }
     }
   };
 }
-export const compose = (...fns) => x => fns.reduceRight((y, f) => f(y), x);
+export const compose = (/** @type {any[]} */ ...fns) => (/** @type {any} */ x) => fns.reduceRight((y, f) => f(y), x);
+
+
+export const chunk = (/** @type {any[]} */ arr, /** @type {number} */ size) =>
+  arr.reduce((/** @type {any} */ acc, /** @type {any} */ _, /** @type {number} */ i) => 
+    i % size ? acc : [...acc, arr.slice(i, i + size)], []
+  );
+
+
+/**
+ * @param {any[]} array
+ */
+export function shuffle(array) {
+  const result = array.slice(); // copy to avoid mutating input
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); // pick index 0..i
+    [result[i], result[j]] = [result[j], result[i]]; // swap
+  }
+  return result;
+}
+
+
+
 
 /**
  * 
@@ -65,14 +100,17 @@ export const compose = (...fns) => x => fns.reduceRight((y, f) => f(y), x);
  * @returns any
  */
 export const $ = id => /** @type {any} */(document.getElementById(id));
-export const create = tag => document.createElement(tag);
-export const qs = rule => document.querySelector(rule);
-export const qsa = rule => document.querySelectorAll(rule);
-export const fill = (selector, v) => qsa(selector).forEach(e => e.innerHTML = String(v));
-export const wipe = (selector) => fill(selector, '');
+export const create = (/** @type {any} */ tag) => document.createElement(tag);
+export const qs = (/** @type {string} */ rule) => document.querySelector(rule);
+export const qsa = (/** @type {any} */ rule) => document.querySelectorAll(rule);
+export const fill = (/** @type {any} */ selector, /** @type {string} */ v) => qsa(selector).forEach(e => e.innerHTML = String(v));
+export const wipe = (/** @type {any} */ selector) => fill(selector, '');
 
 
 // assumes div.toast and css with --width ...
+/**
+ * @param {string} message
+ */
 export function toast(
   message,
   {
@@ -82,6 +120,7 @@ export function toast(
     width = 18,
     top = 0,
     left = 0,
+    // @ts-ignore
     move = false,
     close = false,
   } = {}
@@ -89,42 +128,57 @@ export function toast(
   const div = qs(".toast");
   if (!div) return;
   if (delay === 0) {
+    // @ts-ignore
     div.style.visibility = "hidden";
     return;
   }
 
+  // @ts-ignore
   div.style.visibility = "visible";
   div.innerHTML = message;
   div.classList.remove("toast");
+  // @ts-ignore
   void div.offsetWidth;
   div.classList.add("toast");
+  // @ts-ignore
   if (left) div.style.setProperty("--left", left + "px");
+  // @ts-ignore
   if (top) div.style.setProperty("--top", top + "px");
+  // @ts-ignore
   div.style.setProperty("--boxshadow", boxshadow);
+  // @ts-ignore
   div.style.setProperty("--background", background);
+  // @ts-ignore
   div.style.setProperty("--delay", delay + "s");
+  // @ts-ignore
   div.style.setProperty("--width", width + "rem");
   if (close) {
     const divAbove = document.createElement("div");
     div.prepend(divAbove);
     divAbove.innerHTML = '<span id="notoast">close</span>';
+    // @ts-ignore
     div.removeEventListener("click", closeMe);
+    // @ts-ignore
     div.addEventListener("click", closeMe);
   }
 }
 
 export function bread() {
   const div = qs(".toast")
+  // @ts-ignore
   div.style.visibility = "hidden";
 }
 
+/**
+ * @param {{ target: { id: string; }; }} e
+ */
 function closeMe(e) {
   if (e.target.id === "notoast") {
     bread();
   }
 }
 
-export const nice = (n, d) => {
+export const nice = (/** @type {number} */ n, /** @type {number} */ d) => {
   if (!Number.isFinite(+n)) return n;
   if (Number.isInteger(+n)) return Number(n);
   return Number(n.toFixed(d));
@@ -174,8 +228,11 @@ export function makeSelect(id, elements, chosen = "") {
  */
 export function makeInput(id = "myid", type = "text", alternativer = {}, value = "") {
   let myDiv = document.createElement("div");
+  // @ts-ignore
   myDiv.className = alternativer.klasse || "inputDiv";
+  // @ts-ignore
   let ledetekst = alternativer.ledetekst || id;
+  // @ts-ignore
   let title = alternativer.title ? `title="${alternativer.title}"` : "";
   let valfield = value ? ` value="${value}"` : "";
   let t = "";
@@ -194,19 +251,23 @@ export function makeInput(id = "myid", type = "text", alternativer = {}, value =
         `<output id="${id}" ${valfield}></output>`;
       break;
     case "select":
+      // @ts-ignore
       let options = alternativer.valg || "ja,nei";
+      // @ts-ignore
       let choice = alternativer.valgt || value;
       t =
         `<label ${title} for="${id}">${ledetekst}</label>` +
         makeSelect(id, options, choice);
       break;
     case "checkbox":
+      // @ts-ignore
       const chk = alternativer.valgt === "ja" ? "checked" : "";
       t =
         `<label ${title} for="${id}">${ledetekst}</label>` +
         `<input type="checkbox" id="${id}" ${chk}>`;
       break;
     case "button":
+      // @ts-ignore
       let klass = alternativer.button || "button";
       t = `<button ${title} type="button" id="${id}" class="${klass}">${ledetekst}</button>`;
       break;
@@ -214,15 +275,21 @@ export function makeInput(id = "myid", type = "text", alternativer = {}, value =
       t = '<label id="' + id + '">' + ledetekst + "</label>";
       break;
     case "number":
+      // @ts-ignore
       if (isFinite(alternativer.min)) {
+        // @ts-ignore
         minMaxPlace += " min=" + +alternativer.min;
       }
+      // @ts-ignore
       if (isFinite(alternativer.max)) {
+        // @ts-ignore
         minMaxPlace += " max=" + +alternativer.max;
       }
     // TODO we drop thru on purpose
     default:
+      // @ts-ignore
       if (alternativer.placeholder) {
+        // @ts-ignore
         minMaxPlace += ' placeholder="' + alternativer.placeholder + '"';
       }
       t = `<label ${title} for="${id}">${ledetekst}</label><input id="${id}" type="${type}" ${valfield} ${minMaxPlace} >`;

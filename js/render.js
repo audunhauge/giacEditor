@@ -2,15 +2,20 @@
 
 import { lang, trans } from './translate.js';
 import { wrap, $, create } from './Minos.js';
+// @ts-ignore
 import { web, tg, currentLanguage, mdLatex, chemicals, chemnames, lochemnames } from './editor.js';
+// @ts-ignore
 import { code2svg, parse, eva, range, T } from './trig.js';
-import { toast, curry, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
+// @ts-ignore
+import { toast, curry, chunk, shuffle, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
     hyperC, hyper, binomial, binomialC,
+    // @ts-ignore
     normal, normalC, fisher, fisherCrit
 } from './probability.js';
 
 
+// @ts-ignore
 import { periodic, pt } from './periodic.js';
 
 
@@ -21,6 +26,7 @@ import { balance } from './balanceChem.js';
 
 const ascii = new AsciiMathParser();
 
+// @ts-ignore
 const { abs, min, max, sin, cos, PI, floor, log, exp, E } = Math;
 
 
@@ -37,22 +43,29 @@ export const katx = (s, mode) => katex.renderToString(String(s), {
     displayMode: mode,
 });
 
+/**
+ * @param {string} code
+ */
 export function cleanUpMathLex(code) {
     if (code === "") return "";
     return code
         .replace(/\*\*/gm, "^")
-        .replace(/x\(/gm, (m, a) => 'x*(')   //  x(x-2) => x*(x+2)
+        // @ts-ignore
+        .replace(/x\(/gm, (/** @type {any} */ m, /** @type {any} */ a) => 'x*(')   //  x(x-2) => x*(x+2)
         // only for x so that sin(x) != sin*(x)
         .replace(/\)\(/gm, ")*(") // (x+a)(x-2) => (x+a)*(x-2)
-        .replace(/([0-9])\(/gm, (m, a) => a + "*(")  // 3( => 3*(
-        .replace(/([0-9])([a-z])/gm, (m, a, b) => a + "*" + b); // 3a => 3*a
+        // @ts-ignore
+        .replace(/([0-9])\(/gm, (/** @type {any} */ m, /** @type {string} */ a) => a + "*(")  // 3( => 3*(
+        // @ts-ignore
+        .replace(/([0-9])([a-z])/gm, (/** @type {any} */ m, /** @type {string} */ a, /** @type {string} */ b) => a + "*" + b); // 3a => 3*a
 }
 
 
 
-const simplify = exp => {
+const simplify = (/** @type {any} */ exp) => {
     try {
         //const g = (exp.charAt(0) === ' ')
+        // @ts-ignore
         const txt = trans(lang[currentLanguage], exp);
         //  factor/faktor or leading space -> no simplify
         const g = (txt.includes(" ") || txt.startsWith("fa"))
@@ -68,7 +81,10 @@ const simplify = exp => {
 }
 
 
-export const makeLatex = (txt, { mode, klass }) => {
+// @ts-ignore
+// @ts-ignore
+export const makeLatex = (/** @type {string | string[]} */ txt, { mode, klass }) => {
+    // @ts-ignore
     const clean = cleanUpMathLex(txt);
     try {
         // discover mcChem 
@@ -81,10 +97,10 @@ export const makeLatex = (txt, { mode, klass }) => {
     }
 }
 
-export const litex = txt => makeLatex(txt, { mode: false, klass: "" });
+export const litex = (/** @type {string} */ txt) => makeLatex(txt, { mode: false, klass: "" });
 
 
-const lotex = txt => {
+const lotex = (/** @type {any} */ txt) => {
     try {
         const simplex = cleanUpMathLex(txt);
         // @ts-ignore 
@@ -97,13 +113,14 @@ const lotex = txt => {
 }
 
 
-const giaClean = (exp, fallback = "?") => {
+const giaClean = (/** @type {string} */ exp, fallback = "?") => {
     const v = exp.replace(/["*]/g, '').replaceAll('mbox', 'boxed');
     if (v.startsWith("GIAC")) return fallback;
     return v;
 }
 
-export const giaEval = exp => {
+export const giaEval = (/** @type {string} */ exp) => {
+    // @ts-ignore
     const txt = trans(lang[currentLanguage], exp);
     try {
         // @ts-ignore
@@ -114,12 +131,13 @@ export const giaEval = exp => {
     }
 }
 
-const solve = exp => giaEval(`latex(solve(${exp}))`);
+// @ts-ignore
+const solve = (/** @type {any} */ exp) => giaEval(`latex(solve(${exp}))`);
 //const giaTex = exp => giaClean(giaEval(`latex(${exp})`));
-const giaTex = (exp, old = "?") => giaClean(exp, old);
+const giaTex = (/** @type {any} */ exp, old = "?") => giaClean(exp, old);
 
 
-const operate = (exp, op) => {
+const operate = (/** @type {any} */ exp, /** @type {string} */ op) => {
     const sim = (op.charAt(0) === " ") ? '' : 'simplify';
     try {
         op = sim ? op : op.slice(1);
@@ -162,8 +180,9 @@ const operate = (exp, op) => {
  *                       58
  */
 
-export const renderPoldiv = (id, txt, size = "") => {
-    const lines = txt.split('\n').filter(e => e != "");
+// @ts-ignore
+export const renderPoldiv = (/** @type {string} */ id, /** @type {string} */ txt, size = "") => {
+    const lines = txt.split('\n').filter((/** @type {string} */ e) => e != "");
     if (lines.length < 2) {
         $(id).innerHTML = "Must have exactly two equations"
         return;
@@ -171,13 +190,13 @@ export const renderPoldiv = (id, txt, size = "") => {
     const [numerator, denominator, ...rest] = lines;
     // if rest is non empty then reveal as many lines as given by rest
     const answer = giaEval(`propfrac((${numerator})/(${denominator}))`);
-    const parts = answer.replace(/\(.+?\)/g, 'u').replace(/([+-])/g, (_, pm) => '#' + pm).split('#');
+    const parts = answer.replace(/\(.+?\)/g, 'u').replace(/([+-])/g, (/** @type {any} */ _, /** @type {string} */ pm) => '#' + pm).split('#');
     const pnumber = parts.length;
     const howmany = min(rest.length || pnumber, pnumber);
     const visibleAnswer = (howmany === pnumber) ? answer : parts.slice(0, howmany).join("");
     const heading = `<div class="poldiv"><span class="num">${katx(simplify(numerator))}</span><span> : </span>
                     <span class="deno">${litex(denominator)}</span><span> = </span> <span class="ans">${litex(visibleAnswer)}</span></div>`;
-    const filler = simplify(numerator).replace(/([+-])/g, (_, pm) => '#' + pm).split('#')
+    const filler = simplify(numerator).replace(/([+-])/g, (/** @type {any} */ _, /** @type {string} */ pm) => '#' + pm).split('#')
     let pol = numerator;
     let howto = ''
     for (let i = 0; i < howmany; i++) {
@@ -196,15 +215,15 @@ export const renderPoldiv = (id, txt, size = "") => {
 }
 
 
-const diff = arr => {
+const diff = (/** @type {any[]} */ arr) => {
     if (arr.length < 2) return arr;
-    const d = arr.map((v, i) => arr[i + 1] - v);
+    const d = arr.map((/** @type {number} */ v, /** @type {number} */ i) => arr[i + 1] - v);
     d[d.length] = d[d.length - 1];
     return d;
 }
 
-export const renderSigram = (id, txt, funks, size = "") => {
-    const lines = txt.split('\n').filter(e => e != "");
+export const renderSigram = (/** @type {string} */ id, /** @type {string} */ txt, /** @type {{ [x: string]: any; }} */ funks, size = "") => {
+    const lines = txt.split('\n').filter((/** @type {string} */ e) => e != "");
     if (lines.length < 1) {
         $(id).innerHTML = "Enter polynomial"
         return;
@@ -234,6 +253,7 @@ export const renderSigram = (id, txt, funks, size = "") => {
             }
             r = r.map(Math.sign);
         } catch (err) {
+            // @ts-ignore
             r = d.map(v => 0);  // dummy sign line
         }
         r.push(2);
@@ -258,11 +278,11 @@ export const renderSigram = (id, txt, funks, size = "") => {
     $(id).innerHTML = signums.join('');
 }
 
-export const renderEqnSet = (id, txt, klass = "") => {
+export const renderEqnSet = (/** @type {string} */ id, /** @type {string} */ txt, klass = "") => {
     let comments = 0;
     const order = min(5, max(2, (Number(klass) ?? 2)));
     const newMath = [];
-    const lines = txt.split('\n').filter(e => e != "");
+    const lines = txt.split('\n').filter((/** @type {string} */ e) => e != "");
     let eqs = [];
     if (lines.length < order) {
         $(id).innerHTML = `Must have ${order} equations`;
@@ -272,6 +292,7 @@ export const renderEqnSet = (id, txt, klass = "") => {
         const [line, comment = ""] = lines[i].split("::");
         eqs[i] = line;
         const clean = cleanUpMathLex(line);
+        // @ts-ignore
         const kalex = renderLikning(clean, comment, { mode: false, klass: "" });
         newMath[i] = `<span data-nr="${'I'.repeat(i + 1)}" class="eqset green">${kalex}</span>`;
     }
@@ -306,8 +327,8 @@ export const renderEqnSet = (id, txt, klass = "") => {
     $(id).innerHTML = wrap(newMath, 'div');
 }
 
-export const renderPiece = (id, txt, ksize = "") => {
-    const startlines = txt.split('\n').filter(e => e != "");
+export const renderPiece = (/** @type {string} */ id, /** @type {string} */ txt, ksize = "") => {
+    const startlines = txt.split('\n').filter((/** @type {string} */ e) => e != "");
     //let lat = `f(a,b) =   \begin{cases} 2 \cdot x+a \quad \text{for } x\le 1 \\\\      x^2+bx  \quad \text{for } x \gt 1
     //\end{cases}`;
     if (startlines.length < 3) {
@@ -315,7 +336,8 @@ export const renderPiece = (id, txt, ksize = "") => {
         return;
     }
     // check if we have xrange/yrange or nofun,nogra,grid 
-    const { commands = [], lines } = group(startlines, (e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
+    // @ts-ignore
+    const { commands = [], lines } = group(startlines, (/** @type {string} */ e) => e.match(/(^[xy]range)|(^no)/) ? "commands" : "lines");
     const size = Number(ksize.match(/\d\d+/)?.[0] || 400);
     const parent = $(id);
     const funcName = lines[0];
@@ -328,14 +350,17 @@ export const renderPiece = (id, txt, ksize = "") => {
     }
     lat += ' \\end{cases}\n';
     // dont show function if command contains "nofun"
-    if (!commands.find(e => e.startsWith("nofun"))) {
+    if (!commands.find((/** @type {string} */ e) => e.startsWith("nofun"))) {
         parent.innerHTML = katx(lat, true);
     }
-    if (!commands.find(e => e.startsWith("nogra"))) {
+    if (!commands.find((/** @type {string} */ e) => e.startsWith("nogra"))) {
         const div = create('div');
         div.id = "piece" + Date.now();
         parent.append(div);
         let mlo = 0, mhi = 0;
+        /**
+         * @type {{ exp: any; lo: number; hi: number; }[]}
+         */
         const fun = [];
         plots.forEach(({ exp, limit }) => {
             // planning on adding a dot at end of graph if [3,4] vs <3,4>
@@ -356,7 +381,8 @@ export const renderPiece = (id, txt, ksize = "") => {
         let xlo, xhi, ylo, yhi;
         if (commands) {
             // xrange or yrange
-            const { xrange, yrange } = group(commands, e => e.startsWith('x') ? 'xrange' : 'yrange');
+            // @ts-ignore
+            const { xrange, yrange } = group(commands, (/** @type {string} */ e) => e.startsWith('x') ? 'xrange' : 'yrange');
             if (xrange) {
                 xlo = Number((xrange[0].match(/(-?[0-9.]+),/) || [])[1]) ?? mlo;
                 xhi = Number((xrange[0].match(/,(-?[0-9.]+)/) || [])[1]) ?? mhi;
@@ -368,9 +394,12 @@ export const renderPiece = (id, txt, ksize = "") => {
         }
         const optObj = plotDomain(size, [xlo, xhi, ylo, yhi]);
         // const optObj = plotDomain(mlo,mhi);
+        // @ts-ignore
         optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi], graphType: "polyline" }));
+        // @ts-ignore
         optObj.target = "#" + div.id;
         if (! commands.includes("nogrid")) {
+            // @ts-ignore
             optObj.grid = true;
         }
         try {
@@ -383,7 +412,8 @@ export const renderPiece = (id, txt, ksize = "") => {
 }
 
 
-export const renderSimple = (line, { mode, klass, chemistry = false }, comment = '') => {
+// @ts-ignore
+export const renderSimple = (/** @type {string} */ line, { mode, klass, chemistry = false }, comment = '') => {
     if (chemistry) {
         if (line.startsWith("balance")) {
             try {
@@ -394,6 +424,7 @@ export const renderSimple = (line, { mode, klass, chemistry = false }, comment =
                 }
                 return '<div>No balance found</div>';
             } catch (e) {
+                // @ts-ignore
                 return `<div>balance : ${e.message}</div>`;
             }
         }
@@ -413,11 +444,13 @@ const seplist = {
     "<=": "\\le",
 }
 
-export const renderLikning = (line, comment, { mode, klass, chemistry = false }) => {
+// @ts-ignore
+export const renderLikning = (/** @type {{ match: (arg0: RegExp) => any; split: (arg0: any) => [("" | undefined)?, ("0" | undefined)?]; }} */ line, /** @type {any} */ comment, { mode, klass, chemistry = false }) => {
     const [sep = "="] = (line.match(/>=|<=|>|<|=/) || []);
     const [left = "", right = "0"] = line.split(sep);
     const leftLatex = makeLatex(left, { mode, klass });
     const rightLatex = makeLatex(right, { mode, klass });
+    // @ts-ignore
     const sepLatex = katx(seplist[sep], mode);
     return `<div class="eq"><span>${leftLatex}</span>
     <span> ${sepLatex} </span>
@@ -430,7 +463,8 @@ export const renderLikning = (line, comment, { mode, klass, chemistry = false })
  * @param {string} id div containing result
  * @param {string} txt lines of algebra
  * @param {string} size TODO remove
- * @returns {number} percentage of lines+1 with comments 
+ * @returns {number} percentage of lines+1 with comments
+ * @param {{ [x: string]: any; }} funks
  */
 export function renderAlgebra(id, txt, funks, size = "") {
     let comments = 0;
@@ -467,6 +501,7 @@ export function renderAlgebra(id, txt, funks, size = "") {
         comments += comment ? 1 : 0;  // count number of comments
         const clean = cleanUpMathLex(adjus);
         const assign = clean.includes(":=");
+        // @ts-ignore
         const [lhs, rhs, ...xs] = clean.split("=");
         let math = simplify(clean);
         if (assign) {
@@ -509,6 +544,7 @@ export function renderAlgebra(id, txt, funks, size = "") {
  * @param {string} size TODO remove
  * @returns {number} percentage of lines+1 with comments 
  */
+// @ts-ignore
 export function renderEquation(id, txt, size = "") {
     let comments = 0;
     const newMath = [];
@@ -524,6 +560,7 @@ export function renderEquation(id, txt, size = "") {
            <span>=</span>
            <span>${katx((simplify(rhs)))}</span><span class="comment">${comment}</span>`;
         } else {
+            // @ts-ignore
             const [ol, or] = [lhs, rhs];
             lhs = operate(lhs, line);
             lhs = lhs.startsWith("GIAC") ? ol : lhs;
@@ -538,11 +575,17 @@ export function renderEquation(id, txt, size = "") {
     return comments / (lines.length + 1);
 }
 
+/**
+ * @param {string} id
+ * @param {string} smiles
+ * @param {any} happy
+ */
 export function renderCSearch(id, smiles, happy) {
     const item = smiles.toLowerCase();
     let hits = lochemnames.filter(e => e.includes(item));
     if (happy || hits.length === 0) {  // if happy only look for smiles
         // try to search for smile
+        // @ts-ignore
         hits = chemnames.filter(e => chemicals[e].includes(smiles));
     }
     let smile = '';
@@ -550,18 +593,24 @@ export function renderCSearch(id, smiles, happy) {
     if (hits.length === 1) {
         const idx = lochemnames.findIndex(e => e === hits[0]);
         const upname = chemnames[idx];
+        // @ts-ignore
         smile = '<div>' + chemicals[upname] + '</div>';
     }
     $(id).innerHTML = '<div>' + list + smile + '</div>';
 
 }
 
+/**
+ * @param {string} id
+ * @param {string} smiles
+ */
 export function renderChem(id, smiles, klass = "") {
     const [_, width, height] = klass.match(/(\d+),(\d+)/) || [0, 500, 200];
     const losmile = smiles.toLowerCase();
     const idx = lochemnames.findIndex(e => e === losmile);
     if (idx >= 0) {
         const upname = chemnames[idx]
+        // @ts-ignore
         smiles = chemicals[upname];
     }
     $(id).setAttribute("width", width + "px");
@@ -578,8 +627,13 @@ export function renderChem(id, smiles, klass = "") {
 }
 
 
+/**
+ * @param {string} id
+ * @param {string} txt
+ */
 export function renderHint(id, txt, klass = "") {
     const parent = $(id);
+    // @ts-ignore
     const [kls, ...header] = klass.trim().split(' ');
     const head = header.slice(-1)[0] ?? 'Hint';
     const contents = klass.includes("markdown") ? mdLatex(txt.trim()) : txt.trim();
@@ -588,16 +642,37 @@ export function renderHint(id, txt, klass = "") {
 }
 
 
+/**
+ * @param {string} id
+ * @param {string} math
+ * @param {null} funks
+ */
+// @ts-ignore
 export function renderMath(id, math, funks, size = "", just = false) {
     const newMath = [];
     const mode = size.includes("display");
     const chemistry = size.includes("chem");
     const likning = size.includes("likning");
     const klass = size;
-    const lines = math.split('\n').filter(e => e != "");
+    const orig = math.split('\n').filter((/** @type {string} */ e) => e != "");
+    let lines = orig.slice();  // make a copy
+    if (size.includes("random")) {
+        const [_, count, group=1] = (size.match(/random\(([0-9]+),?([0-9]+)?\)/) || []);
+        if (+group > 1) {
+            const temp = chunk(lines,+group);  // split into groups
+            lines = temp.map((/** @type {any[]} */ c) => shuffle(c)[0]);
+            if (lines.length > +count) {
+                // more than requested - so shuffle and pick
+                lines = shuffle(lines).slice(0,+count);
+            }
+        } else {
+            lines = shuffle(lines).slice(0,+count)
+        }
+    }
     for (let i = 0; i < lines.length; i++) {
         const [line, comment = ""] = lines[i].split("::");
         if (likning) {
+            // @ts-ignore
             newMath[i] = renderLikning(line, comment, { mode, klass });
         } else {
             newMath[i] = renderSimple(line, { mode, klass, chemistry }, comment);
@@ -617,12 +692,13 @@ const distfu = {
     hyperC: hyperC,
 }
 
-const distPlot = (fu, range, type) => {
+// @ts-ignore
+const distPlot = (/** @type {any} */ fu, /** @type {any[]} */ range, /** @type {any} */ type) => {
     const values = range.map(fu);
     const large = max(...values);
     const largeX = range[values.indexOf(large)];
     // find first value > 0.00001 and trim
-    const first = values.findIndex(e => e > 0.00001);
+    const first = values.findIndex((/** @type {number} */ e) => e > 0.00001);
     const leftValues = values.slice(first ? first - 1 : 0);  // skipped leading zeroes
     const leftRange = range.slice(first ? first - 1 : 0);
     let right;  // from right end - find first sufficiently large value
@@ -633,25 +709,34 @@ const distPlot = (fu, range, type) => {
     const trueRange = leftRange.slice(0, right + 1);
     const scale = 50 / large;
     const w = 5;
-    return [trueRange.map((x, i) => `<div title="${x}:${truValues[i]}" style="left:${i * w}px;height:${floor(truValues[i] * scale)}px"></div>`).join("")
+    return [trueRange.map((/** @type {any} */ x, /** @type {number} */ i) => `<div title="${x}:${truValues[i]}" style="left:${i * w}px;height:${floor(truValues[i] * scale)}px"></div>`).join("")
         , largeX + "," + large.toFixed(3), trueRange.length];
 };
-const distRange = (fu, range, type, fuc) => {
+const distRange = (/** @type {any} */ fu, /** @type {any[]} */ range, /** @type {string} */ type, /** @type {any} */ fuc) => {
     const mufu = type === "normal" ? fuc : fu;
     const eqles = type === "normal" ? "≤" : "=";
     const ys = range.map(mufu);
-    let sum = ys.reduce((s, v) => s + v, 0);
-    return [range.map((x, i) => `<div><span>P(X ${eqles} ${x}) </span> = <span> ${ys[i].toFixed(4)} </span></div>`).join("")
+    let sum = ys.reduce((/** @type {any} */ s, /** @type {any} */ v) => s + v, 0);
+    // @ts-ignore
+    return [range.map((/** @type {any} */ x, /** @type {string | number} */ i) => `<div><span>P(X ${eqles} ${x}) </span> = <span> ${ys[i].toFixed(4)} </span></div>`).join("")
         , sum];
 }
 
+/**
+ * @param {string} id
+ * @param {string} ls
+ * @param {string} params
+ * @param {string} type
+ */
 export function renderDist(id, ls, params, type) {
     let txt = "";
     let header = "";
     type = type.trimStart();
     let plot = "";
-    const lines = ls.split("\n").filter(l => l.length);
+    const lines = ls.split("\n").filter((/** @type {string | any[]} */ l) => l.length);
+    // @ts-ignore
     let fu = distfu[type];
+    // @ts-ignore
     let fuc = distfu[type + "C"];
     if (!fu) return;
     let maximum = 0;  // updated by distribution
@@ -682,14 +767,17 @@ export function renderDist(id, ls, params, type) {
     for (const line of lines) {
         if (line.startsWith("plot")) {
             let [_, lo, hi] = line.match(/^plot +([0-9.-]+),([0-9.-]+)/) || [];
+            // @ts-ignore
             hi = min(+hi, maximum);
             const [graph, largest, width] = distPlot(fu, range(+lo, +hi), type);
+            // @ts-ignore
             plot += `<div style="width:${width * 5}px" title="${lo}:${hi} max=(${largest})">` + graph + '</div>';
             txt += `<div><span>Plot </span><span> ${lo},${hi} </span></div>`;
             continue;
         }
         if (line.startsWith("range")) {
             let [_, lo, hi] = line.match(/^range +([0-9.-]+),([0-9.-]+)/) || [];
+            // @ts-ignore
             hi = min(+hi, maximum);
             const [t, s] = distRange(fu, range(+lo, +hi), type, fuc);
             txt += t;
@@ -740,23 +828,29 @@ const tableRender = {
 // inspect and locate subset with numeric data
 // the rest is formated as headers
 /**
- *   ,a,b,c,d,e,f
- *   x,1,2,3,4,5,6
- *   y,4,5,6,7,8,9
- *   commands  (any lines without , are assumed to be commands)
- *   data = [[1,2,3,4,5,6],[4,5,6,7,8,9]]
- *   all rows padded to same length
+ * ,a,b,c,d,e,f
+ * x,1,2,3,4,5,6
+ * y,4,5,6,7,8,9
+ * commands  (any lines without , are assumed to be commands)
+ * data = [[1,2,3,4,5,6],[4,5,6,7,8,9]]
+ * all rows padded to same length
+ * @param {string} id
+ * @param {string} text
+ * @param {string} type
+ * @param {any} name
+ * @param {{ [x: string]: number[][]; }} regpoints
  */
 export function renderTable(id, text, type, name, regpoints) {
     const parent = $(id)
     let txt = '';
     let haveHead = false;
+    // @ts-ignore
     let data = [];
     const rows = [];
     const commands = [];
     let toprow = null;   // col labels
     let leftcol = null;  // row labels
-    const lines = text.replaceAll('"', '').split("\n").filter(l => l !== "");
+    const lines = text.replaceAll('"', '').split("\n").filter((/** @type {string} */ l) => l !== "");
     if (lines.length < 1) {
         txt += "Must have lines of data";
     } else {
@@ -768,7 +862,7 @@ export function renderTable(id, text, type, name, regpoints) {
             const elements = line.split(/[,;\t]/);
             if (elements.length > 1) {
                 rows.push(elements);
-                const num = elements.filter(v => Number.isFinite(+v)).length;
+                const num = elements.filter((/** @type {string | number} */ v) => Number.isFinite(+v)).length;
                 if (num > w) {
                     wi = i;
                     w = num;
@@ -781,12 +875,12 @@ export function renderTable(id, text, type, name, regpoints) {
         if (wi !== null) {
             // we have index of widest row - use as shape
             const master = rows[wi];
-            start = master.findIndex(e => Number.isFinite(+e));
+            start = master.findIndex((/** @type {string | number} */ e) => Number.isFinite(+e));
             // start is first numeric value of master row
             // now want to skip rows with mainly text
             skip = rows.findIndex(r => Number.isFinite(+r[start])) || 0;
             for (let i = skip; i < rows.length; i++) {
-                data.push(rows[i].slice(start).map(e => Number.isFinite(+e) ? Number(e) : String(e)));
+                data.push(rows[i].slice(start).map((/** @type {string | number} */ e) => Number.isFinite(+e) ? Number(e) : String(e)));
             }
             if (start > 0) {
                 leftcol = transpose(rows).slice(0, 1)[0].slice(skip);  // use as headers for rows
@@ -821,19 +915,24 @@ export function renderTable(id, text, type, name, regpoints) {
     if (data.length) {
         if (data.length === 2) {
             // assume [ xs,ys ]
+            // @ts-ignore
             regpoints[name || 'tbl'] = data;
         } else {
             // assume we need to transpose
+            // @ts-ignore
             const tra = transpose(data);
             if (tra.length > 1) {
                 regpoints[name || 'tbl'] = tra.slice(0, 2);
             }
         }
     }
+    // @ts-ignore
     tableList[id] = txt;
     parent.innerHTML = txt;
+    // @ts-ignore
     if (tableRender[type]) {
-        tableRender[type](data.slice(), commands, id, { haveHead, leftcol, toprow }).map(t => {
+        // @ts-ignore
+        tableRender[type](data.slice(), commands, id, { haveHead, leftcol, toprow }).map((/** @type {any} */ t) => {
             const d = create("div");
             d.className = "subtype";
             d.innerHTML = t;
@@ -844,14 +943,17 @@ export function renderTable(id, text, type, name, regpoints) {
 }
 
 
-const parsePy = py => {
+const parsePy = (/** @type {string} */ py) => {
     const prelude = 'from pylab import *\nreplot()\n';
     try {
         // @ts-ignore
         return __BRYTHON__.python_to_js(prelude + py);
     } catch (e) {
+        // @ts-ignore
         if (e.name) {
+            // @ts-ignore
             const msg = `Error at line ${Number(e.lineno) - 3}<br>`
+                // @ts-ignore
                 + `${e.msg}`;
             toast(msg);
         }
@@ -887,6 +989,11 @@ function magicNumPyFix(py) {
     return py
 }
 
+/**
+ * @param {string} id
+ * @param {string} py
+ * @param {string | string[]} klass
+ */
 export function renderPy(id, py, klass) {
     if (py.endsWith("GO!\n")) {
         // @ts-ignore
@@ -903,9 +1010,13 @@ export function renderPy(id, py, klass) {
             try {
                 eval(ajscode);
             } catch (e) {
+                // @ts-ignore
                 const info = e.args ? e.args[0] : "";
+                // @ts-ignore
                 if (e.name) {
+                    // @ts-ignore
                     const inf = info || `${e.name} is perhaps undefined?`;
+                    // @ts-ignore
                     const msg = `Error at line ${Number(e.$line_info.split(',')[0]) - 3}<br>`
                         + inf;
                     toast(msg);
@@ -923,7 +1034,7 @@ export function renderPy(id, py, klass) {
     }
 }
 
-const plotDomain = (size, rest) => {
+const plotDomain = (/** @type {number} */ size, /** @type {string | any[]} */ rest) => {
     let xmin = -5,
         xmax = 5,
         ymin = -5,
@@ -940,28 +1051,39 @@ const plotDomain = (size, rest) => {
         xAxis: { domain: [+xmin, +xmax] },
     };
     if (ymin !== undefined && ymax !== undefined) {
+        // @ts-ignore
         optobj.yAxis = { domain: [+ymin, +ymax] };
     }
     return optobj;
 }
 
 
+/**
+ * @param {{ append: (arg0: any) => void; }} parent
+ * @param {string} fu
+ * @param {number | undefined} size
+ * @param {{ [x: string]: string; }} funks
+ * @param {{ [x: string]: [any, any]; }} regpoints
+ * @param {any} colors
+ */
 function plotGraph(parent, fu, size, funks, regpoints, colors) {
     const div = create('div');
     div.id = "plot" + Date.now();
     parent.append(div);
     try {
-        const def = fu.replace(/([^,;]+)/g, (a, f) => {
+        const def = fu.replace(/([^,;]+)/g, (/** @type {any} */ a, /** @type {string | number} */ f) => {
             if (funks[f]) return funks[f].replace("matrix", "");
             if (regpoints[f]) {
                 const [x, y] = regpoints[f];
-                const xy = x.map((v, i) => [v, y[i]]);
+                const xy = x.map((/** @type {any} */ v, /** @type {string | number} */ i) => [v, y[i]]);
                 return JSON.stringify(xy);
             }
             return a;
         });
         const optdObj = plot(def, size, colors);
+        // @ts-ignore
         optdObj.target = "#" + div.id;
+        // @ts-ignore
         optdObj.grid = true;
         // @ts-ignore
         functionPlot(optdObj);
@@ -970,17 +1092,17 @@ function plotGraph(parent, fu, size, funks, regpoints, colors) {
     }
 }
 
-const alg2plot = fu => {
+const alg2plot = (/** @type {any} */ fu) => {
     const fu2 = cleanUpMathLex(fu);
-    return fu2.replace(/e\^([a-z])/g, (_, a) => {  // e^x
+    return fu2.replace(/e\^([a-z])/g, (/** @type {any} */ _, /** @type {any} */ a) => {  // e^x
         return `exp(${a})`;
     })
-        .replace(/e\^\(([^)]+)\)/g, (_, a) => {  // e^(-x^2)
+        .replace(/e\^\(([^)]+)\)/g, (/** @type {any} */ _, /** @type {any} */ a) => {  // e^(-x^2)
             return `exp(${a})`;
         })
 }
 
-const polarPlot = (parent, lines, width, klass) => {
+const polarPlot = (/** @type {{ append: (arg0: any) => void; }} */ parent, /** @type {any} */ lines, /** @type {string | number} */ width, /** @type {string} */ klass) => {
     const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
     const [_, lo = 0, hi = 6.285] = (givenRange || []);
     const range = [Number(lo), Number(hi)];
@@ -989,10 +1111,13 @@ const polarPlot = (parent, lines, width, klass) => {
         div.id = "plot" + Date.now();
         parent.append(div);
         const pickApart = line.match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
+        // @ts-ignore
         const [_, fu, size = 500, colors] = pickApart || [];
         let [polar, ...rest] = fu.split(",");
         const optObj = plotDomain(min(size, +width), rest);
+        // @ts-ignore
         optObj.data = [{ r: polar, fnType: "polar", range, graphType: "polyline" }];
+        // @ts-ignore
         optObj.target = "#" + div.id;
         try {
             // @ts-ignore
@@ -1003,7 +1128,7 @@ const polarPlot = (parent, lines, width, klass) => {
     }
 }
 
-const paramPlot = (parent, lines, width, klass) => {
+const paramPlot = (/** @type {{ append: (arg0: any) => void; }} */ parent, /** @type {string | any[]} */ lines, /** @type {string | number} */ width, /** @type {string} */ klass) => {
     const givenRange = klass.match(/ ([0-9.-]+),([0-9.-]+)/);
     const [_, lo = -10, hi = 10] = givenRange ? givenRange : [];
     const range = [Number(lo), Number(hi)];
@@ -1014,10 +1139,13 @@ const paramPlot = (parent, lines, width, klass) => {
         div.id = "plot" + Date.now();
         parent.append(div);
         const pickApart = fx.match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
+        // @ts-ignore
         const [_, fu, size = 500, colors] = pickApart || [];
         let [x, ...rest] = fu.split(",");
         const optObj = plotDomain(min(size, +width), rest);
+        // @ts-ignore
         optObj.data = [{ x, y, range, fnType: "parametric", graphType: "polyline" }];
+        // @ts-ignore
         optObj.target = "#" + div.id;
         try {
             // @ts-ignore
@@ -1029,11 +1157,17 @@ const paramPlot = (parent, lines, width, klass) => {
 }
 
 
+/**
+ * @param {string} id
+ * @param {string} plot
+ * @param {any} funks
+ * @param {{}} regpoints
+ */
 export function renderPlot(id, plot, funks, regpoints, klass = "") {
     const parent = $(id);
     const [_, width = 350] = (klass.match(/ (\d+)$/)) || [];
     parent.style.setProperty("--min", String(width) + "px");
-    const lines = plot.split('\n').filter(e => e != "");
+    const lines = plot.split('\n').filter((/** @type {string} */ e) => e != "");
     if (klass.includes("polar")) {
         // plot polar, r=f(theta)
         if (lines.length < 1) {
@@ -1051,6 +1185,7 @@ export function renderPlot(id, plot, funks, regpoints, klass = "") {
     } else {
         for (let i = 0; i < lines.length; i++) {
             const pickApart = lines[i].match(/([^ ]+)( \d+)?( [0-9a-z#,]+)?/);
+            // @ts-ignore
             const [_, fu, size = 500, colors] = pickApart;
             plotGraph(parent, alg2plot(fu), min(size, +width), funks, regpoints, colors);
         }
@@ -1059,73 +1194,70 @@ export function renderPlot(id, plot, funks, regpoints, klass = "") {
 
 /**
  * zips two arrays 
- * @param {Array} a 
- * @param {Array} b 
+ * @param {Array<any>} a 
+ * @param {Array<any>} b 
  * @returns Array
  */
 
 const zip = (a, b) => a.map((val, i) => [val, b[i]]);
 
 
-const parseOptions = (s,o={}) => {
+const parseOptions = (/** @type {string} */ s,o={}) => {
     const parts = s.trim().split(/\s+/);
     const oo = Object.assign({},o);
     const keys = Object.keys(o);
+    // @ts-ignore
     const main = keys.filter(e => o[e]);
+    // @ts-ignore
     const secunda = keys.filter(e => o[e] === undefined);
     const pairs = zip(main,secunda);
     for (const part of parts) {
+        if (part === '') continue;
         if (part.includes('=')) {
             const [key, val] = part.split('=');
+            // @ts-ignore
             oo[key] = Number(val);
         } else if (part.includes(',')) {
             const [a, b] = part.split(',');
             for (const [x,y] of pairs) {
+                // @ts-ignore
                 if (oo[x] !== o[x] || oo[y] !== undefined) continue;
+                // @ts-ignore
                 oo[x]=a; oo[y]=b; break;
             }
         } else {
             for (const x of main) {
+                // @ts-ignore
                 if (oo[x] !== o[x] ) continue;
+                // @ts-ignore
                 oo[x]=part; break;
             }
         }
     }
     // copy primary to secondary if undefined
     for (const [x,y] of pairs) {
+       // @ts-ignore
        if (oo[y] === undefined) oo[y] = oo[x];
     }
     return oo;
 }
 
-/*
-export function renderTrig(id, trig, klass = "") {
-    const parent = $(id);
-    const [_, w = 350, s = 8, scale = 1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
-    const parsed = parse(trig, `{w:${w},s:${s}}`);
-    const [_1, x0 = 0, y0 = 0 ] = ( trig.match(  /origin\((-?[0-9.]+),(-?[0-9.]+)\)/  ) ) || [];
-    const sz = Number(s);
-    const x = +w * x0 / sz;
-    const y = -w * y0 / sz; 
-    const lines = parsed.split('\n').filter(e => e != "");
-    const svg = code2svg(lines, w, s);
-    parent.innerHTML = `<svg id="${id}" width="${w}" viewBox="${x} ${y}  ${w} ${w}"> 
-      <g transform="scale(${scale})">
-        ${svg}
-      </g>
-    </svg>`;
-}
-*/
-
+/**
+ * @param {string} id
+ * @param {string} trig
+ */
 export function renderTrig(id, trig, klass = "") {
     const parent = $(id);
     // const [_, w = 350, s = 8, scale = 1] = (klass.match(/ (\d+\.?\d*)? ?(\d+\.?\d*)? ?([0-9.]+)?\s*$/)) || [];
+    // @ts-ignore
     // @ts-ignore
     const { wx, wy, hx, hy, sx, sy } = parseOptions(klass, { wx: 350, wy: undefined, hx: 8, hy: undefined, sx: 1, sy: undefined });
     // sy is never used - just present for symmetry with x,y
     const parsed = parse(trig, `{w:${wx},s:${hx}}`);
     const [_1, x0 = 0, y0 = 0] = (trig.match(/origin\((-?[0-9.]+),(-?[0-9.]+)\)/)) || [];
+    // @ts-ignore
     const x = +wx * x0 / +hx;
+    // @ts-ignore
     const y = -wy * y0 / +hy;
     const lines = parsed.split('\n').filter(e => e != "");
     T.init();
@@ -1148,20 +1280,26 @@ export function renderTrig(id, trig, klass = "") {
 // e plot([[1,2,4,8,16,32]])
 // f plot( {yAxis: {domain: [-1.897959183, 1.897959183]},xAxis: {domain: [-3, 3]},data: [{r: '2 * sin(4 theta)',fnType: 'polar',graphType: 'polyline' }] } )
 // f plot({target: '#multiple',data: [ { fn: 'x', color: 'pink' }, { fn: '-x' }, { fn: 'x * x' }, { fn: 'x * x * x' }, { fn: 'x * x * x * x' } ] } )
+/**
+ * @param {string} str
+ * @param {string} colors
+ */
 export function plot(str, size = 500, colors) {
     // first try to pick out any xy range
     // assume ---,1,2,3,4  or ---,1,2  or ---,-5,5
     const parts = str.split(",");
-    const lastNum = parts.findLastIndex(v => !Number.isFinite(+v));
+    const lastNum = parts.findLastIndex((/** @type {string | number} */ v) => !Number.isFinite(+v));
     const xyRange = parts.slice(lastNum + 1).slice(-4)
     // now we have [1,2,3,4] or [1,2] or [-5,5]
     const optobj = plotDomain(size, xyRange);
+    // @ts-ignore
     optobj.data = [];
     // join together the body parts and split on ;
     const funks = parts.slice(0, lastNum + 1).join(",").split(";");
     // funks can be "[1,2,3];x;[[1,2],[3,4]];f;x+3;g(x)".split(";")
     const colorList = colors ? colors.trim().split(",") : [];
-    funks.forEach((f, i) => {
+    funks.forEach((/** @type {any} */ f, /** @type {string | number} */ i) => {
+        // @ts-ignore
         _plot(f, optobj, colorList[i]);
     });
     return optobj;
@@ -1170,6 +1308,13 @@ export function plot(str, size = 500, colors) {
 
 
 
+/**
+ * @param {string} f
+ * @param {{ width?: number; height?: number; xAxis: any; yAxis?: any; data?: any; }} optobj
+ * @param {any} color
+ * @param {undefined} [i]
+ */
+// @ts-ignore
 function _plot(f, optobj, color, i) {
     let obj;
     try {
@@ -1217,7 +1362,7 @@ function _plot(f, optobj, color, i) {
             const fy = giaEval(`solve(${f},y)`);
             if (fy.startsWith("list[")) {
                 // found solution for y=
-                obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map(fn => ({ fn, graphType }));
+                obj = fy.slice(5, -1).replace(/√/g, 'sqrt').split(",").map((/** @type {any} */ fn) => ({ fn, graphType }));
                 optobj.data = optobj.data.concat(obj);
                 return optobj;
                 // @ts-ignore
@@ -1225,7 +1370,7 @@ function _plot(f, optobj, color, i) {
             } else {
                 const fy = giaEval(`solve(${f})`);
                 if (fy.startsWith("list[")) {
-                    const x = fy.slice(5, -1).replace(/√(\d+)/g, (_, n) => `sqrt(${n})`);
+                    const x = fy.slice(5, -1).replace(/√(\d+)/g, (/** @type {any} */ _, /** @type {any} */ n) => `sqrt(${n})`);
                     // @ts-ignore
                     obj = { x, y: 't', fnType: 'parametric', graphType, range: [ymin, ymax] }
                 }

@@ -213,6 +213,23 @@ aside.gui {
     height: 16px;
 }
 
+dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1rem; /* spacing between dt and dd */
+}
+
+dl  dt {
+    font-weight: bold;
+    margin-left: 1rem;
+    color:slateblue;
+}
+
+dl dd {
+    color:darkgreen;
+}
+
+
 #measure {
     position: absolute;
     top:-200px;
@@ -293,6 +310,20 @@ div.math.bokstav>div>div:before {
     left: -40px;
     top: 0;
 }
+
+div.chk div.gridy::before,
+div.algebra.chk div.gridy::before,
+div.algebra.chk>div::before,
+div.math.chk>div>div:before {
+    content: " ";
+    position: absolute;
+    left: -40px;
+    top: 0;
+    width: 1rem;
+    height: 1rem;
+    border: solid gray 1px;
+}
+
 
 div.math.nummer div.gridy::before,
 div.algebra.nummer div.gridy::before,
@@ -622,6 +653,7 @@ div.algebra>div>span:nth-child(4) {
 
 div.trig svg {
     border: solid rgba(128, 128, 128, 0.144) 1px;
+    margin:5px;
 }
 
 

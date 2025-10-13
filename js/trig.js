@@ -22,10 +22,11 @@
  * tri2svg(trib)
  */
 
+const graphcolor =  "black blue green red #a05 #19d #5c7 #e65 #a2f #e80 #d0b #b87 #0ba".split(" ");
 
-const SIN = x => Math.sin(Math.PI * x / 180);
-const COS = x => Math.cos(Math.PI * x / 180);
-const ASIN = x => 180 * Math.asin(x) / Math.PI;
+const SIN = (/** @type {number} */ x) => Math.sin(Math.PI * x / 180);
+const COS = (/** @type {number} */ x) => Math.cos(Math.PI * x / 180);
+const ASIN = (/** @type {number} */ x) => 180 * Math.asin(x) / Math.PI;
 
 const nice = x => {
     if (x % 1 === 0) return String(x);
@@ -209,7 +210,7 @@ const svgText = (x, y, s, id, z) => {
         </text>`;
 }
 
-
+var gini = 0;
 
 export class T {
     static size = { w: 300, wy: 300,s: 8, sy:8, c: "blue" };
@@ -308,9 +309,83 @@ export class T {
         return b;
     }
 
+    // assumes a trig xxx 12
+    // list colors with name - color key for multiple graphs
+    static legend = (...args) => {
+        const [s="fghijklmn",cc={r:4,rt:0.7}] = args;
+        const size = Object.assign({rt:1}, T.size, cc);
+        const names = (s ? s : "fghijklmn").split("");
+        const n = names.length;
+        return names.map((e,i) =>{
+            const p = pt(1,n-i);
+            const q = pt(2,n-i);
+            const d = pt(1,-0.5)
+            const r = q.add(d)
+            size.c = graphcolor[i % graphcolor.length];
+            return line(p,q,size) + text(r,e,size);
+        }).join("");
+    }
+
+
+    // create a label connected to a function
+    // labels placed in a list and adjusted
+    static label = (f,a,cc) => {
+        const size = Object.assign({rt:1}, T.size, cc);
+        const p = pt(a,f(a));
+        return text(p,f.name,size);
+    }
+
+    static plots = (...s) => {
+        const xyfus = s.filter(e => typeof e === "function" && e(1) instanceof Point);
+        const yfus = s.filter(e => typeof e === "function" && Number.isFinite(e(1)));
+        const points = s.filter(e => Array.isArray(e) && e[0] instanceof Point);
+        const ranges = s.filter(e => Array.isArray(e) && Number.isFinite(e[0]));
+        const options = s.filter(e => ! Array.isArray(e) && typeof e === "object");
+        const cc = options.length ? options[0] : {r:0.6};
+        const size = Object.assign({},{x:0,y:0}, T.size, { r: 0.6 }, cc);
+        const rng0 = ranges.length ? ranges[0] : null;
+        const rng = rng0 ? rng0 : range(+size.x,+size.x + +size.s,size.s/size.w);
+        const fus = xyfus.concat(yfus.map(e => (t => pt(t,e(t)))));
+        const bad = p => Number.isNaN(p.x + p.y)
+        const m = size.s / size.w;
+        const seg = (p, q, s) => {
+            if (bad(p) || bad(q)) return '';
+            return line(p, q, s);
+        }
+        let q = 0; let r = 0; let p = null;
+        const pline = (fxy, s, t, cc) => {
+            r = p; p = fxy(t);
+            q = r ?? p;
+            if (Math.abs(p.sub(q).length()) < m) {
+                // dont draw very short lines
+                p = q;
+                return s
+            };
+            return s + seg(p, q, cc)
+        }
+        return fus.map((fxy,i) => {
+            q=0; r=0; p=null; size.c = graphcolor[i % graphcolor.length];
+            return rng.reduce((s, t) => pline(fxy, s, t, size), "") ;
+        }).join('') +
+        points.map(p => {
+            r=p;
+            q = r ?? p;
+            if (Math.abs(p.sub(q).length()) < m) {
+                // dont draw very short lines
+                p = q;
+                return "";
+            };
+            return seg(p, q, cc)
+        }).join("");
+    }
 
     static plot = (fxy0, rng0, cc) => {
-        const size = Object.assign({},{x:0,y:0}, T.size, { c: "blue", r: 0.6 }, cc);
+        let c = "blue";
+        if (cc?.c === undefined) {
+            c = graphcolor[gini];
+            gini = (gini + 1) % graphcolor.length;
+        }
+        const size = Object.assign({},{x:0,y:0}, T.size, { c, r: 0.6 }, cc);
         const fxy = fxy0(1) instanceof Point ? fxy0 : (t => pt(t,fxy0(t)));
         // if fxy0 does not return point, assume regular func of t
         const rng = rng0 ? rng0 : range(+size.x,+size.x + +size.s,size.s/size.w);
@@ -320,6 +395,7 @@ export class T {
             if (bad(p) || bad(q)) return '';
             return line(p, q, s);
         }
+        let q = 0; let r = 0; let p = null;
         const pline = (fxy, s, t, cc) => {
             r = p; p = fxy(t);
             q = r ?? p;
@@ -337,7 +413,6 @@ export class T {
             const p = fxy(a); const q = fxy(b);
             marker = T.markedline(p,q,size);
         }
-        let q = 0; let r = 0; let p = null;
         return rng.reduce((s, t) => pline(fxy, s, t, size), "") + marker;
     }
 
@@ -403,7 +478,7 @@ export class T {
 
     static xaxis = (d,cc) => {
         if (cc == undefined) {
-            cc = {r:0.6, c:"gray"}
+            cc = {r:0.8, c:"gray"}
         }
         const size = Object.assign({x:0,y:0}, T.size, cc);
         const x = +size.x
@@ -837,12 +912,12 @@ const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π, floor,
       }  =  Math;
 
 
-const { circle, line, plot, bez, square, text, dot, dots, tri2svg, tri, 
+const { circle, line, plot, bez, square, text, dot, dots, tri2svg, tri, plots, legend, label,
     origin, size, grid, axis, xaxis,yaxis, markedline, vec } = T;
 
 const mathEnvironment = {
     sinh, cosh, exp, tanh, asinh, acosh, atanh, pow,
-    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, plot, pt, grid, axis,xaxis,yaxis,
+    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, plot, pt, grid, axis,xaxis,yaxis,plots,legend,label,
     circle, line, bez, square, text, dot, dots, tri2svg, tri, origin, size, markedline,vec,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log, floor, round,
     sin, cos, tan, asin, atan2, acos, atan, π,
@@ -904,12 +979,13 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
  * 
  * @param {array} kode lines of code to evaluate
  */
-export const code2svg = (kode, w, s, wy, sy) => {
+export const code2svg = (kode, w=400, s=8, wy=400, sy=8) => {
     const variables = { SVG: "" };
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .split("").forEach(e => variables[e] = 0);
     const r = 40 * s / w;  // default font size
     T.size = { w, s, wy, sy, c: "blue",r };
+    gini = 0;
     mathEnvironment.size = T.size;
     Object.assign(variables, mathEnvironment);
     kode.forEach(line => {
