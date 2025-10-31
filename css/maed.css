@@ -28,11 +28,11 @@ div.section {
     margin-bottom: var(--spacing);
     position: relative;
     min-height: 1.6rem;
-    padding-top:0.8em;
+    padding-top: 0.8em;
 }
 
-div.section > *:nth-child(2) {
-    margin-top:calc(2em + var(--spacing));
+div.section>*:nth-child(2) {
+    margin-top: calc(2em + var(--spacing));
 }
 
 
@@ -41,7 +41,7 @@ div.oppgave {
     color: blue;
     font-size: 1.5em;
     position: absolute;
-    top:0rem;
+    top: 0rem;
 }
 
 div.oppgave:empty::before {
@@ -109,7 +109,7 @@ div.section.fasit {
 }
 
 aside.math div {
-    color:black !important;
+    color: black !important;
 }
 
 @media print {
@@ -179,9 +179,9 @@ div.oppgave.fasit::before {
 
 aside.gui {
     height: var(--gui);
-    overflow:hidden;
+    overflow: hidden;
     margin-top: 0.2rem;
-    border-top:solid rgba(0, 0, 0, 0.203) 1px;
+    border-top: solid rgba(0, 0, 0, 0.203) 1px;
 }
 
 
@@ -216,25 +216,26 @@ aside.gui {
 dl {
     display: grid;
     grid-template-columns: auto 1fr;
-    column-gap: 1rem; /* spacing between dt and dd */
+    column-gap: 1rem;
+    /* spacing between dt and dd */
 }
 
-dl  dt {
+dl dt {
     font-weight: bold;
     margin-left: 1rem;
-    color:slateblue;
+    color: slateblue;
 }
 
 dl dd {
-    color:darkgreen;
+    color: darkgreen;
 }
 
 
 #measure {
     position: absolute;
-    top:-200px;
-    left:0;
-    width:100%;
+    top: -200px;
+    left: 0;
+    width: 100%;
     height: 100px;
 }
 
@@ -452,9 +453,26 @@ div.format.abc+ul {
     list-style-type: none;
 }
 
+
 div.format+ul {
     counter-reset: ul-count;
 }
+
+
+div.oppgave[data-start] {
+    counter-reset: oppg-count calc(attr(data-start type(integer)) - 1);
+}
+
+div.senter,
+div.center {
+    display: flex;
+    justify-content: center;
+    /* horizontal */
+    align-items: center;
+    /* vertical */
+}
+
+
 
 /* restart counter after digression */
 div.format[data-start="1"]+ul {
@@ -472,6 +490,18 @@ div.format[data-start="3"]+ul {
 div.format[data-start="4"]+ul {
     counter-reset: ul-count 4;
 }
+
+
+div.format[data-start="5"]+ul {
+    counter-reset: ul-count 4;
+}
+
+
+div.format[data-start="6"]+ul {
+    counter-reset: ul-count 4;
+}
+
+
 
 
 span.date {
@@ -653,7 +683,7 @@ div.algebra>div>span:nth-child(4) {
 
 div.trig svg {
     border: solid rgba(128, 128, 128, 0.144) 1px;
-    margin:5px;
+    margin: 5px;
 }
 
 
@@ -1113,82 +1143,83 @@ div.section.fasit~div.section div.oppgave {
 }
 
 div.callout {
-    border:solid rgba(0, 0, 0, 0.344) 1px;
-    border-left:solid rgba(24, 24, 247, 0.729) 0.35rem;
+    border: solid rgba(0, 0, 0, 0.344) 1px;
+    border-left: solid rgba(24, 24, 247, 0.729) 0.35rem;
     min-width: 12em;
     width: fit-content;
     border-radius: 5px;
-    margin:0.5em;
+    margin: 0.5em;
 }
 
 div.callout.box,
 div.callout.plain {
-    border-left:solid rgba(0, 0, 0, 0.344) 1px;
+    border-left: solid rgba(0, 0, 0, 0.344) 1px;
     min-width: fit-content;
 }
 
 div.naked {
-    border:none;
+    border: none;
 }
 
 div.box {
-    border:solid rgba(0, 0, 0, 0.344) 1px;
-    margin-right:0.3em;
-    padding-right:0.3em;
-    width:fit-content
+    border: solid rgba(0, 0, 0, 0.344) 1px;
+    margin-right: 0.3em;
+    padding-right: 0.3em;
+    width: fit-content
 }
 
-div.box.caption > h4 {
+div.box.caption>h4 {
     text-align: center;
 }
 
 div.callout.naked {
-    border:none;
+    border: none;
     min-width: fit-content;
 }
 
-div.callout.box  > div:first-child,
-div.callout.naked > div:first-child {
+div.callout.box>div:first-child,
+div.callout.naked>div:first-child {
     display: none;
 }
 
 div.callout.float {
     position: absolute;
     right: 0px;
-    top:-0.8rem;
+    top: -0.8rem;
     min-width: fit-content;
 }
 
 div.callout.merk {
-    border-left:solid red 0.35rem;
+    border-left: solid red 0.35rem;
 }
 
 div.callout.hint {
-    border-left:solid green 0.35rem;
+    border-left: solid green 0.35rem;
 }
 
-div.callout > div {
-    padding:0.5rem;
+div.callout>div {
+    padding: 0.5rem;
 }
 
-div.callout.pre > div:nth-child(2) {
+div.callout.pre>div:nth-child(2) {
     white-space: pre;
     font-family: monospace;
 }
 
-div.callout > div:nth-child(2) {
-    padding:-1rem;
+div.callout>div:nth-child(2) {
+    padding: -1rem;
 }
 
-div.callout > div:first-child {
+div.callout>div:first-child {
     background-color: #e9f2fc;
     font-weight: bold;
 }
-div.callout.merk > div:first-child {
-   background: #ffe6eb; 
+
+div.callout.merk>div:first-child {
+    background: #ffe6eb;
 }
 
-div.callout.hint > div:first-child {
+div.callout.hint>div:first-child {
     background: #ecf8e8;
 }
 
@@ -1197,7 +1228,7 @@ td.elm {
     max-width: 2.2rem;
     border: solid rgba(128, 128, 128, 0.104) 1px;
     text-align: center;
-    padding-left:0.2rem;
+    padding-left: 0.2rem;
 }
 
 td.elm div:first-child {
@@ -1206,9 +1237,10 @@ td.elm div:first-child {
 }
 
 td.elm:empty {
-    border:none;
-    padding:0;
+    border: none;
+    padding: 0;
 }
+
 td.elm div.name {
     font-size: 0.4em;
 }
@@ -1216,6 +1248,7 @@ td.elm div.name {
 td.elm div.density {
     font-size: 0.45em;
 }
+
 td.elm div.mass {
     font-size: 0.45em;
 }
@@ -1224,20 +1257,30 @@ td.elm div.mass {
 td.elm div.id {
     font-size: 0.4rem;
     position: absolute;
-    left:0.1rem;
-    top:0;
+    left: 0.1rem;
+    top: 0;
+}
+
+div.rpad  div {
+    padding-right: 5px;
+}
+
+div.prove.metal {
+    padding:5px;
 }
 
 td.elm.alkali {
     background-color: #f003;
 }
+
 td.elm.earth {
     background-color: #4040ff40;
 }
 
-td.elm.metal {
-    background-color: #0080ff4d;
+td.elm.metal, .metal {
+    background-color: #0080ff20;
 }
+
 td.elm.nobel {
     background-color: #ff98004d;
 }
@@ -1249,9 +1292,11 @@ td.elm.halogen {
 td.elm.post {
     background-color: #0f04;
 }
+
 td.elm.oid {
     background-color: #9c04;
 }
+
 td.elm.non {
     background-color: #ff04;
 }
@@ -1267,30 +1312,56 @@ div.large {
 div.red {
     color: red;
 }
+
 div.blue {
-    color:blue;
+    color: blue;
 }
 
 div.green {
-    color:green;
+    color: green;
 }
 
 div.angry {
-    color:white;
+    color: white;
     background-color: red;
 }
 
 div.gray {
-    color:gray;
+    color: gray;
 }
 
-div.small {
+div.small, div.tiny {
     font-size: 0.68em;
+}
+
+
+
+div.small img {
+    width: 75%;
+    height: auto;
+}
+
+
+div.tiny img {
+    width: 50%;
+    height: auto;
+}
+
+
+div.large img {
+    width: 125%;
+    height: auto;
+}
+
+
+div.huge img {
+    width: 150%;
+    height: auto;
 }
 
 div.large td.elm {
     max-width: 2.5rem;
-    overflow:hidden;
+    overflow: hidden;
 }
 
 div.huge td.elm {
@@ -1300,39 +1371,39 @@ div.huge td.elm {
 }
 
 div.small.box {
-    max-width:  calc(1.1 * var(--svg));
+    max-width: calc(1.1 * var(--svg));
     max-height: var(--svg);
     overflow: hidden;
 }
 
 div.large.box {
-    max-width:  calc(1.7 * var(--svg));
+    max-width: calc(1.7 * var(--svg));
     max-height: calc(1.1 * var(--svg));
     overflow: hidden;
 }
 
 div.small img {
     object-fit: cover;
-    max-width:  calc(1.1 * var(--svg));
+    max-width: calc(1.1 * var(--svg));
     max-height: var(--svg);
 }
 
 
 div.large img {
     object-fit: cover;
-    max-width:  calc(1.7 * var(--svg));
+    max-width: calc(1.7 * var(--svg));
     max-height: calc(1.1 * var(--svg));
 }
 
-aside.search > div {
+aside.search>div {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(12em, 1fr));
-    padding:5px;
+    padding: 5px;
     border: solid rgba(128, 128, 128, 0.186) 1px;
     border-radius: 0.3em;
 }
 
-aside.search > div > div {
+aside.search>div>div {
     display: inline-block;
     width: fit-content;
     padding: 2px;

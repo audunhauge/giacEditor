@@ -1,4 +1,4 @@
-// @ts-check
+// @ts- heck
 
 const english = {
     cas: {
@@ -25,6 +25,7 @@ const english = {
         hist:"table frekvens\nstart 0\n20,2\n40,5\n60,6\n80,3\nplot hist\n",
         pie:"table stats\n3,12,17,16\nsafari,chrome,edge,opera\nplot pie\n",
         bar:"table stats\n3,12,17,16\nplot bar\n",
+        test:`(( grid2\n\n(( senter\n\n## Test 1 - Math R1\n))\n))\n@matte grid3\n"Date: 30.09.2025"\n"Time: 145 min"\n\nShow calcualtions` 
     },
     splitter: "question",
     atcommands: {
@@ -33,6 +34,7 @@ const english = {
         binom:"binom",
         normal:"normal",
         hist:"hist",
+        test:"test",
         bar:"bar",
         pie:"pie",
         help:"help",
@@ -88,12 +90,14 @@ const norwegian = {
         hist:"table frekvens\nstart 0\n20,2\n40,5\n60,6\n80,3\nplot hist\n",
         sektor:"table stats\n3,12,17,16\nsafari,chrome,edge,opera\nplot pie\n",
         søyle:"table stats\n3,12,17,16\nplot bar\n",
+        prøve:`prøve\nPrøve 1 - Matematikk R1\n30.09.2025\n145 m\nVis framgangsmåte og utregning` 
     },
     splitter: "oppgave",
     atcommands: {
         tips:"callout",
         hyper:"hyper",
         binom:"binom",
+        prøve:"test",
         hist:"hist",
         sektor:"pie",
         søyle:"bar",
@@ -127,6 +131,7 @@ const norwegian = {
 @likninger
 @poldiv
 @delt
+@prøve
 @reg
 @python
 @trig

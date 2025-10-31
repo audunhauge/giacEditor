@@ -120,6 +120,7 @@ help`,
 normal:`Normal distribution`,
 binom:`Binomial distribution`,
 hist:`Histogram`,
+test:'Prøveoverskrift',
 callout:`Callout block with frame
 @callout hint pre Example
 The last word will be used as Title.
@@ -253,7 +254,7 @@ Used together with plot() and show()`,
 }
 
 
-let aulist = "sign,question,poldiv,plot,cas,math,callout,piecewise,python,reg,pie,hist,trig,eq,eqset,format,ans,dato";
+let aulist = "sign,question,poldiv,plot,cas,math,callout,piecewise,python,prøve,reg,pie,hist,trig,eq,eqset,format,ans,dato";
 let auwords = aulist.split(",");
 let help;
 let expand = {};

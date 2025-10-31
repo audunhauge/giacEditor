@@ -1,4 +1,4 @@
-// @ts-check
+// ts-check
 
 import {
     thingsWithId, updateMyProperties, qsa, qs,
@@ -568,7 +568,14 @@ const commentMe = (id, perc) => {
     target.classList.add(klass);
 }
 
-export const mdLatex = txt => md.render(txt.replace(/\$([^@$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
+// replace  "dette er matte  x^2  i tekst" with "dette er matte $x^2$ i tekst "
+// then do $math$ => latex
+export const mdLatex = txt => {
+    // console.log(txt.match(/  ([<>'`"[\]{},!|~:_0-9a-zA-Z=+*/\^()\.-]+)(  |\n)/gm));
+     return md.render(txt
+    .replace(/  ([<>'`"[\]{},!|~:_0-9a-zA-Z=+*/\^()\.-]+)(  |\n)/gm, (_, m,sep) => ' $' + m + '$' + sep)
+    .replace(/\$([^@$]+)\$/gm, (_, m) => makeLatex(m, { mode: false, klass: "" })));
+}
 
 
 
@@ -621,14 +628,15 @@ export const renderAll = (repaint = false) => {
         return international
             .replace(/@callout( .*)?$([^€]+?)^:::/gm, (_, klass, txt) => {
                 ofs++;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
                 callouts.push({ txt, id: `hint${seg}_${ofs}`, klass, seg });
-                return `<div class="callout ${klass}" id="hint${seg}_${ofs}"></div>\n`;
+                return `<div class="callout ${cleanklass}" id="hint${seg}_${ofs}"></div>\n`;
             })
             .replace(/@chem{([^¢]+?)}(\[(.*)\])?/g, (_0, smiles, _1, klass) => {
                 ofs++;
-                chems.push({ smiles, id: `chem${seg}_${ofs}`, klass, seg });
-                //return `<svg class="svg ${klass}" id="chem${seg}_${ofs}"></svg>`;
-                return `<canvas class="svg ${klass}" id="chem${seg}_${ofs}"></canvas>`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                chems.push({ smiles, id: `chem${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<canvas class="svg ${cleanklass}" id="chem${seg}_${ofs}"></canvas>`;
             })
             .replace(/@chemsearch{([^€]+?)}( happy)?/g, (_0, smiles, happy) => {
                 ofs++;
@@ -637,34 +645,40 @@ export const renderAll = (repaint = false) => {
             })
             .replace(/@fplot( .*)?$([^€]+?)^$^/gm, (_, klass, plot) => {
                 ofs++;
-                plots.push({ plot, id: `graf${seg}_${ofs}`, klass, seg });
-                return `<div class="plots ${klass}" id="graf${seg}_${ofs}"></div>\n`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                plots.push({ plot, id: `graf${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="plots ${cleanklass}" id="graf${seg}_${ofs}"></div>\n`;
             })
             .replace(/@python( .*)?$([^€]+?)^$^/gm, (_, klass, pyt) => {
                 ofs++;
-                python.push({ pyt, id: `py${seg}_${ofs}`, klass, seg });
-                return `<div class="plots ${klass}" id="py${seg}_${ofs}"></div>\n`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                python.push({ pyt, id: `py${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="plots ${cleanklass}" id="py${seg}_${ofs}"></div>\n`;
             })
             .replace(/@ignore( .*)?$([^€]+?)^$^/gm, '')
             .replace(/@trig( .*)?$([^€]+?)^$^/gm, (_, klass, trig) => {
                 ofs++;
-                trigs.push({ trig, id: `trig${seg}_${ofs}`, klass, seg });
-                return `<div class="trig ${klass}" id="trig${seg}_${ofs}"></div>\n`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                trigs.push({ trig, id: `trig${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="trig ${cleanklass}" id="trig${seg}_${ofs}"></div>\n`;
             })
             .replace(/@eqset( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
                 ofs++;
-                eqsets.push({ eq, id: `eqs${seg}_${ofs}`, klass, seg });
-                return `<div class="equation qset ${klass}" id="eqs${seg}_${ofs}"></div>\n`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                eqsets.push({ eq, id: `eqs${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="equation qset ${cleanklass}" id="eqs${seg}_${ofs}"></div>\n`;
             })
             .replace(/@poldiv( .*)?$([^€]+?)^$^/gm, (_, klass, eq) => {
                 ofs++;
-                poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass, seg });
-                return `<div class="poldiv ${klass}" id="pold${seg}_${ofs}"></div>\n`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                poldivs.push({ eq, id: `pold${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="poldiv ${cleanklass}" id="pold${seg}_${ofs}"></div>\n`;
             })
             .replace(/@reg( .*)?$([^€]+?)^$^/gm, (_, klass = "linear", eq) => {
                 ofs++;
-                regress.push({ eq, id: `reg${seg}_${ofs}`, klass, seg });
-                return `<div class="regression ${klass}" id="reg${seg}_${ofs}"></div>\n`;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                regress.push({ eq, id: `reg${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="regression ${cleanklass}" id="reg${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@distribution( normal)?( hyper)?( binom)?( .*)?$([^€]+?)^$^/gm, (_, normal, hyper, binom, params, lines) => {
                 ofs++;
@@ -691,27 +705,31 @@ export const renderAll = (repaint = false) => {
             .replace(/^@math( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
                 maths.push({ math, id: `ma${seg}_${ofs}`, size, seg });
-                return `<div  class="math ${size}" id="ma${seg}_${ofs}"></div>\n`;
+                return `<div class="math ${size}" id="ma${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@cas( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
                 algebra.push({ math, id: `alg${seg}_${ofs}`, size, seg });
                 const outercss = size && size.includes("matte") ? size.replace("grid", "oger") : size;
-                return `<div  class="algebra ${outercss}" id="alg${seg}_${ofs}"></div>\n`;
+                return `<div class="algebra ${outercss}" id="alg${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@eq( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
                 ofs++;
                 eqs.push({ math, id: `eq${seg}_${ofs}`, size, seg });
-                return `<div  class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
+                return `<div class="equation ${size}" id="eq${seg}_${ofs}"></div>\n`;
             })
             .replace(/^@question( .*)?$/gm, (_, txt) => {
                 txt = txt ? txt : '';
-                return `<div class="oppgave ${txt}" title="${splitter}"></div>\n`;
+                const nospaces = txt.trimStart().trimEnd();
+                const start = nospaces.split(" ").slice(-1);
+                const reset = Number.isInteger(+start) ? `data-start="${start}" ` : '';
+                return `<div ${reset}class="oppgave ${txt}" title="${splitter}"></div>\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
-                const [type, start] = (format || "").trimStart().trimEnd().split(" ");
+                const nospaces = format.trimStart().trimEnd();
+                const [type, start] = (nospaces || "").split(" ");
                 const reset = Number.isInteger(+start) ? Number(start) : 0;
-                return `<div data-start="${reset}" class="format ${format}"></div>\n`;
+                return `<div data-start="${reset}" class="format ${nospaces}"></div>\n`;
             })
             .replace(/^@ans( .*)?$/gm, (_, ans) => {
                 return `<div><span class="answer"><span>${ans}</span></span></div>\n`;
@@ -721,9 +739,19 @@ export const renderAll = (repaint = false) => {
                 theDay.setDate(theDay.getDate() + Number(ofs || 0));
                 return `<span class="date">${theDay.toLocaleDateString('en-GB')}</span>`;
             })
+            .replace(/^@test( .*)?$([^€]+?)^$^/gm, (_, size, math) => {
+                const lines = (math || "").split("\n").filter(e => e.trimEnd().trimStart() !== "");
+                const header = lines[0];
+                const rest = lines.slice(1);
+                const leading = "Dato :,Tid :".split(",");
+                const txt = rest.map((e, i) => `<div ${leading[i] ? 'class="katex"' : ''}>${leading[i] || ""} ${e} </div>`);
+                const gridz = Math.min(rest.length,5);
+                return `<div class="prove rpad ${size}"><div class="senter grid2"><h2>${header}</h2></div>
+                <div class="grid${gridz} senter">${txt.join(' ')}</div></div>\n`;
+            })
             .replace(/^@source/gm, () => {
                 source = ed.value;
-                return `<div  class="source" id="source"></div>\n`;
+                return `<div class="source" id="source"></div>\n`;
             })
     }
 
@@ -754,7 +782,8 @@ export const renderAll = (repaint = false) => {
         // just rerender everything
         const preludeMath = `<div class="prelude" id="seg0">\n` + mdLatex(prepped(sections[0], 0)) + '</div>';
         const theSections = sections.slice(1);
-        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` + prepped('@question' + e, i + 1) + '\n</div>').join("");
+        const restMath = theSections.map((e, i) => `<div class="section" id="seg${i + 1}">\n` 
+              + prepped('@question' + e, i + 1) + '\n</div>').join("");
         mathView.innerHTML = mdLatex(preludeMath + restMath) + '<div id="last" class="gui"></div>';
         rerend = true;
     } else if (dirtyList.length === 1 && dirtyList[0] === oldRest.length) {
