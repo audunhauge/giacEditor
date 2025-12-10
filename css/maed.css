@@ -681,9 +681,21 @@ div.algebra>div>span:nth-child(4) {
     border-left: solid rgba(128, 128, 128, 0.164) 1px;
 }
 
+div.trig svg + div {
+    font-size: 0.6rem;
+    max-width: 30rem;
+}
+
 div.trig svg {
     border: solid rgba(128, 128, 128, 0.144) 1px;
     margin: 5px;
+    position: relative;
+}
+div.trig > div {
+    position: absolute;
+    left:5px;
+    top:5px;
+     margin-top: calc(2em + var(--spacing));
 }
 
 
@@ -1099,6 +1111,8 @@ div.section.fasit~div.section div.oppgave {
     border-bottom: 1px rgba(128, 128, 128, 0.295) solid;
     padding: 2ch;
 }
+
+
 
 #config div.inputDiv:last-child {
     border-bottom: none;

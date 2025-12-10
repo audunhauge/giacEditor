@@ -7,12 +7,16 @@ import { web, tg, currentLanguage, mdLatex, chemicals, chemnames, lochemnames } 
 // @ts-ignore
 import { code2svg, parse, eva, range, T } from './trig.js';
 // @ts-ignore
+// @ts-ignore
 import { toast, curry, chunk, shuffle, compose, colorscale1, colorscale2, colorscale3, nice, group } from './util.js';
 import {
     hyperC, hyper, binomial, binomialC,
     // @ts-ignore
     normal, normalC, fisher, fisherCrit
 } from './probability.js';
+
+
+
 
 
 // @ts-ignore
@@ -23,6 +27,7 @@ import { frekTable, statsTable, anovaTable, dataTable, transpose } from './table
 
 import AsciiMathParser from './ascii2tex.js';
 import { balance } from './balanceChem.js';
+
 
 const ascii = new AsciiMathParser();
 
@@ -398,7 +403,7 @@ export const renderPiece = (/** @type {string} */ id, /** @type {string} */ txt,
         optObj.data = fun.map(({ exp, lo, hi }) => ({ fn: exp, range: [lo, hi], graphType: "polyline" }));
         // @ts-ignore
         optObj.target = "#" + div.id;
-        if (! commands.includes("nogrid")) {
+        if (!commands.includes("nogrid")) {
             // @ts-ignore
             optObj.grid = true;
         }
@@ -420,7 +425,7 @@ export const renderSimple = (/** @type {string} */ line, { mode, klass, chemistr
                 const b = balance(line.slice(7));
                 if (b?.coffs && b?.eqn) {
                     const chex = katx(String('\\ce{' + b.eqn.toHtml(b.coffs) + '}'), mode);
-                    return `<div><span>${chex}</span><span class="comment">${comment}</span></div>`;            
+                    return `<div><span>${chex}</span><span class="comment">${comment}</span></div>`;
                 }
                 return '<div>No balance found</div>';
             } catch (e) {
@@ -657,16 +662,16 @@ export function renderMath(id, math, funks, size = "", just = false) {
     const orig = math.split('\n').filter((/** @type {string} */ e) => e != "");
     let lines = orig.slice();  // make a copy
     if (size.includes("random")) {
-        const [_, count, group=1] = (size.match(/random\(([0-9]+),?([0-9]+)?\)/) || []);
+        const [_, count, group = 1] = (size.match(/random\(([0-9]+),?([0-9]+)?\)/) || []);
         if (+group > 1) {
-            const temp = chunk(lines,+group);  // split into groups
+            const temp = chunk(lines, +group);  // split into groups
             lines = temp.map((/** @type {any[]} */ c) => shuffle(c)[0]);
             if (lines.length > +count) {
                 // more than requested - so shuffle and pick
-                lines = shuffle(lines).slice(0,+count);
+                lines = shuffle(lines).slice(0, +count);
             }
         } else {
-            lines = shuffle(lines).slice(0,+count)
+            lines = shuffle(lines).slice(0, +count)
         }
     }
     for (let i = 0; i < lines.length; i++) {
@@ -1202,15 +1207,15 @@ export function renderPlot(id, plot, funks, regpoints, klass = "") {
 const zip = (a, b) => a.map((val, i) => [val, b[i]]);
 
 
-const parseOptions = (/** @type {string} */ s,o={}) => {
+const parseOptions = (/** @type {string} */ s, o = {}) => {
     const parts = s.trim().split(/\s+/);
-    const oo = Object.assign({},o);
+    const oo = Object.assign({}, o);
     const keys = Object.keys(o);
     // @ts-ignore
     const main = keys.filter(e => o[e]);
     // @ts-ignore
     const secunda = keys.filter(e => o[e] === undefined);
-    const pairs = zip(main,secunda);
+    const pairs = zip(main, secunda);
     for (const part of parts) {
         if (part === '') continue;
         if (part.includes('=')) {
@@ -1219,25 +1224,25 @@ const parseOptions = (/** @type {string} */ s,o={}) => {
             oo[key] = Number(val);
         } else if (part.includes(',')) {
             const [a, b] = part.split(',');
-            for (const [x,y] of pairs) {
+            for (const [x, y] of pairs) {
                 // @ts-ignore
                 if (oo[x] !== o[x] || oo[y] !== undefined) continue;
                 // @ts-ignore
-                oo[x]=a; oo[y]=b; break;
+                oo[x] = a; oo[y] = b; break;
             }
         } else {
             for (const x of main) {
                 // @ts-ignore
-                if (oo[x] !== o[x] ) continue;
+                if (oo[x] !== o[x]) continue;
                 // @ts-ignore
-                oo[x]=part; break;
+                oo[x] = part; break;
             }
         }
     }
     // copy primary to secondary if undefined
-    for (const [x,y] of pairs) {
-       // @ts-ignore
-       if (oo[y] === undefined) oo[y] = oo[x];
+    for (const [x, y] of pairs) {
+        // @ts-ignore
+        if (oo[y] === undefined) oo[y] = oo[x];
     }
     return oo;
 }
@@ -1261,13 +1266,13 @@ export function renderTrig(id, trig, klass = "") {
     const y = -wy * y0 / +hy;
     const lines = parsed.split('\n').filter(e => e != "");
     T.init();
-    const svg = code2svg(lines, wx, hx, wy, hy);
+    const svg = code2svg(id,lines, wx, hx, wy, hy);
     parent.innerHTML = `<svg id="${id}" width="${wx}" viewBox="${x} ${y}  ${wx} ${wy}"> 
-      <g transform="scale(${sx})">
+      <g class="inner" transform="scale(${sx})">
         ${svg}
       </g>
-    </svg>`;
-    T.renderAfter();
+    </svg><div></div>`;
+    T.renderAfter(id);
     // x-pos of some texts adjusted for textlength after render
 }
 
@@ -1393,6 +1398,15 @@ function _plot(f, optobj, color, i) {
     }
 }
 
-
+/**
+ * @param {any} base64
+ * @param {any} id
+ * @param {number} seg
+ * @param {string} klass
+ */
+export function renderLine(base64, id, seg, klass) {
+    // init();
+    return;
+}
 
 

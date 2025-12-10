@@ -22,6 +22,10 @@
  * tri2svg(trib)
  */
 
+import { init, decodeList, fitBezierPath, svgPathFromBeziers } from './bezier.js';
+import { qs, $, create } from './util.js';
+import { makeLatex } from './render.js'
+
 const graphcolor = "black blue green red #a05 #19d #5c7 #e65 #a2f #e80 #d0b #b87 #0ba".split(" ");
 
 const SIN = (/** @type {number} */ x) => Math.sin(Math.PI * x / 180);
@@ -33,22 +37,29 @@ const nice = x => {
     return x.toFixed(2);
 };
 
+const near = x => {
+    if (x % 1 === 0) return String(x);
+    return x.toFixed(1);
+};
+
+
+
 // used for labeling tickmarks
 const sp = n => {
     if (Number.isInteger(10 * n)) return n.toFixed(1);
     return n.toFixed(2)
 }
 
-const fx = (x, size) => {
+export const fx = (x, size) => {
     let wx = size.w * x / size.s;
     // clean up for use as coordinates
-    return nice(wx);
+    return near(wx);
 };
 
-const fy = (y, size) => {
+export const fy = (y, size) => {
     let hy = size.wy - size.wy * y / size.sy;
     // clean up for use as coordinates
-    return nice(hy);
+    return near(hy);
 };
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
@@ -212,14 +223,30 @@ const svgText = (x, y, s, id, z) => {
 
 var gini = 0;
 
+// translate a list of points by a vector/point p,
+const translate = (pts,p) => {
+     const q = {x:+fx(p.x,T.size),y:+fy(p.y,T.size)};
+     const qs = pts.map(p => ( {x:p.x+q.x , y:p.y+q.y} ) );
+     return qs;
+};
+
+// scale a list of points by a factor
+const rescale = (pts, s) => {
+    const qs = pts.map(p => ( {x:p.x*s , y:p.y*s}  ) )
+    return qs;
+}
+
+
 export class T {
     static size = { w: 300, wy: 300, s: 8, sy: 8, c: "blue" };
 
     static aftereffects = { x: ["ole"], y: ["ole"] };
+    static rubber = [];  // place latex over given positions
+    static bezrend = null;
 
-    static init = () => T.aftereffects = { x: [], y: [] };
+    static init = () => { T.rubber = []; T.aftereffects = { x: [], y: [] } };
 
-    static renderAfter = () => {
+    static renderAfter = (svgid) => {
         // a list of element-ids that need to
         // be shifted width of text to the left
         // used by axis to set label on xaxis
@@ -230,15 +257,34 @@ export class T {
             const w = bb?.width ?? 0;
             elm?.setAttribute("x", String(+x - w - 2));
         })
-        /*
-        this.aftereffects.y.forEach(e => {
-            const elm = document.getElementById(e);
-            const path = document.querySelector("#"+e+" textPath")
-            const bb = measure(elm);
-            const h = bb?.height ?? 0;
-            path?.setAttribute("startOffset",String(+size.wy-h-4));
+        const svg = $(svgid);
+        this.rubber.forEach(e => {
+            const { div, id } = e;
+            const circ = $(id)
+            const x = circ?.getAttribute("cx") ?? 0;
+            const y = circ?.getAttribute("cy") ?? 0;
+            const px = +x - T.size.x * T.size.w / T.size.s;
+            const py = +y + T.size.y * T.size.wy / T.size.sy;
+            svg.append(div);
+            div.style.top = py + "px";
+            div.style.left = px + "px"
         })
-        */
+        if (this.bezrend) {
+            init(this.bezrend);
+        }
+    }
+
+    // creates a div containing latex and places over svg element
+    static latex = (p, s) => {
+        const size = Object.assign({}, T.size,);
+        const idx = T.rubber.length;
+        const id = 'latex' + idx;
+        const exp = String(s).replaceAll("**", "^");  // reverse ^ => ** => ^
+        const txt = makeLatex(exp, { mode: false, klass: "" });
+        const div = create('div');
+        div.innerHTML = txt;
+        T.rubber.push({ div, id });
+        return `<circle id="${id}" cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="0.1" fill="#0000"/>`;
     }
 
     static origin = (x, y) => { T.size.x = x; T.size.y = y };
@@ -295,6 +341,7 @@ export class T {
         return markedline(p, q, cc)
     }
 
+    // draws a quad bez  two points (start,end) and two controlls (points)
     static bez = (p, q, r, t, s) => {
         // const size = s || T.size;
         const size = Object.assign({}, T.size, s);
@@ -307,6 +354,143 @@ export class T {
                         stroke-width="${strokeWidth}"
                         stroke="${color}"  fill="none" />`;
         return b;
+    }
+
+    static bezz = (ps, s) => {
+        const size = Object.assign({}, T.size, s);
+        const color = size.c || "blue";
+        const strokeWidth = size.r || 1;
+        const path = svgPathFromBeziers(ps);
+        const b = `<path d="${path}"
+                        stroke-width="${strokeWidth}"
+                        stroke="${color}"  fill="none" />`;
+        return b;
+
+    }
+
+    static shape = (sh,p,s) => {
+        const siz = s.z || 1;
+        const qa = sh.map(lis => rescale(lis,siz));
+        const qz = qa.map(lis => translate(lis,p));
+        const pz = qz.map(q => T.bezz(fitBezierPath(q),s)).join(" ");
+        return pz;
+    }
+
+    static draw = (base64, s) => {
+        const size = Object.assign({}, T.size, s);
+        const svg = size.id;
+        T.bezrend = svg;
+        return '';
+        /*
+        const color = size.c || "blue";
+        const strokeWidth = size.r || 1;
+        const curves = decodeBeziers(base64);
+        if (!curves.length) return '';
+        let d = `M ${fx(curves[0].p0.x, size)} ${fy(curves[0].p0.y, size)}`;
+        for (const c of curves)
+            d += ` C ${fx(c.c1.x, size)} ${fy(c.c1.y, size)}, ${fx(c.c2.x, size)} ${fy(c.c2.y, size)}, ${fx(c.p3.x, size)} ${fy(c.p3.y, size)}`;
+        return '<path d="' + d + `" stroke-width="${strokeWidth}" stroke="${color}"  fill="none" />`;
+        */
+    }
+
+
+
+
+    /**
+     * Given an array of points, return an SVG path (cubic Beziers) that
+     * interpolates all points smoothly.
+     * 
+     * points: [{x, y}, ...]  OR  [[x,y], ...]
+     * returns: string for `d` attribute of <path>
+     * @param {any[]} points
+     */
+    static bezpath = (points, s) => {
+        const size = Object.assign({}, T.size, s);
+        const color = size.c || "blue";
+        const strokeWidth = size.r || 1;
+        if (!points || points.length === 0) return '';
+        // normalize input to objects {x,y}
+        const pts = points.map(p => Array.isArray(p) ? { x: p[0], y: p[1] } : { x: p.x, y: p.y });
+        const n = pts.length - 1;
+        if (n === 0) {
+            return `M ${fx(pts[0].x, size)} ${fy(pts[0].y, size)}`;
+        }
+        if (n === 1) {
+            // Straight single cubic: control points one-third and two-thirds along line
+            const c1 = { x: (2 * pts[0].x + pts[1].x) / 3, y: (2 * pts[0].y + pts[1].y) / 3 };
+            const c2 = { x: (2 * pts[1].x + pts[0].x) / 3, y: (2 * pts[1].y + pts[0].y) / 3 };
+            return `M ${pts[0].x} ${pts[0].y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${pts[1].x} ${pts[1].y}`;
+        }
+
+        // Solve for first control points (array of points)
+        // Using the standard tridiagonal solver approach (see "A Primer on Bézier Curves")
+        const rhsX = new Array(n);
+        const rhsY = new Array(n);
+
+        // Set up right-hand side
+        rhsX[0] = pts[0].x + 2 * pts[1].x;
+        rhsY[0] = pts[0].y + 2 * pts[1].y;
+        for (let i = 1; i < n - 1; i++) {
+            rhsX[i] = 4 * pts[i].x + 2 * pts[i + 1].x;
+            rhsY[i] = 4 * pts[i].y + 2 * pts[i + 1].y;
+        }
+        rhsX[n - 1] = (8 * pts[n - 1].x + pts[n].x) / 2;
+        rhsY[n - 1] = (8 * pts[n - 1].y + pts[n].y) / 2;
+
+        // Solve tridiagonal system
+        /**
+           * @param {any[]} rhs
+           */
+        function solveTridiagonal(rhs) {
+            const x = new Array(n);
+            const tmp = new Array(n);
+            let b = 2.0;
+            x[0] = rhs[0] / b;
+            // forward sweep
+            for (let i = 1; i < n; i++) {
+                tmp[i] = 1.0 / b;
+                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
+                x[i] = (rhs[i] - x[i - 1]) / b;
+            }
+            // back substitution
+            for (let i = n - 2; i >= 0; --i) {
+                x[i] -= tmp[i + 1] * x[i + 1];
+            }
+            return x;
+        }
+
+        const xFirst = solveTridiagonal(rhsX);
+        const yFirst = solveTridiagonal(rhsY);
+
+        // Build control points arrays
+        const firstControl = new Array(n);
+        const secondControl = new Array(n);
+
+        for (let i = 0; i < n; i++) {
+            firstControl[i] = { x: xFirst[i], y: yFirst[i] };
+            if (i < n - 1) {
+                secondControl[i] = {
+                    x: 2 * pts[i + 1].x - xFirst[i + 1],
+                    y: 2 * pts[i + 1].y - yFirst[i + 1]
+                };
+            } else {
+                secondControl[i] = {
+                    x: (xFirst[n - 1] + pts[n].x) / 2,
+                    y: (yFirst[n - 1] + pts[n].y) / 2
+                };
+            }
+        }
+
+        // Build SVG path string
+        let d = `M ${fx(pts[0].x, size)} ${fy(pts[0].y, size)}`;
+        for (let i = 0; i < n; i++) {
+            const c1 = firstControl[i];
+            const c2 = secondControl[i];
+            const p = pts[i + 1];
+            d += ` C ${fx(c1.x, size)} ${fy(c1.y, size)}, ${fx(c2.x, size)} ${fy(c2.y, size)}, ${fx(p.x, size)} ${fy(p.y, size)}`;
+        }
+        return `<path d="${d}"  stroke-width="${strokeWidth}"
+                        stroke="${color}"  fill="none"  />`;
     }
 
     // assumes a trig xxx 12
@@ -363,7 +547,7 @@ export class T {
             };
             return s + seg(p, q, cc)
         }
-        const pointline = points.map((s,i) => {
+        const pointline = points.map((s, i) => {
             cc.c = graphcolor[i % graphcolor.length];
             r = null;
             return s.map(p => {
@@ -917,12 +1101,15 @@ const { sqrt, sin, cos, tan, asin, atan2, acos, atan, PI: π, floor,
 } = Math;
 
 
-const { circle, line, plot, bez, square, text, dot, dots, tri2svg, tri, plots, legend, label,
+const { circle, line, plot, bez, bezz, square, text, dot, dots, tri2svg, tri, plots,
+    legend, label, bezpath, draw, latex, shape,
     origin, size, grid, axis, xaxis, yaxis, markedline, vec } = T;
 
 const mathEnvironment = {
-    sinh, cosh, exp, tanh, asinh, acosh, atanh, pow,
-    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, plot, pt, grid, axis, xaxis, yaxis, plots, legend, label,
+    sinh, cosh, exp, tanh, asinh, acosh, atanh, pow, bezpath, draw, latex,
+    decodeList, fitBezierPath, svgPathFromBeziers, shape,
+    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, 
+    plot, pt, grid, axis, xaxis, yaxis, plots, legend, label, bezz,
     circle, line, bez, square, text, dot, dots, tri2svg, tri, origin, size, markedline, vec,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log, floor, round,
     sin, cos, tan, asin, atan2, acos, atan, π,
@@ -985,12 +1172,12 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
  * 
  * @param {array} kode lines of code to evaluate
  */
-export const code2svg = (kode, w = 400, s = 8, wy = 400, sy = 8) => {
+export const code2svg = (id, kode, w = 400, s = 8, wy = 400, sy = 8) => {
     const variables = { SVG: "" };
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .split("").forEach(e => variables[e] = 0);
     const r = 40 * s / w;  // default font size
-    T.size = { w, s, wy, sy, c: "blue", r };
+    T.size = { id, w, s, wy, sy, c: "blue", r };
     gini = 0;
     mathEnvironment.size = T.size;
     Object.assign(variables, mathEnvironment);
@@ -1044,5 +1231,21 @@ let movePoints = false;
             movePoints = true;
         }
     }
+}
+*/
+
+/*
+export const svgPathFromBeziers = (curves, s) => {
+    const size = Object.assign({}, T.size, s);
+    const color = size.c || "blue";
+    const strokeWidth = size.r || 1;
+    if (!curves.length) return '';
+    let d = `M ${fx(curves[0].p0.x, size)} ${fy(curves[0].p0.y, size)}`;
+    for (const c of curves) {
+        if (Number.isFinite(c.c1.x)) {
+            d += ` C ${fx(c.c1.x, size)} ${fy(c.c1.y, size)}, ${fx(c.c2.x, size)} ${fy(c.c2.y, size)}, ${fx(c.p3.x, size)} ${fy(c.p3.y, size)}`;
+        }
+    }
+    return '<path d="' + d + `" stroke-width="${strokeWidth}" stroke="${color}"  fill="none" />`;
 }
 */

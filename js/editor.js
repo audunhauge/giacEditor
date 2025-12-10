@@ -6,7 +6,7 @@ import {
 } from './Minos.js';
 
 import {
-    renderAlgebra, renderPoldiv, renderEqnSet, renderPy, giaEval,
+    renderAlgebra, renderPoldiv, renderEqnSet, renderPy, giaEval, renderLine,
     makeLatex, renderSigram, renderPiece, renderChem, renderCSearch,
     renderEquation, renderMath, renderPlot, renderHint, renderTrig, renderDist, renderTable
 } from './render.js';
@@ -611,6 +611,7 @@ export const renderAll = (repaint = false) => {
     const algebra = [];
     const eqsets = [];
     const trigs = [];
+    const lines = [];
     const piece = [];
     const python = [];
     const tables = [];
@@ -637,6 +638,12 @@ export const renderAll = (repaint = false) => {
                 const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
                 chems.push({ smiles, id: `chem${seg}_${ofs}`, klass:cleanklass, seg });
                 return `<canvas class="svg ${cleanklass}" id="chem${seg}_${ofs}"></canvas>`;
+            })
+            .replace(/@draw{'([^¢]+?)'}( .*)?/g, (_, base64, klass) => {
+                ofs++;
+                const cleanklass = (klass || "").trimStart().trimEnd().replaceAll('  ',' ');
+                lines.push({ base64, id: `trig${seg}_${ofs}`, klass:cleanklass, seg });
+                return `<div class="draw ${cleanklass}" id="trig${seg}_${ofs}"></div>\n`;
             })
             .replace(/@chemsearch{([^€]+?)}( happy)?/g, (_0, smiles, happy) => {
                 ofs++;
@@ -743,8 +750,7 @@ export const renderAll = (repaint = false) => {
                 const lines = (math || "").split("\n").filter(e => e.trimEnd().trimStart() !== "");
                 const header = lines[0];
                 const rest = lines.slice(1);
-                const leading = "Dato :,Tid :".split(",");
-                const txt = rest.map((e, i) => `<div ${leading[i] ? 'class="katex"' : ''}>${leading[i] || ""} ${e} </div>`);
+                const txt = rest.map((e, i) => `<div>${e} </div>`);
                 const gridz = Math.min(rest.length,5);
                 return `<div class="prove rpad ${size}"><div class="senter grid2"><h2>${header}</h2></div>
                 <div class="grid${gridz} senter">${txt.join(' ')}</div></div>\n`;
@@ -930,6 +936,10 @@ export const renderAll = (repaint = false) => {
         if (rerend || dirtyList.includes(seg))
             renderChem(id, smiles, klass);
         //scrollit(id);
+    });
+    lines.forEach(({ base64, id, seg, klass }) => {
+        if (rerend || dirtyList.includes(seg))
+            renderLine(base64,id,seg,klass);
     });
     chemsearch.forEach(({ smiles, id, seg, happy }) => {
         if (rerend || dirtyList.includes(seg))
