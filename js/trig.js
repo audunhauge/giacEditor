@@ -368,7 +368,7 @@ export class T {
 
     }
 
-    static shape = (sh,p,s) => {
+    static shape = (p,sh,s={}) => {
         const siz = s.z || 1;
         const qa = sh.map(lis => rescale(lis,siz));
         const qz = qa.map(lis => translate(lis,p));
@@ -1154,7 +1154,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^trekant/gm, 'triangle')
     .replace(/([ =(])func\((.+?)\)$/gm, (_, p, u) => `${p} (t => {x=t; return ${u}} )`)
     .replace(/([a-z]):=(.+?)$/gm, (_, p, u) => `${p}= t => {x=t; return ${u}} `)
-    .replace(/([ =(])xy\((.+?),(.+?)\)/gm, (_, p, u, v) => `${p} (t => pt(${u},${v}) )`)
+    .replace(/([ =(])xy\((.+?),(.+?)\)$/gm, (_, p, u, v) => `${p} (t => pt(${u},${v}) )`)
     .replace(/^triangle\((.+),(.+),(.+)\)$/gm, (_, p, q, r) => `line(${p},${q})\nline(${q},${r})\nline(${p},${r})`)
     .replace(/^([a-zA-Z])=\((.+),(.+)\)$/gm, (_, p, u, v) => `${p}=new Point(${u},${v})`)
     .replace(/^([a-zA-Z])=([a-zA-Z])\s*\+\s*\[(.+),(.+)\]$/gm, (_, p, q, u, v) => `${p}=${q}.add(new Point(${u},${v}))`)
