@@ -26,7 +26,13 @@ import { init, decodeList, fitBezierPath, svgPathFromBeziers } from './bezier.js
 import { qs, $, create } from './util.js';
 import { makeLatex } from './render.js'
 
+const objzip = (a,b) => Object.fromEntries(a.map((k, i) => [k, b[i]]));
+
 const graphcolor = "black blue green red #a05 #19d #5c7 #e65 #a2f #e80 #d0b #b87 #0ba".split(" ");
+
+//const colornames = { r:"red",g:"green",b:"blue",a:"#a05",b:"#19d",c:"#5c7",d:"#e65",e:"#a2f"};
+
+const colornames = objzip("abgrcdefhijkl".split(''),graphcolor);
 
 const SIN = (/** @type {number} */ x) => Math.sin(Math.PI * x / 180);
 const COS = (/** @type {number} */ x) => Math.cos(Math.PI * x / 180);
@@ -263,10 +269,11 @@ export class T {
             const circ = $(id)
             const x = circ?.getAttribute("cx") ?? 0;
             const y = circ?.getAttribute("cy") ?? 0;
-            const px = +x - T.size.x * T.size.w / T.size.s;
-            const py = +y + T.size.y * T.size.wy / T.size.sy;
+            const px = +x - (T.size.x ?? 0) * T.size.w / T.size.s;
+            const py = +y + (T.size.y ?? 0) * T.size.wy / T.size.sy;
             svg.append(div);
-            div.style.top = py + "px";
+            const h = div.getBoundingClientRect().height;
+            div.style.top = (py -  2*h) + "px";
             div.style.left = px + "px"
         })
         if (this.bezrend) {
@@ -275,14 +282,18 @@ export class T {
     }
 
     // creates a div containing latex and places over svg element
-    static latex = (p, s) => {
-        const size = Object.assign({}, T.size,);
+    static latex = (p, latex,s) => {
+        const size = Object.assign({}, T.size,s);
+        const fill = size.c ?? "black";
+        const r = size.r ?? 0.1;
         const idx = T.rubber.length;
         const id = 'latex' + idx;
-        const exp = String(s).replaceAll("**", "^");  // reverse ^ => ** => ^
+        const exp = String(latex).replaceAll("**", "^");  // reverse ^ => ** => ^
         const txt = makeLatex(exp, { mode: false, klass: "" });
         const div = create('div');
         div.innerHTML = txt;
+        div.style.fontSize = r + "rem";
+        div.style.color = fill;
         T.rubber.push({ div, id });
         return `<circle id="${id}" cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="0.1" fill="#0000"/>`;
     }
@@ -298,8 +309,8 @@ export class T {
     static line = (p, q, s) => {
         //const size = s || T.size;
         const size = Object.assign({}, T.size, s);
-        let color = size.c || "blue";
-        let r = size.r || 1;
+        const color = size.c ?? "blue";
+        const r = size.r ?? 1;
         return `<line x1="${fx(p.x, size)}" y1="${fy(p.y, size)}" stroke-width="${r}" x2="${fx(q.x, size)}" y2="${fy(q.y, size)}"   stroke="${color}" />`;
     }
 
@@ -740,9 +751,9 @@ export class T {
         const percent = clamp(100 * scale, 10, 900);
         const color = size.c || "black";
         const fz = `font-size="${percent}%"`;
-        const sofs = size.o || 25;
-        const dy = size.dy || -5;
-        const dx = size.dx || 0;
+        const sofs = size.o ?? 1;
+        const dy = size.dy ?? -5;
+        const dx = size.dx ?? 0;
         return `<path id="mm${now}" d="${path}"  stroke-opacity="0.0" />
         <text ${fz} ${id}><textPath x="${p.x}" y="${p.y}" fill="${color}"
          startOffset="${sofs}%" href="#mm${now}">
@@ -1135,6 +1146,9 @@ export const eva = (exp0, variables) => {
     return v;
 }
 
+const nakedColor = txt => colornames[txt] ?? txt
+
+
 
 /**
  * Parses code for constructs
@@ -1152,6 +1166,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^tekst/gm, 'text')
     .replace(/^sirkel/gm, 'circle')
     .replace(/^trekant/gm, 'triangle')
+    .replace(/({[^}]*?)c:([a-z]+)([,}])/gm, (_, p, u,v) => `${p}c:"${nakedColor(u)}"${v}`)
     .replace(/([ =(])func\((.+?)\)$/gm, (_, p, u) => `${p} (t => {x=t; return ${u}} )`)
     .replace(/([a-z]):=(.+?)$/gm, (_, p, u) => `${p}= t => {x=t; return ${u}} `)
     .replace(/([ =(])xy\((.+?),(.+?)\)$/gm, (_, p, u, v) => `${p} (t => pt(${u},${v}) )`)

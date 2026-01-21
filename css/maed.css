@@ -681,6 +681,10 @@ div.algebra>div>span:nth-child(4) {
     border-left: solid rgba(128, 128, 128, 0.164) 1px;
 }
 
+div.trig {
+    position: relative;
+}
+
 div.trig svg + div {
     font-size: 0.6rem;
     max-width: 30rem;
