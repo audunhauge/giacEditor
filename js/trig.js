@@ -283,11 +283,12 @@ export class T {
 
     // creates a div containing latex and places over svg element
     static latex = (p, latex,s) => {
+        const ff = String(Math.random()).slice(2,7);
         const size = Object.assign({}, T.size,s);
         const fill = size.c ?? "black";
         const r = size.r ?? 0.1;
         const idx = T.rubber.length;
-        const id = 'latex' + idx;
+        const id = 'latex' + idx + ff;
         const exp = String(latex).replaceAll("**", "^");  // reverse ^ => ** => ^
         const txt = makeLatex(exp, { mode: false, klass: "" });
         const div = create('div');
