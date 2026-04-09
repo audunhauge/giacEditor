@@ -644,13 +644,14 @@ export class T {
         }
         const size = Object.assign({ x: 0, y: 0 }, T.size, cc);
         const y = +size.y
-        const wy = +size.sy
+        const wmin = Math.min(+size.sy,+size.s);
+        const wy = +size.sy;
         const color = size.c ?? "gray";
         const xbase = size.xbase ?? 0;
         const ybase = size.ybase ?? 0;
-        let m = Math.min(0.75, 40 * Math.min(size.s / 450 * size.w / 450, size.sy / 450 * size.wy / 450));  // font size
+        let m = Math.min(0.75, 40 * size.sy / 450 * size.wy / 450);  // font size
         m = size.rt ? size.rt : m;
-        const oy = 0.1 * wy / 6;
+        const oy = 0.1 * wmin / 6;
         let names = '';
         if (size.namey) {
             const name = size.namey;
@@ -684,11 +685,12 @@ export class T {
         const size = Object.assign({ x: 0, y: 0 }, T.size, cc);
         const x = +size.x
         const w = +size.s
+        const wmin = Math.min(+size.sy,+size.s);
         const wy = +size.sy
         const color = size.c ?? "gray";
         const xbase = size.xbase ?? 0;
-        let m = Math.min(0.75, 40 * Math.min(size.s / 450 * size.w / 450, size.sy / 450 * size.wy / 450));  // font size
-        m = size.rt ? size.rt : m;
+        let mm = Math.min(0.75, 40 * Math.min(size.s / 450 * size.w / 450, size.sy / 450 * size.wy / 450));  // font size
+        const m = size.rt ? size.rt : 0.75;
         const oy = 0.1 * wy / 6;
         let names = '';
         if (size.namex) {
