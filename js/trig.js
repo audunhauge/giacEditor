@@ -1,4 +1,4 @@
-// @ts-che ck
+// @ts-check
 
 /**
  * To draw geometric shapes with svg, triangles,circles,squares and lines
@@ -22,11 +22,15 @@
  * tri2svg(trib)
  */
 
-import { init, decodeList, fitBezierPath, svgPathFromBeziers } from './bezier.js';
-import { qs, $, create } from './util.js';
+import { init, decodeList, fitBezierPath, svgRelBez, svgPathFromBeziers } from './bezier.js';
+import { qs, $, create, curry } from './util.js';
 import { makeLatex } from './render.js'
 
+// https://www.researchgate.net/figure/The-26-color-qualitative-alphabet-palette-derived-from-Polychrome-36_fig3_334894331
+// colors for the alphabet
 const objzip = (a,b) => Object.fromEntries(a.map((k, i) => [k, b[i]]));
+
+const alphabet = "#b1f #00f #871 #83c #666 #286 #0f0 "
 
 const graphcolor = "black blue green red #a05 #19d #5c7 #e65 #a2f #e80 #d0b #b87 #0ba".split(" ");
 
@@ -303,8 +307,8 @@ export class T {
 
     static circle = (p, r, s) => {
         const size = Object.assign({}, T.size, s); // s || T.size;
-        let color = T.size.c || "blue";
-        return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${fx(r, size)}" stroke="${color}" fill="none"/>`;
+        let color = size.c || "blue";
+        return `<circle cx="${fx(p.x, size)}" cy="${fy(p.y, size)}" r="${fx(r, size)}" stroke="${color}"  stroke-width="${size.r}" fill="none"/>`;
     }
 
     static line = (p, q, s) => {
@@ -380,12 +384,107 @@ export class T {
 
     }
 
-    static shape = (p,sh,s={}) => {
-        const siz = s.z || 1;
-        const qa = sh.map(lis => rescale(lis,siz));
-        const qz = qa.map(lis => translate(lis,p));
-        const pz = qz.map(q => T.bezz(fitBezierPath(q),s)).join(" ");
-        return pz;
+    // assumes  p point, sh a list of points to draw as bezier, s=size options etc
+
+    static shapeCircles = (circleList,p,options) => {
+        const a = circleList.map(c => {
+            let {x,y,r,opt} = c;
+            const z = options.z;
+            x = x*z+p.x;
+            y = y*z+p.y;
+            const size = Object.assign(options, opt);
+            if (size.c) {
+                size.c = nakedColor(size.c);
+            }
+            return circle({x,y},r*z,size)
+        }).join("");
+        return a;
+    }
+
+    static shapeLines = (lineList,p,options) => {
+        const adj = [p.x,p.y,p.x,p.y];
+        const z = options.z || 1
+        const a = lineList.map(c => {
+            let [x1,y1,x2,y2] = c.map((e,i) => e*z + adj[i] );
+            return line({x:x1,y:y1},{x:x2,y:y2},options)
+        }).join("");
+        return a;
+    }
+
+     static shapeVects = (lineList,p,options) => {
+        const adj = [p.x,p.y,p.x,p.y];
+        const cc = Object.assign({}, T.size, { r: 1 }, options);
+        const z = options.z || 1
+        const a = lineList.map(c => {
+            let [x1,y1,x2,y2] = c.map((e,i) => e*z + adj[i] );
+            return vec({x:x1,y:y1},{x:x2,y:y2},cc);
+        }).join("");
+        return a;
+    }
+
+    static shapeSyms = (symlist,p,options) => {
+        const z = options.z || 1
+        const cc = Object.assign({}, T.size, { r: 1 }, options);
+        const a = symlist.map(c => {
+            let [x,y,t] = c;
+            const id = "shp" + String(Math.random()).slice(2, 8);
+            return svgText(fx(x*z+p.x,T.size),fy(y*z+p.y,T.size), t, id, cc);
+        }).join("");
+        return a;
+    }
+
+    static shapeRect = (rectList, p, options) => {
+        const size = Object.assign({}, T.size, options);
+        const z = options.z || 1
+        const sw = size.r || 1;
+        const a = rectList.map(rect => {
+            let { x, y, w, h, r, opt } = rect;
+            const c = nakedColor(opt.c) || size.c || "blue";
+            x = x * z + p.x;
+            y = y * z + p.y;
+            const points = [{ x, y }, { x: x + w * z, y }, { x: x + w * z, y: y + h * z }, { x, y: y + h * z }]
+                .map(e => fx(e.x, size) + "," + fy(e.y, size)).join(" ");
+            const trans = r ? `transform="rotate(${floor(90 * r)} ${fx(x,size)} ${fy(y,size)})"` : "";
+            return `<polygon points="${points}" ${trans} stroke-width="${sw}" stroke="${c}" fill="none" />`;
+        }).join("");
+        return a;
+    }
+
+    static shape = (...s) => {
+        const p = s.find(e => e instanceof Point) || pt(0, 0);
+        const sh = s.find(e => e.shape) || {};
+        const options = s.find(e => e.z) || { z: 10 };
+        const siz = options.z || 1;
+        const size = Object.assign({}, T.size, options);
+        let pz = [];
+        if (sh.bez) {
+            //const qa = sh.bez.map(lis => rescale(lis, siz));
+            //const qz = qa.map(lis => translate(lis, p));
+            
+            pz = sh.bez.map(q => {
+                const qa = q.map(e =>  ( { x:+fx(p.x+e.x*siz,size), y:+fy(p.y+e.y*siz,size) }) );
+                const bzp = fitBezierPath(qa);
+                
+                const pth = bezz(bzp, options);
+                return pth;
+            });
+        }
+        if (sh.syms) {
+            pz.push(this.shapeSyms(sh.syms, p, options));
+        }
+        if (sh.circles) {
+            pz.push(this.shapeCircles(sh.circles, p, options));
+        }
+        if (sh.lines) {
+            pz.push(this.shapeLines(sh.lines, p, options));
+        }
+        if (sh.vects) {
+            pz.push(this.shapeVects(sh.vects, p, options));
+        }
+         if (sh.sqrs) {
+            pz.push(this.shapeRect(sh.sqrs, p, options));
+        }
+        return pz.join(" ");
     }
 
     static draw = (base64, s) => {
@@ -1120,7 +1219,7 @@ const { circle, line, plot, bez, bezz, square, text, dot, dots, tri2svg, tri, pl
     origin, size, grid, axis, xaxis, yaxis, markedline, vec } = T;
 
 const mathEnvironment = {
-    sinh, cosh, exp, tanh, asinh, acosh, atanh, pow, bezpath, draw, latex,
+    sinh, cosh, exp, tanh, asinh, acosh, atanh, pow, bezpath, draw, latex, curry,
     decodeList, fitBezierPath, svgPathFromBeziers, shape,
     SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, 
     plot, pt, grid, axis, xaxis, yaxis, plots, legend, label, bezz,

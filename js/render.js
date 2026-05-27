@@ -477,6 +477,7 @@ export function renderAlgebra(id, txt, funks, size = "") {
     const [_, command] = (size.match(/command=([a-zø]+)/) || []);
     const mode = size.includes("large");
     const klass = size;
+    const plainCAS = size.includes("plain");
     const plotSizeW = Number(size.match(/\d+/)?.[0] || 200);
     const plotSizeH = plotSizeW * 0.6;
     const lines = txt.split('\n').filter(e => e != "");
@@ -516,15 +517,22 @@ export function renderAlgebra(id, txt, funks, size = "") {
             <span> := </span>
             <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
         } else {
-            if (isCAS) {
-                const rest = adjus.slice(prefix.length);  // rest = (x+2=0)
-                newMath[i] = '<span>' + renderSimple('"' + prefix + '"' + rest + '', { mode, klass }) + `</span>
-                <span>${gives}</span>
-                <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
-            } else {
-                newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
+            if (plainCAS) {
+                 newMath[i] = `<span>${line}</span>
               <span>${gives}</span>
               <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
+
+            } else {
+                if (isCAS) {
+                    const rest = adjus.slice(prefix.length);  // rest = (x+2=0)
+                    newMath[i] = '<span>' + renderSimple('"' + prefix + '"' + rest + '', { mode, klass }) + `</span>
+                <span>${gives}</span>
+                <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
+                } else {
+                    newMath[i] = `<span>${renderSimple(line, { mode, klass })}</span>
+              <span>${gives}</span>
+              <span>${katx(math, mode)}</span><span class="comment">${comment}</span>`;
+                }
             }
         }
     }

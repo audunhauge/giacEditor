@@ -99,9 +99,10 @@ function bezpath(points) {
 }
 
 
-// t in [0..31]
-const byt = t => t < 10 ? String.fromCharCode(t + 48) : String.fromCharCode(t + 55);
-const tyb = s => s > 58 ? s - 55 : s - 48;
+// t in [0..31]  
+const sfc = t => String.fromCharCode(t);
+const byt = t => t < 10 ? sfc(t + 48) : t > 35 ? sfc(t + 61) : sfc(t + 55);
+const tyb = s => s > 96 ? s - 61 : (s > 57 ? s - 55 : s - 48);
 // n in [0..1023]
 const encode = n => byt((n & 1023) >> 5) + byt(n & 31);
 const decode = s => {
@@ -113,27 +114,158 @@ const decode = s => {
 
 const decodeL = (list, s ) => {  // 1024 == 1
   const pts = [];
-  for (let i = 0; i < list.length; i += 4) {
-    const [a, b, c, d] = list.slice(i, i + 4).split('');
-    const p0 = { x: decode(a + b), y: decode(c + d) };
-    const q = { x: p0.x * s / 1024 , y: p0.y * s / 1024 }
-    pts.push(q);
+  //for (let i = 0; i < list.length; i += 4) {
+  //  const [a, b, c, d] = list.slice(i, i + 4).split('');
+  //  const p0 = { x: decode(a + b), y: decode(c + d) };
+  //  const q = { x: p0.x * s / 1024 , y: p0.y * s / 1024 }
+  //  pts.push(q);
+  //}
+  for (let i = 0; i < list.length; i += 2) {
+    const [a, b] = list.slice(i, i + 2).split('');
+    const p = { x: tyb(a.charCodeAt(0))*s/1024, y: tyb(b.charCodeAt(0))*s/1024 };
+    pts.push(p);
   }
   return pts;
 }
 
-export const decodeList = (list,p = { x: 0, y: 0 }, s = 1) => {
-  const lines = [];
-  list.split('z').forEach(l => {
-    lines.push(decodeL(l,p,s));
-  })
-  return lines;
+const decodeCirc = (list, s, opt ) => {  // 1024 == 1
+  const pts = [];
+  for (let i = 0; i < list.length; i += 3) {
+    const [x, y, r] = list.slice(i, i + 3).split('').map(e => tyb(e.charCodeAt(0))*s/1024);
+    const circ = { x,y,r,opt}
+    pts.push(circ);
+  }
+  return pts;
 }
 
+// draw a limited square
+const decodeSqrs = (list, s, opt) => {  // 1024 == 1
+  // if list length is mod 5 then assume xywhr  where r is rotation
+  // else just xywh
+  const pts = [];
+  if (list.length % 5 === 0) {
+    for (let i = 0; i < list.length; i += 5) {
+      let [x, y, w, h,r] = list.slice(i, i + 5).split('').map(e => tyb(e.charCodeAt(0)) * s / 1024);
+      const sqr = {x, y, w, h, r:r*1024/66, opt};
+      pts.push(sqr);
+    }
+  } else {
+    for (let i = 0; i < list.length; i += 4) {
+      const [x, y, w, h] = list.slice(i, i + 4).split('').map(e => tyb(e.charCodeAt(0)) * s / 1024);
+      const sqr = {x, y, w, h,r:0, opt};
+      pts.push(sqr);
+    }
+  }
+  return pts;
+}
+
+const decodeLine = (list, s , opt) => {  // 1024 == 1
+  const pts = [];
+  for (let i = 0; i < list.length; i += 4) {
+    const [x1, y1, x2, y2] = list.slice(i, i + 4).split('').map(e => tyb(e.charCodeAt(0))*s/1024);
+    const line = [x1,y1,x2,y2];
+    pts.push(line);
+  }
+  return pts;
+}
+
+const decodeSymb = (list, s , opt) => {  // 1024 == 1
+  const pts = [];
+  for (let i = 0; i < list.length; i += 3) {
+    const [x1, y1, t] = list.slice(i, i + 3).split('');
+    const x = tyb(x1.charCodeAt(0))*s/1024;
+    const y = tyb(y1.charCodeAt(0))*s/1024;
+    const symb = [x,y,t];
+    pts.push(symb);
+  }
+  return pts;
+}
+
+
+const decodeColors = (list) => {  
+  const [a,c] = list.slice(0,2);
+  return {r:tyb(a.charCodeAt(0))/16, c};  // color set by nakedColor in trig.js#shape
+}
+
+
+export const decodeList = (list, s = 1) => {
+  const shapeList = { shape: 1 };  // so that we can pick it out in jumbled param list
+  const bez = []; const lines = []; const circles = [];
+  const sqrs = []; const vects = []; const syms = [];
+  let mode = "~";  // bezier shape
+  let opt = {};
+  list.split(/([~°/#$&>])/).forEach(l => {
+    if ("~°/$#&>".includes(l) && l.length === 1) {
+      mode = l;
+    } else if (l !== "") {
+      switch (mode) {
+        case "~":  // bezier shapes
+          {
+            bez.push(decodeL(l, s, opt));
+            break;
+          }
+        case "°":  // circles
+          {
+            circles.push(decodeCirc(l, s, opt));
+            break;
+          }
+        case ">":  // vectors just as lines but marked with arrow
+          {
+            vects.push(decodeLine(l, s, opt));
+            break;
+          }
+        case "/":  // lines
+          {
+            lines.push(decodeLine(l, s, opt));
+            break;
+          }
+        case "&":  // symbols 
+          {
+            syms.push(decodeSymb(l, s, opt));
+            break;
+          }
+        case "$":  // color,linewidth
+          {
+            opt = decodeColors(l);
+            break;
+          }
+        case "#":  // squares
+          {
+            sqrs.push(decodeSqrs(l, s, opt));
+            break;
+          }
+
+      }
+    }
+  });
+  if (circles.length) {
+    shapeList.circles = circles.flatMap(e => e);
+  }
+  if (syms.length) {
+    shapeList.syms = syms.flatMap(e => e);
+  }
+  if (lines.length) {
+    shapeList.lines = lines.flatMap(e => e);
+  }
+  if (sqrs.length) {
+    shapeList.sqrs = sqrs.flatMap(e => e);
+  }
+  if (vects.length) {
+    shapeList.vects = vects.flatMap(e => e);
+  }
+  if (bez.length) {
+    shapeList.bez = bez;
+  }
+  return shapeList;
+}
+
+// assumes we draw in box 400x400, 0,0 bottom left corner
 const encodePoints = (ps, mi, ma) => {
-  const diff = ma - mi;
-  const sc = n => floor(n * 1023 / diff);
-  return ps.map(p => encode(sc(p.x - mi)) + encode(sc(p.y - mi))).join("");
+  //const diff = ma - mi;
+  const sc = n => floor(n * 62 / 400);
+  //return ps.map(p => encode(sc(p.x - mi)) + encode(sc(p.y - mi))).join("");
+  //const sc = n => floor(n * 61 / diff);
+  return ps.map(p => byt(sc(p.x)) + byt(sc(400-p.y))).join("");
 }
 
 
@@ -192,6 +324,17 @@ export function svgPathFromBeziers(curves) {
   let d = `M ${curves[0].p0.x} ${curves[0].p0.y}`;
   for (const c of curves)
     d += ` C ${c.c1.x} ${c.c1.y}, ${c.c2.x} ${c.c2.y}, ${c.p3.x} ${c.p3.y}`;
+  return d;
+}
+
+// curves + startingpoint
+export function svgRelBez(curves,p) {
+  if (!curves.length) return "";
+  let [x0,y0] = [p.x,p.y];
+  let d = `M ${x0 + curves[0].p0.x} ${y0 + curves[0].p0.y}`;
+  for (const c of curves) {
+    d += ` C ${c.c1.x+x0} ${c.c1.y+y0}, ${c.c2.x+x0} ${c.c2.y+y0}, ${c.p3.x+x0} ${c.p3.y+y0}`;
+  }
   return d;
 }
 
