@@ -13,6 +13,8 @@ import {
 
 import { renderReg } from './regression.js';
 
+import { code2svg } from './trig.js';
+
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
 
@@ -22,7 +24,9 @@ const { home, app, back, aktiv, help, info, newfile, gitter, conf,
     mathView, ed, examples, savedFiles, gitlist, sp, fs, pm }
     = thingsWithId();
 
-import { balance } from './balanceChem.js';
+// import { balance } from './balanceChem.js';
+
+import { easyPaint } from './easyPaint.js';
 
 import {
     saveFileButton, readFileButton, updateGist,
@@ -85,6 +89,15 @@ const enabled = () => {
     });
 }
 
+
+const makePaint = () => {
+    const divPaint = $("painter");
+    divPaint.innerHTML = "<h2>Simple Painter</h2>";
+    divPaint.classList.remove("hidden");
+    const box = create("div");
+    divPaint.append(box); 
+    easyPaint(divPaint);
+}
 
 const makeConfig = () => {
     const divConfig = $("config");
@@ -315,6 +328,7 @@ let gr = {};
 
 async function setup() {
     web.moveme = "Låst";
+    web.paint = "Painter";
     let chemgit = {};
     let helpgit = {};
     // check if we have query parameters
@@ -414,6 +428,10 @@ async function setup() {
     qs('[data-name="moveme"]').addEventListener("click", () => {
         moveme = !moveme;
         web.moveme = moveme ? "Flytt" : "Låst";
+    })
+
+     qs('[data-name="paint"]').addEventListener("click", () => {
+        makePaint();
     })
 
     {
@@ -586,8 +604,26 @@ const exapol = (funks, txt) => txt.replace(/\@\{([a-z()0-9]+)\}/gm, (_, a) => {
 });
 
 
+// replace @prelude ... with nothing
+// return remainder with €(name) replaced with computed values
+const ludo = text => {
+    let subst;
+    let ret = text.replace(/@prelude( .*)?$([^€]+?)^$^/gm, (_, klass, lude) => {
+        const lines = lude.split('\n').filter(e => e != "");
+        subst = code2svg("justanid", lines, 400, 8, 400, 8, true);
+        return '';
+    });
+    const exapol = (subst, txt) => txt.replace(/€\(([a-z0-9]+)\)/gm, (_, a) => {
+        if (subst && subst[a]) return subst[a];
+        return "Ø";
+    });
+    return exapol(subst,ret);
+}
+
 export const renderAll = (repaint = false) => {
-    const textWithSingleNewLineAtEnd = ed.value
+    const prepreLude = ed.value;
+    const nopreLude = ludo(prepreLude); 
+    const textWithSingleNewLineAtEnd = nopreLude
         .replace(/\n*$/g, '\n').replace(/^@fasit/gm, '@question fasit')
         .replace(/@lang ([a-z]+)/gm, '')
         .replace(/^\(\(( .*?)?(\[(-?\d+)[, ](-?\d+)\])?$/gm, (_, klass, _1, left, top) => {
@@ -924,6 +960,7 @@ export const renderAll = (repaint = false) => {
     });
     tables.forEach(({ name, type, lines, id, seg }) => {
         if (rerend || dirtyList.includes(seg)) {
+            // @ts-ignore
             renderTable(id, lines, type, name, regpoints);
         }
     });

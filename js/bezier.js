@@ -19,14 +19,15 @@ const decode = s => {
 }
 
 
-const decodeL = (list, s ) => {  // 1024 == 1
+const decodeL = (list, s, optin ) => {  // 1024 == 1
   const pts = [];
+  const opt = Object.assign({},optin);
   for (let i = 0; i < list.length; i += 2) {
     const [a, b] = list.slice(i, i + 2).split('');
     const p = { x: tyb(a.charCodeAt(0))*s/1024, y: tyb(b.charCodeAt(0))*s/1024 };
     pts.push(p);
   }
-  return pts;
+  return {pts,opt};
 }
 
 const decodeCirc = (list, s, optin ) => {  // 1024 == 1
@@ -121,8 +122,10 @@ const decodeSymb = (list, s, optin) => {  // 1024 == 1
 
 
 const decodeColors = (list) => {  
-  const [r,c,f,a] = list.split('');
-  return {r:tyb(r.charCodeAt(0))/10, c, f, a};  // color set by nakedColor in trig.js#shape
+  const [r,c,f,t0] = list.split('');
+  const t = t0 ? tyb(t0.charCodeAt(0)) / 61 : t0 ;
+  return {r:tyb(r.charCodeAt(0))/10, c, f, t};  // color set by nakedColor in trig.js#shape
+  // r pen width, c=color f=fill t=transparence t/61 (fill-opacity)
 }
 
 
@@ -141,7 +144,7 @@ export const figure = (list, s = 1) => {
       switch (mode) {
         case "~":  // bezier shapes
           {
-            bez.push(decodeL(l, s));
+            bez.push(decodeL(l, s, opt));
             break;
           }
         case "°":  // circles
@@ -278,11 +281,12 @@ export function fitBezierPath(points, tolerance = 0.01) {
 /// click and drag
 
 
-export function svgPathFromBeziers(curves) {
+export function svgPathFromBeziers(curves, close=false) {
   if (!curves.length) return "";
   let d = `M ${curves[0].p0.x} ${curves[0].p0.y}`;
   for (const c of curves)
     d += ` C ${c.c1.x} ${c.c1.y}, ${c.c2.x} ${c.c2.y}, ${c.p3.x} ${c.p3.y}`;
+  if (close) d += " Z";
   return d;
 }
 
@@ -371,6 +375,7 @@ function redraw() {
 export function init(id) {
   /** @type {object} */
   const svg = qs("#" + id + " svg");
+  if (svg === null) return;
   state.lines = [[]];
   state.idx = 0;
   state.svg = svg;

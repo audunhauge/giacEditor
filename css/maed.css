@@ -1099,7 +1099,49 @@ div.section.fasit~div.section div.oppgave {
     color: darkred;
 }
 
+#painter div.tools {
+    position: absolute;
+    left: 700px;
+    top:100px;
+}
 
+#innersvg {
+    margin:50px;
+    display: block;
+    width: 600px;
+    height: 600px;
+    border: solid green 1px;
+}
+
+#painter div.stats {
+    position: absolute;
+    top:80px;
+    left: 100px;
+}
+
+#painter div.tools span {
+    display: block;
+    margin: 1rem;
+    box-shadow: 5px 5px 5px black;
+    padding:0.7rem;
+    width: 5rem;
+    border: solid black 1px;
+    text-align: center;
+    border-radius: 5px;
+
+}
+
+#painter div.tools span:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+#easel {
+    width: 600px;
+    height: 600px;
+}
+
+#painter,
 #config {
     position: absolute;
     width: 100vw;
