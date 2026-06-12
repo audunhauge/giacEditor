@@ -35,6 +35,14 @@ export const easyPaint = (div) => {
                 if (!artwork.endsWith(b)) artwork += glyph[b];
                 state.count = 0;
                 break;
+            case BEZIER:
+                if (!artwork.endsWith(b)) artwork += glyph[b];
+                state.count = 0;
+                break;
+            case CIRCLE:
+                if (!artwork.endsWith(b)) artwork += glyph[b];
+                state.count = 0;
+                break;
 
         }
         if (mode !== b || artwork === "") artwork += glyph[b];
@@ -89,11 +97,12 @@ export const easyPaint = (div) => {
                     repaint = false
                 } else {
                     const q = pt( Math.floor(POS.x * 600 / 61), 600 - Math.floor(POS.y * 600 / 61) );
-                    const r = (state.p.sub(q)).length();
+                    const r = Math.floor((state.p.sub(q)).length());
                     artwork += alf[state.A.x] + alf[state.A.y];
-                    artwork += alf[POS.x] + alf[POS.y];
+                    artwork += alf[Math.floor(61 * r / 600)];
                     state.count = 0;
                     g.querySelectorAll("circle.line").forEach(el => el.remove());
+                    repaint = true;
                 }
                 break;
             case SQUARE:
@@ -113,6 +122,21 @@ export const easyPaint = (div) => {
                 }
                 break;
             case BEZIER:
+                if (state.count === 0) {
+                    state.A = { x: POS.x, y: POS.y };
+                    state.count = 1;
+                    const p = { x: Math.floor(state.A.x * 600 / 61), y: 600 - Math.floor(state.A.y * 600 / 61) };
+                    marker(p, g, "line");
+                    repaint = false
+                } else {
+                    if (state.count === 1) {
+                        artwork += alf[state.A.x] + alf[state.A.y];
+                    }
+                    artwork += alf[POS.x] + alf[POS.y];
+                    state.count = 2;
+                    g.querySelectorAll("circle.line").forEach(el => el.remove());
+                }
+                break;
                 break;
             case DOT:
                 break;
