@@ -28,7 +28,7 @@ import { makeLatex } from './render.js'
 
 // https://www.researchgate.net/figure/The-26-color-qualitative-alphabet-palette-derived-from-Polychrome-36_fig3_334894331
 // colors for the alphabet
-const objzip = (a,b) => Object.fromEntries(a.map((k, i) => [k, b[i]]));
+const objzip = (a, b) => Object.fromEntries(a.map((k, i) => [k, b[i]]));
 
 const alphabet = "#b1f #00f #871 #83c #666 #286 #0f0 #fff #e80 #b87 #0ba #a05".split(" ");
 
@@ -36,13 +36,16 @@ const graphcolor = "black blue green red #a05 #19d #5c7 #e65 #a2f #e80 #d0b #b87
 
 //const colornames = { r:"red",g:"green",b:"blue",a:"#a05",b:"#19d",c:"#5c7",d:"#e65",e:"#a2f"};
 
-export const colornames = objzip("abcdefghijkl".split(''),alphabet);
+export const colornames = objzip("abcdefghijkl".split(''), alphabet);
 colornames.r = "red";
+colornames.y = "yellow";
 colornames.t = "transparent";
 
-const SIN = (/** @type {number} */ x) => Math.sin(Math.PI * x / 180);
-const COS = (/** @type {number} */ x) => Math.cos(Math.PI * x / 180);
-const ASIN = (/** @type {number} */ x) => 180 * Math.asin(x) / Math.PI;
+export const SIN = (/** @type {number} */ x) => Math.sin(Math.PI * x / 180);
+export const COS = (/** @type {number} */ x) => Math.cos(Math.PI * x / 180);
+export const ASIN = (/** @type {number} */ x) => 180 * Math.asin(x) / Math.PI;
+export const ACOS = (/** @type {number} */ x) => 180 * Math.acos(x) / Math.PI;
+export const ATAN2 = (/** @type {number} */ x,/** @type {number} */ y) => 180 * Math.atan2(y, x) / Math.PI;
 
 const nice = x => {
     if (x % 1 === 0) return String(x);
@@ -218,8 +221,8 @@ const svgText = (x, y, s, id, z) => {
     const txt = String(s);
     const transform = size.transform ?? '';
     const r = Number(size.rt || size.r || 1);
-    const scale = r * 10 / size.s;
-    const percent = clamp(100 * scale, 10, 900);
+    const scale = r * 100 / size.s;
+    const percent = clamp(scale, 10, 900);
     const color = size.c || "black";
     const fz = `font-size="${percent.toFixed(2)}%"`;
     const sofs = size.o || 25;
@@ -236,15 +239,15 @@ const svgText = (x, y, s, id, z) => {
 var gini = 0;
 
 // translate a list of points by a vector/point p,
-const translate = (pts,p) => {
-     const q = {x:+fx(p.x,T.size),y:+fy(p.y,T.size)};
-     const qs = pts.map(p => ( {x:p.x+q.x , y:p.y+q.y} ) );
-     return qs;
+const translate = (pts, p) => {
+    const q = { x: +fx(p.x, T.size), y: +fy(p.y, T.size) };
+    const qs = pts.map(p => ({ x: p.x + q.x, y: p.y + q.y }));
+    return qs;
 };
 
 // scale a list of points by a factor
 const rescale = (pts, s) => {
-    const qs = pts.map(p => ( {x:p.x*s , y:p.y*s}  ) )
+    const qs = pts.map(p => ({ x: p.x * s, y: p.y * s }))
     return qs;
 }
 
@@ -279,7 +282,7 @@ export class T {
             const py = +y + (T.size.y ?? 0) * T.size.wy / T.size.sy;
             svg.append(div);
             const h = div.getBoundingClientRect().height;
-            div.style.top = (py -  2*h) + "px";
+            div.style.top = (py - 2 * h) + "px";
             div.style.left = px + "px"
         })
         if (this.bezrend) {
@@ -288,9 +291,9 @@ export class T {
     }
 
     // creates a div containing latex and places over svg element
-    static latex = (p, latex,s) => {
-        const ff = String(Math.random()).slice(2,7);
-        const size = Object.assign({}, T.size,s);
+    static latex = (p, latex, s) => {
+        const ff = String(Math.random()).slice(2, 7);
+        const size = Object.assign({}, T.size, s);
         const fill = size.c ?? "black";
         const r = size.r ?? 0.1;
         const idx = T.rubber.length;
@@ -383,50 +386,75 @@ export class T {
         const fillopacity = nice(size.t || 1);
         const strokeWidth = size.r || 1;
         const closed = size.closed;
-        const path = svgPathFromBeziers(ps,closed);
+        const path = svgPathFromBeziers(ps, closed);
         const b = `<path d="${path}"
                         stroke-width="${strokeWidth}"  fill-opacity="${fillopacity}"
                         stroke="${color}"  fill="${fill}" />`;
         return b;
-
     }
 
     // assumes  p point, sh a list of points to draw as bezier, s=size options etc
 
-    static shapeCircles = (circleList,p,options) => {
+    static shapeCircles = (circleList, p, options) => {
         const a = circleList.map(c => {
-            let {x,y,r,opt} = c;
+            let { x, y, r, opt } = c;
             const size = Object.assign({}, T.size, opt, options);
             const z = size.z;
-            x = x*z+p.x;
-            y = y*z+p.y;
-            r = r ? r*z : 0.00045*z;
+            x = x * z + p.x;
+            y = y * z + p.y;
+            r = r ? r * z : 0.00045 * z;
             if (size.f) {
-                size.f =  nakedColor(size.f);
+                size.f = nakedColor(size.f);
             }
             if (size.c) {
                 size.c = nakedColor(size.c);
             }
-            return circle({x,y},r,size)
+            return circle({ x, y }, r, size)
         }).join("");
         return a;
     }
 
-     static shapeDots = (circleList,p,options) => {
+    // must adjust for point p and also fx fy the points
+    static shapePolylines = (polist, p, options) => {
+        const size = Object.assign({}, T.size, options);
+        const a = polist.map(({ pts, opt }) => {
+            opt.c = nakedColor(opt.c) || size.c || "blue";
+            opt.f = nakedColor(opt.f) || size.f || "none";
+            const siz = size.z || 10;
+            const fillopacity = nice(opt.t || 1);
+            const p0 = pts[0]; const pn = pts[pts.length - 1];
+            const closed = (p0.x === pn.x && p0.y === pn.y);
+            if (closed) {
+                pts.pop();  // drop last point
+            }
+            const pol = closed ? "gon" : "line";
+            const cc = Object.assign({ closed, c: opt.c }, opt, size);
+            const sw = cc.r || 1;
+            const qa = pts.map(e => ({ x: +fx(p.x + e.x * siz, cc), y: +fy(p.y + e.y * siz, cc) }));
+            const pois = qa.map(e => `${e.x},${e.y}`).join(" ")  
+            return `<poly${pol} points="${pois}" stroke-width="${sw}" stroke="${opt.c}"  
+                fill-opacity="${fillopacity}" fill="${opt.f}" />`;
+        }).join("");
+        return a;
+    }
+
+    static shapeDots = (circleList, p, options) => {
         const a = circleList.map(c => {
-            let {x,y,opt} = c;
+            let { x, y, opt } = c;
             const z = options.z;
-            x = x*z+p.x;
-            y = y*z+p.y;
-            opt.r = opt.r ? opt.r : 0.00045*z;
+            x = x * z + p.x;
+            y = y * z + p.y;
+            opt.r = opt.r ? opt.r : 1;
             const size = Object.assign(opt, options);
             if (size.c) {
                 size.c = nakedColor(size.c);
             }
-            return dot({x,y},size)
+            return dot({ x, y }, size)
         }).join("");
         return a;
     }
+
+    // linr is used by shapeLines and shapeVects
 
     static linr = (f, list, p, options) => {
         const adj = [p.x, p.y, p.x, p.y];
@@ -442,43 +470,43 @@ export class T {
     }
 
 
-    static shapeLines = (lineList,p,options) => {
-        return this.linr(line,lineList,p,options)
+    static shapeLines = (lineList, p, options) => {
+        return this.linr(line, lineList, p, options)
     }
 
-     static shapeVects = (lineList,p,options) => {
-        return this.linr(vec,lineList,p,options)
+    static shapeVects = (lineList, p, options) => {
+        return this.linr(vec, lineList, p, options)
     }
 
-    static shapeText = (symlist,p,options) => {
+    static shapeText = (symlist, p, options) => {
         const z = options.z || 1
         const a = symlist.map(c => {
-            let {x,y,rot,txt,opt} = c;
-            x = x*z+p.x;
-            y = y*z+p.y;
+            let { x, y, rot, txt, opt } = c;
+            x = x * z + p.x;
+            y = y * z + p.y;
             opt.c = nakedColor(opt.c) || size.c || "blue";
             opt.o = 0;
-            opt.transform = rot !== undefined ? `transform="rotate(${+nice(180*rot)-90} ${fx(x,T.size)} ${fy(y,T.size)})"`: '';
-            const id = "shp" + String(Math.random()).slice(2, 8);
             const cc = Object.assign({ r: 1 }, T.size, options, opt);
-            return svgText(fx(x,T.size),fy(y,T.size), txt, id, cc);
+            cc.transform = rot !== undefined ? `transform="rotate(${+nice(360 - 360 * rot)} ${fx(x, cc)} ${fy(y, cc)})"` : '';
+            const id = "shp" + String(Math.random()).slice(2, 8);
+            return svgText(fx(x, cc), fy(y, cc), txt, id, cc);
         }).join("");
         return a;
     }
 
 
-    static shapeSyms = (symlist,p,options) => {
+    static shapeSyms = (symlist, p, options) => {
         const z = options.z || 1
         const a = symlist.map(c => {
-            let {x,y,t,rot,opt} = c;
-            x = x*z+p.x;
-            y = y*z+p.y;
+            let { x, y, t, rot, opt } = c;
+            x = x * z + p.x;
+            y = y * z + p.y;
             opt.c = nakedColor(opt.c) || size.c || "blue";
             opt.o = 0;
-            opt.transform = rot !== undefined ? `transform="rotate(${+nice(180*rot)-90} ${fx(x,T.size)} ${fy(y,T.size)})"`: '';
+            opt.transform = rot !== undefined ? `transform="rotate(${+nice(180 * rot) - 90} ${fx(x, T.size)} ${fy(y, T.size)})"` : '';
             const id = "shp" + String(Math.random()).slice(2, 8);
             const cc = Object.assign({ r: 1 }, T.size, options, opt);
-            return svgText(fx(x,T.size),fy(y,T.size), t, id, cc);
+            return svgText(fx(x, cc), fy(y, cc), t, id, cc);
         }).join("");
         return a;
     }
@@ -490,14 +518,14 @@ export class T {
         const a = rectList.map(rect => {
             let { x, y, w, h, r, opt } = rect;
             const size = Object.assign({}, opt, osize);
-            const c = nakedColor(size.c) || "blue";
-            const f =  nakedColor(size.f) || 'none';
-            const fillopacity = nice(size.t || 1);
+            const c = nakedColor(opt.c) || "blue";
+            const f = nakedColor(opt.f) || 'none';
+            const fillopacity = nice(opt.t || 1);
             x = x * z + p.x;
             y = y * z + p.y;
             const points = [{ x, y }, { x: x + w * z, y }, { x: x + w * z, y: y + h * z }, { x, y: y + h * z }]
                 .map(e => fx(e.x, size) + "," + fy(e.y, size)).join(" ");
-            const trans = r ? `transform="rotate(${floor(90 * r)} ${fx(x,size)} ${fy(y,size)})"` : "";
+            const trans = (r != 0.5) ? `transform="rotate(${floor(360 * r)} ${fx(x, size)} ${fy(y, size)})"` : "";
             return `<polygon points="${points}" ${trans} stroke-width="${sw}" stroke="${c}"  fill-opacity="${fillopacity}" fill="${f}" />`;
         }).join("");
         return a;
@@ -508,18 +536,21 @@ export class T {
     static ink = (...s) => {
         const p = s.find(e => e instanceof Point) || pt(0, 0);
         const sh = s.find(e => e.shape) || {};
-        const options = s.find(e => e.z) || { z:10 };
+        const options = s.find(e => e.z) || { z: 10 };
         const siz = options.z || 1;
         const size = Object.assign({}, T.size, options);
-        delete(size.r);
+        delete (size.r);
         if (options.r) size.r = options.r;
         if (options.c) size.c = options.c;
         const turn = options.turn || '';
         let transform = '';
         if (turn) {
-            transform=`transform="rotate(${turn} ${fx(p.x,size)} ${fy(p.y,size)})"`;
+            transform = `transform="rotate(${turn} ${fx(p.x, size)} ${fy(p.y, size)})"`;
         }
         let pz = [];
+        if (sh.poly) {
+            pz.push(this.shapePolylines(sh.poly, p, options));
+        }
         if (sh.sqrs) {
             pz.push(this.shapeRect(sh.sqrs, p, options));
         }
@@ -542,17 +573,17 @@ export class T {
             pz.push(this.shapeText(sh.text, p, options));
         }
         if (sh.bez) {
-            pz.push( sh.bez.map(({pts,opt}) => {
+            pz.push(sh.bez.map(({ pts, opt }) => {
                 opt.c = nakedColor(opt.c) || size.c || "blue";
                 opt.f = nakedColor(opt.f) || size.f;
-                const p0 = pts[0]; const pn = pts[pts.length-1];
+                const p0 = pts[0]; const pn = pts[pts.length - 1];
                 const closed = (p0.x === pn.x && p0.y === pn.y);
                 if (closed) {
                     pts.pop();  // drop last point
                 }
-                const qa = pts.map(e =>  ( { x:+fx(p.x+e.x*siz,size), y:+fy(p.y+e.y*siz,size) }) );
+                const qa = pts.map(e => ({ x: +fx(p.x + e.x * siz, size), y: +fy(p.y + e.y * siz, size) }));
                 const bzp = fitBezierPath(qa);
-                const cc = Object.assign({closed,c:opt.c}, opt, size);
+                const cc = Object.assign({ closed, c: opt.c }, opt, size);
                 const pth = bezz(bzp, cc);
                 return pth;
             }));
@@ -612,7 +643,7 @@ export class T {
             if (bad(p) || bad(q)) return '';
             return line(p, q, s);
         }
-        let q = 0; 
+        let q = 0;
         /** @type {number|null} */
         let r = 0; let p = null;
         const pline = (fxy, s, t, cc) => {
@@ -710,7 +741,7 @@ export class T {
         }
         const size = Object.assign({ x: 0, y: 0 }, T.size, cc);
         const y = +size.y
-        const wmin = Math.min(+size.sy,+size.s);
+        const wmin = Math.min(+size.sy, +size.s);
         const wy = +size.sy;
         const color = size.c ?? "gray";
         const xbase = size.xbase ?? 0;
@@ -751,7 +782,7 @@ export class T {
         const size = Object.assign({ x: 0, y: 0 }, T.size, cc);
         const x = +size.x
         const w = +size.s
-        const wmin = Math.min(+size.sy,+size.s);
+        const wmin = Math.min(+size.sy, +size.s);
         const wy = +size.sy
         const color = size.c ?? "gray";
         const xbase = size.xbase ?? 0;
@@ -1188,7 +1219,7 @@ const { circle, line, plot, bez, bezz, square, text, dot, dots, tri2svg, tri, pl
 const mathEnvironment = {
     sinh, cosh, exp, tanh, asinh, acosh, atanh, pow, sketch, latex, curry,
     figure, fitBezierPath, svgPathFromBeziers, ink,
-    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc, 
+    SIN, COS, ASIN, Point, nice, fx, fy, clamp, triheight, circumcirc,
     plot, pt, grid, axis, xaxis, yaxis, plots, legend, label, bezz,
     circle, line, bez, square, text, dot, dots, tri2svg, tri, origin, size, markedline, vec,
     abs, max, min, rnd, roll, shuffle, range, sqrt, ln, lg, log, floor, round,
@@ -1219,7 +1250,7 @@ export const eva = (exp0, variables) => {
     return v;
 }
 
-const nakedColor = txt => colornames[txt] ?? txt
+export const nakedColor = txt => colornames[txt] ?? txt
 
 
 
@@ -1239,7 +1270,7 @@ export const parse = (kode, size = "{w:300,s:8}") => kode
     .replace(/^tekst/gm, 'text')
     .replace(/^sirkel/gm, 'circle')
     .replace(/^trekant/gm, 'triangle')
-    .replace(/({[^}]*?)([cf]):([a-z]+)([,}])/gm, (_, p,k, u,v) => `${p}${k}:"${nakedColor(u)}"${v}`)
+    .replace(/({[^}]*?)([cf]):([a-z]+)([,}])/gm, (_, p, k, u, v) => `${p}${k}:"${nakedColor(u)}"${v}`)
     .replace(/([ =(])func\((.+?)\)$/gm, (_, p, u) => `${p} (t => {x=t; return ${u}} )`)
     .replace(/([a-z]):=(.+?)$/gm, (_, p, u) => `${p}= t => {x=t; return ${u}} `)
     .replace(/([ =(])xy\((.+?),(.+?)\)$/gm, (_, p, u, v) => `${p} (t => pt(${u},${v}) )`)

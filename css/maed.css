@@ -4,6 +4,31 @@
     --gui: fit-content;
 }
 
+
+td:has( span.bgcr ) {
+    background-color: rgba(255, 0, 0, 0.382);
+}
+
+
+td:has( span.bgcg ) {
+    background-color: rgba(0, 255, 0, 0.31);
+}
+
+td:has( span.bgcb ) {
+    background-color: blue;
+    color: white;
+}
+
+td:has( span.bgcy ) {
+    background-color: rgba(255, 255, 0, 0.542);
+}
+
+td:has( span.bgca ) {
+    background-color: rgba(128, 128, 128, 0.287);
+}
+
+
+
 #output {
     display: none !important;
 }
@@ -42,12 +67,23 @@ div.oppgave {
     font-size: 1.5em;
     position: absolute;
     top: 0rem;
+    border-top: solid #5551 1px;
+    width: 100%;
 }
 
 div.oppgave:empty::before {
     position: relative;
     content: attr(title) " " counter(oppg-count) ". ";
     text-transform: capitalize;
+}
+
+div.oppgave:empty::after {
+    position: relative;
+    font-weight: bold;
+    left:10rem;
+    content:  attr(data-instruction);
+    color: green;
+    font-size: 1rem;
 }
 
 h1 {
@@ -281,10 +317,10 @@ div.grid12 {
     grid-template-columns: 1fr 2fr;
 }
 
-div.grid13  div,
-div.grid12  div {
-    border:solid gray 1px;
-    padding:1rem;
+div.grid13 div,
+div.grid12 div {
+    border: solid gray 1px;
+    padding: 1rem;
 }
 
 
@@ -702,7 +738,7 @@ div.trig {
     position: relative;
 }
 
-div.trig svg + div {
+div.trig svg+div {
     font-size: 0.6rem;
     max-width: 30rem;
 }
@@ -712,11 +748,12 @@ div.trig svg {
     margin: 5px;
     position: relative;
 }
-div.trig > div {
+
+div.trig>div {
     position: absolute;
-    left:5px;
-    top:5px;
-     margin-top: calc(2em + var(--spacing));
+    left: 5px;
+    top: 5px;
+    margin-top: calc(2em + var(--spacing));
 }
 
 
@@ -1102,11 +1139,13 @@ div.section.fasit~div.section div.oppgave {
 #painter div.tools {
     position: absolute;
     left: 700px;
-    top:100px;
+    top: 100px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 }
 
 #innersvg {
-    margin:50px;
+    margin: 50px;
     display: block;
     width: 600px;
     height: 600px;
@@ -1115,20 +1154,23 @@ div.section.fasit~div.section div.oppgave {
 
 #painter div.stats {
     position: absolute;
-    top:80px;
+    top: 80px;
     left: 100px;
 }
 
-#painter div.tools span {
+span.tegn {
     display: block;
-    margin: 1rem;
     box-shadow: 5px 5px 5px black;
-    padding:0.7rem;
-    width: 5rem;
+    padding: 0.7rem;
     border: solid black 1px;
     text-align: center;
     border-radius: 5px;
+    width: fit-content;
+}
 
+#painter div.tools span {
+    margin: 1rem;
+    width: 5rem;
 }
 
 #painter div.tools span:active {
@@ -1139,6 +1181,17 @@ div.section.fasit~div.section div.oppgave {
 #easel {
     width: 600px;
     height: 600px;
+}
+
+#innersvg {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#painter {
+    padding: 1rem;
+
 }
 
 #painter,
@@ -1338,12 +1391,12 @@ td.elm div.id {
     top: 0;
 }
 
-div.rpad  div {
+div.rpad div {
     padding-right: 5px;
 }
 
 div.prove.metal {
-    padding:5px;
+    padding: 5px;
 }
 
 td.elm.alkali {
@@ -1354,7 +1407,8 @@ td.elm.earth {
     background-color: #4040ff40;
 }
 
-td.elm.metal, .metal {
+td.elm.metal,
+.metal {
     background-color: #0080ff20;
 }
 
@@ -1386,6 +1440,14 @@ div.large {
     font-size: 1.3em;
 }
 
+div.big {
+    font-size: 1.1em;
+}
+
+div.bigger {
+    font-size: 1.2em;
+}
+
 div.red {
     color: red;
 }
@@ -1407,11 +1469,10 @@ div.gray {
     color: gray;
 }
 
-div.small, div.tiny {
+div.small,
+div.tiny {
     font-size: 0.68em;
 }
-
-
 
 div.small img {
     width: 75%;

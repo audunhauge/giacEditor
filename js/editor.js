@@ -13,7 +13,7 @@ import {
 
 import { renderReg } from './regression.js';
 
-import { code2svg } from './trig.js';
+import { code2svg, nakedColor } from './trig.js';
 
 import { lang, trangui, _translateAtCommands } from './translate.js';
 import { autocom, helptxt, prep } from './autotags.js';
@@ -634,6 +634,8 @@ export const renderAll = (repaint = false) => {
         })
         // .replace(/^\(\($/gm,"<div>\n")
         .replace(/^\)\)$/gm, "</div>\n")
+        .replace(/bgc([a-z])/gm,(_,color) => `<span class="bgc${color}"></span>`)
+        .replace(/fgc([a-lry])\{([^}]+)\}/g,(_,color,txt) => `<span style="color:${nakedColor(color)}">${txt}</span>`)
         .replace(/&_/gm, '  ')  // &_   gives two thin no break space
         .replace(/^\.$/gm, '<div class="nl"></div>');
     let funks = {};      // f(x):=x+1 defined by @cas used by @sign and @fplot
@@ -731,7 +733,7 @@ export const renderAll = (repaint = false) => {
             })
             .replace(/^@table( .*)?$([^€]+?)^$^/gm, (_, options = "", lines) => {
                 ofs++;
-                const [__, type = '', name = ''] = (options.match(/ ([a-z]+)? ?([a-zA-ZæøåÆØÅ]+)?/)) || [];
+                const [__, type = '', name = ''] = (options.match(/ ([a-z]+)? ?([a-zA-Z&_æøåÆØÅ]+)?/)) || [];
                 tables.push({ name, seg, type, lines, id: `table${seg}_${ofs}` });
                 return `<div class="table ${type}" id="table${seg}_${ofs}"></div>\n`;
             })
@@ -766,7 +768,8 @@ export const renderAll = (repaint = false) => {
                 const nospaces = txt.trimStart().trimEnd();
                 const start = nospaces.split(" ").slice(-1);
                 const reset = Number.isInteger(+start) ? `data-start="${start}" ` : '';
-                return `<div ${reset}class="oppgave ${txt}" title="${splitter}"></div>\n`;
+                const instruction = reset ? nospaces.split(" ").slice(0,-1) : nospaces;
+                return `<div ${reset}class="oppgave ${txt}" data-instruction="${instruction}" title="${splitter}"></div>\n`;
             })
             .replace(/^@format( .*)?$/gm, (_, format) => {
                 const nospaces = format.trimStart().trimEnd();
